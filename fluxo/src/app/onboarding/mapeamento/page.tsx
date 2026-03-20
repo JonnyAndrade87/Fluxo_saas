@@ -1,8 +1,88 @@
+'use client'
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Eye, ArrowRight, ShieldCheck } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Eye, ArrowRight, ShieldCheck, Loader2 } from "lucide-react"
+import { importReceivables, ParsedReceivable } from "@/actions/import"
 
 export default function OnboardingMappingPage() {
+  const router = useRouter();
+  const [headers, setHeaders] = useState<string[]>([]);
+  const [rawData, setRawData] = useState<any[]>([]);
+  const [mapping, setMapping] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Hydrate state from previous step
+    const storedRaw = sessionStorage.getItem('fluxo_csv_raw');
+    const storedHeaders = sessionStorage.getItem('fluxo_csv_headers');
+    
+    if (storedRaw && storedHeaders) {
+      setRawData(JSON.parse(storedRaw));
+      setHeaders(JSON.parse(storedHeaders));
+    }
+  }, []);
+
+  const handleMappingChange = (csvHeader: string, fluxoField: string) => {
+    setMapping(prev => ({ ...prev, [csvHeader]: fluxoField }));
+  };
+
+  const processAndSubmit = async () => {
+    setIsSubmitting(true);
+    setError(null);
+
+    // Build the mapped array
+    const mappedPayload: ParsedReceivable[] = rawData.map(row => {
+      const obj: any = {};
+      
+      for (const csvHeader of headers) {
+        const targetField = mapping[csvHeader];
+        if (targetField && targetField !== 'ignore') {
+          // Type casting and formatting
+          let value = row[csvHeader];
+          
+          if (targetField === 'amount') {
+             // Convert R$ 1.200,50 to 1200.50
+             if(typeof value === 'string') {
+               value = value.replace('R$', '').replace(/\./g, '').replace(',', '.').trim();
+             }
+             obj[targetField] = parseFloat(value) || 0;
+          } else if (targetField === 'dueDate') {
+             // Basic conversion assuming DD/MM/YYYY or YYYY-MM-DD
+             if(typeof value === 'string' && value.includes('/')) {
+                const parts = value.split('/');
+                if(parts.length === 3) {
+                   obj[targetField] = `${parts[2]}-${parts[1]}-${parts[0]}T12:00:00.000Z`;
+                }
+             } else {
+                obj[targetField] = new Date(value).toISOString();
+             }
+          } else {
+             obj[targetField] = value;
+          }
+        }
+      }
+      return obj;
+    });
+
+    try {
+      const res = await importReceivables(mappedPayload);
+      if (res.success) {
+        sessionStorage.removeItem('fluxo_csv_raw');
+        sessionStorage.removeItem('fluxo_csv_headers');
+        router.push('/onboarding/automacao');
+      } else {
+        setError(res.error || "Ocorreu um erro no servidor.");
+        setIsSubmitting(false);
+      }
+    } catch (e) {
+      setError("Falha crônica de comunicação com o banco de dados.");
+      setIsSubmitting(false);
+    }
+  };
   return (
     <div className="animate-in fade-in slide-in-from-right-8 duration-500 w-full flex flex-col">
       
@@ -37,68 +117,64 @@ export default function OnboardingMappingPage() {
 
       <div className="text-center mb-10 space-y-3">
         <h1 className="text-2xl font-heading font-extrabold tracking-tight text-obsidian">
-          Processamento Concluído!
+          Cruzar Referências
         </h1>
         <p className="text-muted-foreground text-sm max-w-lg mx-auto">
-          Encontramos <strong>142 títulos financeiros</strong>. Confirme de forma rápida se amarramos as colunas corretamente antes de injetar os dados no Fluxo.
+          Lemos sua planilha! Confirme como deseja importar cada coluna antes de processarmos.
         </p>
       </div>
 
+      {error && (
+        <div className="bg-rose-50 border border-rose-200 text-rose-600 p-4 rounded-xl text-sm mb-6 flex items-center gap-2">
+           <strong>Erro de Ingestão:</strong> {error}
+        </div>
+      )}
+
       {/* Mapping Card */}
-      <div className="rounded-2xl border border-indigo-100 bg-white shadow-xl shadow-indigo-50/50 mb-10 overflow-hidden">
-        <div className="flex items-center justify-between p-4 border-b border-border/60 bg-muted/20">
+      <div className="rounded-2xl border border-indigo-100 bg-white shadow-xl shadow-indigo-50/50 mb-10 overflow-hidden overflow-x-auto custom-scrollbar">
+        <div className="flex items-center justify-between p-4 border-b border-border/60 bg-muted/20 min-w-max">
           <div className="flex items-center gap-2 text-indigo-700 font-semibold text-sm">
-            <Eye className="w-4 h-4" /> Pré-visualização das 3 primeiras linhas
+            <Eye className="w-4 h-4" /> Amostra de {Math.min(rawData.length, 3)} linhas e opções de Mapeamento
           </div>
           <Badge variant="outline" className="border-emerald-200 text-emerald-700 bg-emerald-50">
-            <ShieldCheck className="w-3 h-3 mr-1" /> Dados Sensíveis Ocultos
+            <ShieldCheck className="w-3 h-3 mr-1" /> Preview (Client-Side)
           </Badge>
         </div>
 
-        <table className="w-full text-sm text-left align-top">
+        <table className="w-full text-sm text-left align-top min-w-max">
           <thead className="bg-[#FAFAFB]">
             <tr>
-              <th className="px-6 py-4 font-semibold text-obsidian border-b border-border/50">
-                <div className="mb-2 text-xs text-muted-foreground">Entende-se como</div>
-                <select className="w-full max-w-[150px] h-8 text-sm outline-none bg-white border border-border/80 rounded px-2 hover:border-indigo-400 focus:border-indigo-500 font-medium">
-                  <option>Sacado (Empresa)</option>
-                  <option>Valor em R$</option>
-                  <option>Vencimento</option>
-                </select>
-              </th>
-              <th className="px-6 py-4 font-semibold text-obsidian border-b border-border/50">
-                 <div className="mb-2 text-xs text-muted-foreground">Entende-se como</div>
-                <select className="w-full max-w-[150px] h-8 text-sm outline-none bg-white border border-border/80 rounded px-2 hover:border-indigo-400 focus:border-indigo-500 font-medium cursor-pointer">
-                  <option>Vencimento</option>
-                  <option>Emissão</option>
-                  <option>Ignorar Coluna</option>
-                </select>
-              </th>
-              <th className="px-6 py-4 font-semibold text-obsidian border-b border-border/50">
-                 <div className="mb-2 text-xs text-muted-foreground">Entende-se como</div>
-                <select className="w-full max-w-[150px] h-8 text-sm outline-none bg-white border border-border/80 rounded px-2 hover:border-indigo-400 focus:border-indigo-500 font-medium cursor-pointer">
-                  <option>Valor (R$)</option>
-                  <option>Juros Mensal Base</option>
-                </select>
-              </th>
+              {headers.map((header, idx) => (
+                <th key={idx} className="px-6 py-4 font-semibold text-obsidian border-b border-border/50">
+                  <div className="mb-2 text-xs font-bold text-indigo-600 truncate max-w-[150px]">{header}</div>
+                  <select 
+                    onChange={(e) => handleMappingChange(header, e.target.value)}
+                    className="w-full max-w-[180px] h-9 text-sm outline-none bg-white border border-border/80 rounded-lg px-2 hover:border-indigo-400 focus:border-indigo-500 font-medium transition-colors cursor-pointer text-obsidian shadow-sm"
+                  >
+                    <option value="ignore">Ignorar Coluna</option>
+                    <option value="customerName">Nome da Empresa</option>
+                    <option value="document">CNPJ / CPF</option>
+                    <option value="email">E-mail</option>
+                    <option value="phone">WhatsApp / Telefone</option>
+                    <option value="invoiceNumber">Nº da Fatura (ID)</option>
+                    <option value="amount">Valor (R$)</option>
+                    <option value="dueDate">Data de Vencimento</option>
+                    <option value="description">Descrição</option>
+                  </select>
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody className="divide-y divide-border/40 text-muted-foreground bg-white">
-            <tr className="hover:bg-indigo-50/20">
-              <td className="px-6 py-4 font-medium text-obsidian">Agência Digital XYZ LTDA</td>
-              <td className="px-6 py-4">15/04/2026</td>
-              <td className="px-6 py-4 font-mono font-bold text-obsidian">R$ 5.400,00</td>
-            </tr>
-             <tr className="hover:bg-indigo-50/20">
-              <td className="px-6 py-4 font-medium text-obsidian">Construtora Base Forte</td>
-              <td className="px-6 py-4">20/04/2026</td>
-              <td className="px-6 py-4 font-mono font-bold text-obsidian">R$ 12.000,00</td>
-            </tr>
-             <tr className="hover:bg-indigo-50/20">
-              <td className="px-6 py-4 font-medium text-obsidian">Studio Alpha</td>
-              <td className="px-6 py-4 text-rose-600 font-bold">10/01/2026</td>
-              <td className="px-6 py-4 font-mono font-bold text-obsidian">R$ 800,00</td>
-            </tr>
+            {rawData.slice(0, 3).map((row, rowIdx) => (
+              <tr key={rowIdx} className="hover:bg-indigo-50/20">
+                {headers.map((header, colIdx) => (
+                  <td key={colIdx} className="px-6 py-4 font-medium text-obsidian truncate max-w-[200px]">
+                    {row[header] || '-'}
+                  </td>
+                ))}
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
@@ -107,14 +183,15 @@ export default function OnboardingMappingPage() {
         <Link href="/onboarding/importar" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-obsidian font-medium transition-colors">
           Refazer Upload
         </Link>
-        <Link href="/onboarding/automacao">
-           <Button variant="beam" className="h-11 px-8">
-             Confirmar & Avançar <ArrowRight className="w-4 h-4 ml-2" />
-           </Button>
-        </Link>
+        <Button variant="beam" className="h-11 px-8" onClick={processAndSubmit} disabled={isSubmitting}>
+          {isSubmitting ? (
+             <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Injetando...</>
+          ) : (
+             <>Confirmar & Injetar <ArrowRight className="w-4 h-4 ml-2" /></>
+          )}
+        </Button>
       </div>
 
     </div>
   )
 }
-import { Badge } from "@/components/ui/badge";
