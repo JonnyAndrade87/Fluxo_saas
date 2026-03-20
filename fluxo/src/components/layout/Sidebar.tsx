@@ -11,7 +11,8 @@ import {
   BarChart3, 
   Wallet,
   Building2,
-  LifeBuoy
+  LifeBuoy,
+  CloudUpload
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -22,6 +23,7 @@ const navGroups = [
       { name: "Overview", href: "/", icon: LayoutDashboard },
       { name: "Cobranças", href: "/cobrancas", icon: Receipt },
       { name: "Clientes", href: "/clientes", icon: Users },
+      { name: "Importar Lote", href: "/importar", icon: CloudUpload },
     ]
   },
   {
