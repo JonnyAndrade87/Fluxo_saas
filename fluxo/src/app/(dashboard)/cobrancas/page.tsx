@@ -3,8 +3,32 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Search, Filter, Plus, FileText, ArrowUpDown, MoreHorizontal } from "lucide-react"
+import { getInvoices } from "@/actions/invoices"
 
-export default function CobrancasPage() {
+export default async function CobrancasPage() {
+  const invoices = await getInvoices();
+  
+  const formatDate = (date: Date) => new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }).format(date);
+  const formatCurrency = (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+  
+  const getBadgeVariant = (status: string) => {
+    switch(status) {
+      case 'paid': return 'success';
+      case 'overdue': return 'destructive';
+      case 'pending': return 'warning';
+      default: return 'indigo';
+    }
+  };
+
+  const translateStatus = (status: string) => {
+    switch(status) {
+      case 'paid': return 'Pago';
+      case 'overdue': return 'Atrasado';
+      case 'pending': return 'Pendente';
+      default: return status;
+    }
+  };
+
   return (
     <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500 pb-10">
       
@@ -64,31 +88,23 @@ export default function CobrancasPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/60 text-obsidian">
-                {[
-                  { id: "INV-2026-001", emitido: "10/Out/2026", cliente: "Tech Solutions Inc.", responsavel: "joao@techsolutions.com", valor: "R$ 1.500,00", badge: "success", status: "Pago Hoje" },
-                  { id: "INV-2026-002", emitido: "08/Out/2026", cliente: "Agência Digital & Co", responsavel: "financeiro@agencia.com", valor: "R$ 2.300,00", badge: "warning", status: "Vence Amanhã" },
-                  { id: "INV-2026-003", emitido: "01/Out/2026", cliente: "Loja do Centro LTDA", responsavel: "contato@lojadocentro.com.br", valor: "R$ 850,00", badge: "destructive", status: "Atrasado (5d)" },
-                  { id: "INV-2026-004", emitido: "05/Out/2026", cliente: "Clínica Vida Saúde", responsavel: "adm@clinicavida.com", valor: "R$ 3.200,00", badge: "success", status: "Pago (Pix)" },
-                  { id: "INV-2026-005", emitido: "15/Out/2026", cliente: "Construtora Silva", responsavel: "contas@silvaconstrutora.com", valor: "R$ 12.000,00", badge: "indigo", status: "Enviado" },
-                  { id: "INV-2026-006", emitido: "16/Out/2026", cliente: "StartUp NovaEra", responsavel: "hello@novaera.app", valor: "R$ 4.500,00", badge: "indigo", status: "Processando" },
-                ].map((item, i) => (
-                  <tr key={i} className="hover:bg-indigo-50/30 transition-colors group">
+                {invoices.map((item, i) => (
+                  <tr key={item.id} className="hover:bg-indigo-50/30 transition-colors group">
                     <td className="px-6 py-4">
-                      <div className="font-semibold font-mono tracking-tight text-indigo-700">{item.id}</div>
-                      <div className="text-[11px] text-muted-foreground mt-0.5">Criado em {item.emitido}</div>
+                      <div className="font-semibold font-mono tracking-tight text-indigo-700">{item.invoiceNumber}</div>
+                      <div className="text-[11px] text-muted-foreground mt-0.5">Criado em {formatDate(item.issueDate)}</div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="font-semibold text-obsidian group-hover:text-indigo-600 transition-colors">{item.cliente}</div>
-                      <div className="text-xs text-muted-foreground mt-0.5">{item.responsavel}</div>
+                      <div className="font-semibold text-obsidian group-hover:text-indigo-600 transition-colors">{item.customer.name}</div>
+                      <div className="text-xs text-muted-foreground mt-0.5">Doc: {item.customer.documentNumber}</div>
                     </td>
                     <td className="px-6 py-4">
-                      {/* @ts-ignore */}
-                      <Badge variant={item.badge} className="px-2.5 py-1 whitespace-nowrap">
-                        {item.status}
+                      <Badge variant={getBadgeVariant(item.status) as any} className="px-2.5 py-1 whitespace-nowrap">
+                        {translateStatus(item.status)}
                       </Badge>
                     </td>
                     <td className="px-6 py-4 font-bold font-mono text-obsidian text-right text-[15px]">
-                      {item.valor}
+                      {formatCurrency(item.amount)}
                     </td>
                     <td className="px-6 py-4 text-right">
                       <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-indigo-600 hover:bg-indigo-50">

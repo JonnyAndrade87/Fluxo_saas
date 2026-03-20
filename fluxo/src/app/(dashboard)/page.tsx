@@ -13,8 +13,15 @@ import {
   CreditCard,
   BarChart3
 } from "lucide-react"
+import { getDashboardMetrics } from "@/actions/dashboard"
 
-export default function Dashboard() {
+const formatCurrency = (val: number) => {
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val).replace('R$', '').trim();
+}
+
+export default async function Dashboard() {
+  const metrics = await getDashboardMetrics();
+
   return (
     <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500 pb-10">
       
@@ -49,7 +56,7 @@ export default function Dashboard() {
           <CardContent className="relative z-10">
             <div className="text-3xl font-heading font-extrabold tracking-tight text-obsidian flex items-baseline gap-1">
               <span className="text-lg text-muted-foreground font-medium">R$</span>
-              45.231,89
+              {formatCurrency(metrics.totalReceivables)}
             </div>
             <p className="text-xs font-medium mt-2 flex items-center text-emerald-600 bg-emerald-50 w-fit px-2 py-0.5 rounded-full border border-emerald-100">
               <ArrowUpRight className="h-3 w-3 mr-1" /> 
@@ -70,11 +77,11 @@ export default function Dashboard() {
           <CardContent className="relative z-10">
             <div className="text-3xl font-heading font-extrabold tracking-tight text-obsidian flex items-baseline gap-1">
               <span className="text-lg text-muted-foreground font-medium">R$</span>
-              12.050,00
+              {formatCurrency(metrics.receivedAmount)}
             </div>
             <p className="text-xs font-medium mt-2 text-muted-foreground flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-              15 boletos/pix em aberto
+              {metrics.counts.paid} boletos liquidados
             </p>
           </CardContent>
         </Card>
@@ -92,14 +99,14 @@ export default function Dashboard() {
           <CardContent className="relative z-10">
             <div className="text-3xl font-heading font-extrabold tracking-tight text-rose-700 flex items-baseline gap-1">
               <span className="text-lg text-rose-500/80 font-medium">R$</span>
-              3.420,50
+              {formatCurrency(metrics.pastDueAmount)}
             </div>
             <p className="text-[11px] font-bold mt-2 flex items-center text-rose-600 uppercase tracking-wider">
               <span className="relative flex h-2 w-2 mr-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
               </span>
-              Ação necessária em 8 clientes
+              Ação necessária ({metrics.counts.overdue} faturas)
             </p>
           </CardContent>
         </Card>
@@ -115,10 +122,10 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="relative z-10">
             <div className="text-3xl font-heading font-extrabold tracking-tight text-obsidian flex items-baseline gap-1">
-              +12
+              {metrics.defaultRate}<span className="text-xl text-muted-foreground font-medium">%</span>
             </div>
             <p className="text-xs font-medium mt-2 text-muted-foreground">
-              Cadastrados nos últimos 30 dias
+              Taxa de Default do Portfólio
             </p>
           </CardContent>
         </Card>

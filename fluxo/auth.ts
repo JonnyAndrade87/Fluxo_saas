@@ -18,7 +18,8 @@ export const { auth, signIn, signOut, handlers: { GET, POST } } = NextAuth({
           const { email, password } = parsedCredentials.data;
           
           const user = await prisma.user.findUnique({
-            where: { email }
+            where: { email },
+            include: { tenants: { take: 1 } }
           });
           
           if (!user || !user.password) return null;
@@ -30,7 +31,8 @@ export const { auth, signIn, signOut, handlers: { GET, POST } } = NextAuth({
               id: user.id,
               email: user.email,
               name: user.fullName,
-            };
+              tenantId: user.tenants[0]?.tenantId
+            } as any;
           }
         }
         console.log('Invalid credentials');
@@ -38,5 +40,21 @@ export const { auth, signIn, signOut, handlers: { GET, POST } } = NextAuth({
       },
     }),
   ],
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.tenantId = (user as any).tenantId;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (token) {
+        if (session.user) {
+           (session.user as any).tenantId = token.tenantId;
+        }
+      }
+      return session;
+    }
+  },
   session: { strategy: 'jwt' }
 });

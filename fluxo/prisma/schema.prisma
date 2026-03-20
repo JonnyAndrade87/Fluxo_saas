@@ -5,6 +5,7 @@ generator client {
 // Local testing DB. Change provider to "postgresql" for production with Supabase/Vercel
 datasource db {
   provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
 // ==========================================
