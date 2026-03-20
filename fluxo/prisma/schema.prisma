@@ -1,0 +1,242 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Local testing DB. Change provider to "postgresql" for production with Supabase/Vercel
+datasource db {
+  provider = "sqlite"
+}
+
+// ==========================================
+// CORE & IDENTITY (MULTI-TENANT FOUNDATION)
+// ==========================================
+
+model Tenant {
+  id              String   @id @default(uuid())
+  name            String
+  documentNumber  String   @unique @map("document_number")
+  planType        String   @default("starter") @map("plan_type")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Relationships
+  users              TenantUser[]
+  customers          Customer[]
+  financialContacts  FinancialContact[]
+  invoices           Invoice[]
+  invoiceInstallments InvoiceInstallment[]
+  billingFlows       BillingFlow[]
+  communications     Communication[]
+  paymentPromises    PaymentPromise[]
+  activityLogs       ActivityLog[]
+
+  @@map("tenants")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  fullName  String   @map("full_name")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relationships
+  tenants         TenantUser[]
+  paymentPromises PaymentPromise[] // Whoever registered the promise
+  activityLogs    ActivityLog[]
+
+  @@map("users")
+}
+
+model TenantUser {
+  id        String   @id @default(uuid())
+  tenantId  String   @map("tenant_id")
+  userId    String   @map("user_id")
+  role      String   @default("operator") // admin, operator, viewer
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Foreign Keys
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, userId])
+  @@map("tenant_users")
+}
+
+// ==========================================
+// BILLING & CUSTOMERS
+// ==========================================
+
+model Customer {
+  id              String   @id @default(uuid())
+  tenantId        String   @map("tenant_id")
+  name            String
+  documentNumber  String   @map("document_number")
+  status          String   @default("active") // active, inactive, blocklisted
+  customData      String?  @map("custom_data") // SQLite does not support JSONB natively. Using String to store serialized JSON. Use Json in Postgres.
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Foreign Keys
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  // Relationships
+  financialContacts FinancialContact[]
+  invoices          Invoice[]
+  communications    Communication[]
+
+  @@index([tenantId])
+  @@map("customers")
+}
+
+model FinancialContact {
+  id          String   @id @default(uuid())
+  tenantId    String   @map("tenant_id")
+  customerId  String   @map("customer_id")
+  name        String
+  email       String
+  phone       String?
+  isPrimary   Boolean  @default(false) @map("is_primary")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Foreign Keys
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@map("financial_contacts")
+}
+
+// ==========================================
+// RECEIVABLES (INVOICES & INSTALLMENTS)
+// ==========================================
+
+model Invoice {
+  id                  String   @id @default(uuid())
+  tenantId            String   @map("tenant_id")
+  customerId          String   @map("customer_id")
+  invoiceNumber       String   @map("invoice_number")
+  amount              Float    // In real financial systems using Postgres, use Decimal datatype
+  balanceDue          Float    @map("balance_due")
+  dueDate             DateTime @map("due_date")
+  issueDate           DateTime @default(now()) @map("issue_date")
+  status              String   @default("pending") // draft, pending, paid, overdue, canceled, in_negotiation
+  externalReferenceId String?  @map("external_reference_id")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  // Foreign Keys
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  // Relationships
+  installments    InvoiceInstallment[]
+  communications  Communication[]
+  paymentPromises PaymentPromise[]
+
+  @@index([tenantId, status])
+  @@index([tenantId, dueDate])
+  @@index([tenantId, customerId])
+  @@map("invoices")
+}
+
+model InvoiceInstallment {
+  id               String   @id @default(uuid())
+  tenantId         String   @map("tenant_id")
+  invoiceId        String   @map("invoice_id")
+  installmentNumber Int      @map("installment_number")
+  amount           Float
+  dueDate          DateTime @map("due_date")
+  status           String   @default("pending")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  // Foreign Keys
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+  @@map("invoice_installments")
+}
+
+// ==========================================
+// AUTOMATION & HISTORY
+// ==========================================
+
+model BillingFlow {
+  id          String   @id @default(uuid())
+  tenantId    String   @map("tenant_id")
+  name        String
+  description String?
+  isActive    Boolean  @default(true) @map("is_active")
+  rules       String   // String in SQLite representing Workflow JSON configuration
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Foreign Keys
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("billing_flows")
+}
+
+model Communication {
+  id          String   @id @default(uuid())
+  tenantId    String   @map("tenant_id")
+  customerId  String   @map("customer_id")
+  invoiceId   String?  @map("invoice_id")
+  channel     String   // email, whatsapp, sms, portal_view
+  messageType String   @map("message_type") // reminder, late_notice, thank_you, manual_message
+  content     String
+  status      String   @default("sent") // sent, delivered, read, failed
+  sentAt      DateTime @default(now()) @map("sent_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Foreign Keys
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  invoice  Invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, sentAt])
+  @@map("communications")
+}
+
+model PaymentPromise {
+  id           String   @id @default(uuid())
+  tenantId     String   @map("tenant_id")
+  invoiceId    String   @map("invoice_id")
+  userId       String   @map("user_id") // The Operator who got the promise
+  promisedDate DateTime @map("promised_date")
+  amount       Float
+  notes        String?
+  status       String   @default("pending") // pending, fulfilled, broken
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Foreign Keys
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  invoice  Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id])
+
+  @@index([tenantId, promisedDate])
+  @@map("payment_promises")
+}
+
+model ActivityLog {
+  id         String   @id @default(uuid())
+  tenantId   String   @map("tenant_id")
+  userId     String?  @map("user_id")
+  action     String   // INVOICE_CREATED, PAYMENT_REGISTERED, FLOW_ACTIVATED
+  entityType String   @map("entity_type") // invoice, customer, settings
+  entityId   String   @map("entity_id")
+  metadata   String?  // String in SQLite representing before/after JSON payload
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Foreign Keys
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, createdAt(sort: Desc)])
+  @@map("activity_logs")
+}
