@@ -10,16 +10,22 @@ export async function authenticate(
   formData: FormData,
 ) {
   try {
-    await signIn('credentials', formData);
+    const data = Object.fromEntries(formData);
+    await signIn('credentials', {
+      ...data,
+      redirectTo: '/cobrancas',
+    });
   } catch (error) {
     if (error instanceof AuthError) {
       switch (error.type) {
         case 'CredentialsSignin':
           return 'Invalid credentials.';
         default:
-          return 'Something went wrong.';
+          return 'Credenciais inválidas ou erro genérico.';
       }
     }
+    
+    // Auth.js redirects by throwing NEXT_REDIRECT! We MUST re-throw.
     throw error;
   }
 }

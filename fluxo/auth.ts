@@ -41,6 +41,7 @@ export const { auth, signIn, signOut, handlers: { GET, POST } } = NextAuth({
     }),
   ],
   callbacks: {
+    ...authConfig.callbacks,
     async jwt({ token, user }) {
       if (user) {
         token.tenantId = (user as any).tenantId;
