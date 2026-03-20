@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Design System V4 | AI Marketing & Finance Fusion</title>
+
+    <!-- Tailwind & Icons -->
+    <script src="../Design System/ai-marketing-56.aura.build/assets/resource_3fa48481346f.es"></script>
+    <script src="../Design System/ai-marketing-56.aura.build/assets/iconify-icon_e19829e7f0e8.js"></script>
+    <script src="../Design System/dashboard-list/assets/lucide_c4b77f01cf98.js"></script>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="../Design System/ai-marketing-56.aura.build/assets/css2_7d028f1edcf5.css" rel="stylesheet"/>
+    <link href="../Design System/financial-infrastruc-68.aura.build/assets/css2_19fd9cc6b396.css" rel="stylesheet"/>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
+                        manrope: ['Manrope', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    colors: {
+                        canvas: '#FAFAFA',
+                        surface: '#FFFFFF',
+                        obsidian: '#111111',
+                        subtle: '#737373',
+                        border: '#E5E5E5',
+                        brandAccent: '#4F46E5', // Indigo-600
+                        success: '#10b981', // Emerald-500
+                        warning: '#f59e0b',
+                        danger: '#ef4444',
+                    },
+                    letterSpacing: {
+                        tight: '-0.02em',
+                        tighter: '-0.04em',
+                    },
+                    animation: {
+                        'spin-slow': 'spin 3s linear infinite',
+                        'marquee': 'marquee 20s linear infinite',
+                        'shimmer': 'shimmer 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite',
+                        'slide-up': 'slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'fade-in': 'fadeIn 0.8s ease-out forwards',
+                    },
+                    keyframes: {
+                        marquee: {
+                            '0%': { transform: 'translateX(0)' },
+                            '100%': { transform: 'translateX(-50%)' },
+                        },
+                        shimmer: {
+                            '100%': { transform: 'translateX(100%)' }
+                        },
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        html { scroll-behavior: smooth; }
+        body { margin: 0; background-color: #FAFAFA; color: #111111; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+        
+        /* Grid BG from AI Marketing */
+        .technical-grid {
+            background-size: 40px 40px;
+            background-image: linear-gradient(to right, rgba(0, 0, 0, 0.04) 1px, transparent 1px), linear-gradient(to bottom, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+            mask-image: linear-gradient(to bottom, black 25%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to bottom, black 25%, transparent 100%);
+        }
+        
+        /* Premium Card Hover from Finance & AI */
+        .premium-card {
+            background: #FFFFFF; border: 1px solid #EAEAEA;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02), 0 8px 16px -4px rgba(0,0,0,0.04);
+            transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .premium-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.06), 0 24px 48px -12px rgba(0,0,0,0.08);
+            border-color: #D4D4D4;
+        }
+
+        /* Abstract Glow Background Animation */
+        .glow-blob {
+            position: absolute;
+            filter: blur(80px);
+            opacity: 0.5;
+            mix-blend-mode: multiply;
+            border-radius: 50%;
+            animation: pulse-glow 8s ease-in-out infinite alternate;
+            pointer-events: none;
+            z-index: 0;
+        }
+        @keyframes pulse-glow {
+            0% { transform: scale(1) translate(0, 0); opacity: 0.4; }
+            50% { transform: scale(1.2) translate(10%, 10%); opacity: 0.6; }
+            100% { transform: scale(0.9) translate(-5%, -5%); opacity: 0.4; }
+        }
+
+        /* Border Beam Button */
+        .btn-beam {
+            position: relative;
+            overflow: hidden;
+            isolation: isolate;
+        }
+        .btn-beam::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 300%;
+            height: 300%;
+            background: conic-gradient(from 90deg at 50% 50%, transparent 0%, transparent 75%, #ffffff 100%);
+            transform: translate(-50%, -50%);
+            animation: spin 3s linear infinite;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: -2;
+        }
+        .btn-beam:hover::before { opacity: 1; }
+        .btn-beam::after {
+            content: '';
+            position: absolute;
+            inset: 1px;
+            background: #111111;
+            border-radius: inherit;
+            z-index: -1;
+            transition: background 0.3s;
+        }
+        .btn-beam:hover::after { background: #000000; }
+        
+        .shimmer-layer { transform: translateX(-100%); }
+        .group:hover .shimmer-layer { animation: shimmer 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+
+        .ds-section {
+            padding: 6rem 0;
+            position: relative;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        .delay-100 { animation-delay: 100ms; }
+        .delay-200 { animation-delay: 200ms; }
+        .delay-300 { animation-delay: 300ms; }
+    </style>
+</head>
+
+<body class="w-full relative bg-canvas">
+    
+    <!-- Background Frame -->
+    <div class="fixed inset-0 z-0 technical-grid pointer-events-none"></div>
+
+    <!-- Layout Wrappers -->
+    <div class="mx-auto max-w-screen-2xl border-l border-r border-dashed border-gray-200/60 min-h-screen relative bg-white/30 backdrop-blur-3xl">
+        
+        <!-- Navigation -->
+        <header class="sticky top-0 left-0 right-0 z-50 w-full px-6 py-5 md:px-12 flex justify-between items-center bg-canvas/80 backdrop-blur-md border-b border-border/50 transition-all duration-300">
+            <div class="flex items-center gap-2">
+                <div class="w-6 h-6 bg-obsidian text-white flex items-center justify-center rounded-sm shadow-md">
+                    <iconify-icon icon="solar:layers-bold" width="16"></iconify-icon>
+                </div>
+                <span class="font-sans text-sm font-bold tracking-tight text-obsidian uppercase">Design System Core</span>
+            </div>
+            <nav class="hidden md:flex items-center gap-8">
+                <a class="font-sans text-xs font-medium text-subtle hover:text-obsidian transition-colors" href="#hero">Hero Preview</a>
+                <a class="font-sans text-xs font-medium text-subtle hover:text-obsidian transition-colors" href="#typography">Typography</a>
+                <a class="font-sans text-xs font-medium text-subtle hover:text-obsidian transition-colors" href="#colors">Colors & Semantics</a>
+                <a class="font-sans text-xs font-medium text-subtle hover:text-obsidian transition-colors" href="#components">UI Components</a>
+            </nav>
+            <div class="flex items-center gap-4">
+                <button class="hidden sm:block font-sans text-xs font-medium text-subtle hover:text-obsidian transition-colors">Documentation</button>
+                <!-- Shimmer Button -->
+                <button class="group relative isolate overflow-hidden bg-obsidian text-white text-xs font-semibold px-5 py-2.5 rounded-full shadow-sm ring-1 ring-white/10 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg focus:outline-none">
+                    <div class="shimmer-layer absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent z-10"></div>
+                    <span class="relative z-20 flex items-center gap-2">Copy Code <iconify-icon icon="solar:copy-linear"></iconify-icon></span>
+                </button>
+            </div>
+        </header>
+
+        <main class="relative z-10 px-4 md:px-8 lg:px-12 space-y-6">
+
+            <!-- 1) HERO DEMONSTRAÇÃO (AI Marketing Vibe) -->
+            <section id="hero" class="relative min-h-[85vh] flex flex-col items-center justify-center py-20 gap-16 overflow-hidden">
+                <!-- Background Glows -->
+                <div class="glow-blob w-[50vw] h-[50vw] bg-indigo-200/50 top-[-10%] left-[-10%]"></div>
+                <div class="glow-blob w-[40vw] h-[40vw] bg-purple-200/40 bottom-[10%] right-[-5%]" style="animation-delay: 2s; animation-duration: 10s;"></div>
+                
+                <div class="max-w-4xl text-center space-y-8 relative z-10 animate-slide-up">
+                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-border/60 shadow-sm backdrop-blur-sm">
+                        <span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+                        <span class="font-sans text-xs font-medium text-subtle tracking-tight">O "Lovable" de UI Modular para Plataformas B2B</span>
+                    </div>
+                    
+                    <h1 class="font-sans text-6xl md:text-8xl font-semibold tracking-tighter text-obsidian leading-[0.95]"> 
+                        A fundação unificada, <br/>
+                        <span class="text-subtle bg-clip-text text-transparent bg-gradient-to-r from-obsidian/40 to-obsidian">renderizada por pixels.</span>
+                    </h1>
+                    
+                    <p class="max-w-xl mx-auto font-sans text-lg text-subtle leading-relaxed mt-6"> 
+                        Transforme designs vagos em componentes codificados completos, com tipografia responsiva e micromoções em segundos.
+                    </p>
+                    
+                    <div class="mt-10 flex flex-col sm:flex-row justify-center gap-4 animate-slide-up delay-200">
+                        <button class="group inline-flex items-center justify-center gap-2 transition-all hover:scale-105 hover:shadow-lg font-medium text-white bg-obsidian rounded-full px-8 py-4">
+                            <iconify-icon icon="solar:siderbar-bold-duotone" class="text-xl"></iconify-icon>
+                            Explore Components
+                            <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i>
+                        </button>
+                        <button class="inline-flex items-center justify-center gap-2 font-medium px-8 py-4 rounded-full border border-border bg-white hover:bg-gray-50 text-obsidian transition-all hover:shadow-sm">
+                            Figma UI Kit
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Showcase Element: Financial / Chat Mockup Fusion -->
+                <div class="relative w-full max-w-5xl mx-auto mt-16 animate-slide-up delay-300">
+                    <div class="premium-card w-full p-2 relative rounded-2xl bg-white/70 backdrop-blur-xl border border-white">
+                        <div class="absolute -top-3 left-6 flex gap-2 z-20">
+                            <div class="w-3 h-3 rounded-full bg-rose-400 border border-white"></div>
+                            <div class="w-3 h-3 rounded-full bg-amber-400 border border-white"></div>
+                            <div class="w-3 h-3 rounded-full bg-emerald-400 border border-white"></div>
+                        </div>
+                        
+                        <!-- UI Inner -->
+                        <div class="bg-canvas rounded-xl overflow-hidden shadow-inner border border-border/40 grid grid-cols-1 md:grid-cols-3">
+                            <!-- Sidebar -->
+                            <div class="border-r border-border/50 p-6 bg-white/50 hidden md:block">
+                                <div class="w-full h-8 bg-border/40 rounded mb-8"></div>
+                                <div class="space-y-4">
+                                    <div class="h-4 w-3/4 bg-border/40 rounded"></div>
+                                    <div class="h-4 w-1/2 bg-border/40 rounded"></div>
+                                    <div class="h-4 w-5/6 bg-indigo-100 rounded border border-indigo-200"></div>
+                                    <div class="h-4 w-2/3 bg-border/40 rounded"></div>
+                                </div>
+                            </div>
+                            <!-- Main Content / Dashboard List -->
+                            <div class="col-span-2 p-8 relative">
+                                <div class="flex justify-between items-center mb-8">
+                                    <h3 class="font-sans font-semibold text-xl tracking-tight">Active Campaigns</h3>
+                                    <span class="px-3 py-1 bg-obsidian text-white text-[10px] font-bold rounded-full uppercase tracking-wider">Live</span>
+                                </div>
+                                
+                                <!-- Rendered Row -->
+                                <div class="bg-white border border-border p-4 rounded-xl shadow-sm mb-4 flex items-center justify-between group hover:border-obsidian transition-colors cursor-pointer">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-10 h-10 rounded bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100">
+                                            <iconify-icon icon="solar:target-bold-duotone" class="text-xl"></iconify-icon>
+                                        </div>
+                                        <div>
+                                            <p class="font-semibold text-sm font-sans">Retargeting Strategy</p>
+                                            <p class="text-xs text-subtle font-sans">Generated by Fluxo AI</p>
+                                        </div>
+                                    </div>
+                                    <div class="w-32 h-2 bg-gray-100 rounded-full overflow-hidden">
+                                        <div class="bg-indigo-500 h-full w-[80%] relative">
+                                            <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent animate-shimmer"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Chat Generative Prompt Box in UI -->
+                                <div class="absolute bottom-6 left-6 right-6 bg-white border border-border p-2 rounded-xl flex items-center gap-2 shadow-lg shadow-obsidian/5">
+                                    <iconify-icon icon="solar:magic-stick-3-linear" class="text-indigo-500 text-xl ml-2"></iconify-icon>
+                                    <input type="text" value="Create a high converting email flow for CFOs..." class="flex-1 bg-transparent border-none outline-none text-sm font-sans text-obsidian px-2 py-1" readonly>
+                                    <div class="bg-obsidian text-white w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-800">
+                                        <iconify-icon icon="solar:arrow-up-linear"></iconify-icon>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2) TIPOGRAFIA -->
+            <section id="typography" class="ds-section pt-0">
+                <div class="mb-16">
+                    <h2 class="text-sm font-bold tracking-widest text-indigo-600 uppercase mb-2 font-mono">01. Typography Hierarchy</h2>
+                    <h3 class="text-4xl font-sans font-semibold tracking-tight">Tipografia &amp; Identidade</h3>
+                    <p class="text-subtle mt-4 max-w-2xl font-sans text-base">Utilizamos a fonte <strong>"Plus Jakarta Sans"</strong> como primária para garantir uma leitura otimizada em UIs complexas, mantendo legibilidade excepcional tanto em letras pequenas quanto em headings magnos.</p>
+                </div>
+                
+                <div class="grid lg:grid-cols-12 gap-12">
+                    <!-- Configs -->
+                    <div class="lg:col-span-4 space-y-8">
+                        <div class="premium-card rounded-2xl p-6">
+                            <h4 class="text-xs font-bold text-subtle uppercase tracking-widest mb-4">Font Families</h4>
+                            <div class="space-y-4">
+                                <div class="pb-3 border-b border-border/50">
+                                    <div class="text-xs text-subtle mb-1">Primary (Sans-Serif)</div>
+                                    <div class="text-xl font-sans font-semibold text-obsidian">Plus Jakarta Sans</div>
+                                    <div class="text-[10px] bg-gray-100 text-subtle px-2 py-0.5 rounded inline-block mt-1">Weights: 400, 500, 600, 700</div>
+                                </div>
+                                <div class="pb-3 border-b border-border/50">
+                                    <div class="text-xs text-subtle mb-1">Display Optional</div>
+                                    <div class="text-xl font-manrope font-medium tracking-tight text-obsidian">Manrope</div>
+                                </div>
+                                <div>
+                                    <div class="text-xs text-subtle mb-1">Monospace / Code</div>
+                                    <div class="text-base font-mono text-obsidian tracking-tight">JetBrains Mono</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="premium-card rounded-2xl p-6 bg-obsidian text-white border-obsidian">
+                            <h4 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Loading Strategy</h4>
+                            <ul class="text-sm space-y-3 font-mono text-gray-300">
+                                <li>> Source: <span class="text-white">Google Fonts CDN</span></li>
+                                <li>> Display: <span class="text-white">Swap</span></li>
+                                <li>> Primary Fallback:<br><span class="text-white opacity-80">Inter, system-ui, sans-serif</span></li>
+                                <li>> Classes: <span class="text-white">.font-sans, .font-mono</span></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Scale -->
+                    <div class="lg:col-span-8 premium-card rounded-2xl p-8 overflow-x-auto">
+                        <table class="w-full text-left text-sm border-collapse">
+                            <thead>
+                                <tr class="border-b border-border text-subtle text-xs uppercase tracking-wider font-semibold">
+                                    <th class="pb-4 font-normal">Role / Class</th>
+                                    <th class="pb-4 font-normal">Preview</th>
+                                    <th class="pb-4 font-normal">Size / LH</th>
+                                    <th class="pb-4 font-normal">Weight / Track</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-border/50">
+                                <tr>
+                                    <td class="py-5 font-mono text-xs text-subtle">H1<br><span class="text-[10px] opacity-70">text-7xl</span></td>
+                                    <td class="py-5"><span class="font-sans text-5xl md:text-7xl font-semibold tracking-tighter text-obsidian leading-none">Headline 1</span></td>
+                                    <td class="py-5 text-xs text-subtle font-mono">72px<br/>1.0</td>
+                                    <td class="py-5 text-xs text-subtle font-mono">600<br/>-0.04em</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-5 font-mono text-xs text-subtle">H2<br><span class="text-[10px] opacity-70">text-5xl</span></td>
+                                    <td class="py-5"><span class="font-sans text-3xl md:text-5xl font-semibold tracking-tighter text-obsidian leading-tight">Section Title 2</span></td>
+                                    <td class="py-5 text-xs text-subtle font-mono">48px<br/>1.1</td>
+                                    <td class="py-5 text-xs text-subtle font-mono">600<br/>-0.04em</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-5 font-mono text-xs text-subtle">H3<br><span class="text-[10px] opacity-70">text-3xl</span></td>
+                                    <td class="py-5"><span class="font-sans text-2xl md:text-3xl font-semibold tracking-tight text-obsidian">Card Title 3</span></td>
+                                    <td class="py-5 text-xs text-subtle font-mono">30px<br/>1.2</td>
+                                    <td class="py-5 text-xs text-subtle font-mono">600<br/>-0.02em</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-5 font-mono text-xs text-subtle">body-lg<br><span class="text-[10px] opacity-70">text-lg</span></td>
+                                    <td class="py-5"><span class="font-sans text-lg text-subtle leading-relaxed">Large descriptive paragraph text.</span></td>
+                                    <td class="py-5 text-xs text-subtle font-mono">18px<br/>1.6</td>
+                                    <td class="py-5 text-xs text-subtle font-mono">400<br/>0</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-5 font-mono text-xs text-subtle">body<br><span class="text-[10px] opacity-70">text-base</span></td>
+                                    <td class="py-5"><span class="font-sans text-base text-subtle">Standard paragraph and UI reading text.</span></td>
+                                    <td class="py-5 text-xs text-subtle font-mono">16px<br/>1.5</td>
+                                    <td class="py-5 text-xs text-subtle font-mono">400<br/>0</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-5 font-mono text-xs text-subtle">body-sm<br><span class="text-[10px] opacity-70">text-sm</span></td>
+                                    <td class="py-5"><span class="font-sans text-sm font-medium text-obsidian">Small UI elements, buttons, nav.</span></td>
+                                    <td class="py-5 text-xs text-subtle font-mono">14px<br/>1.4</td>
+                                    <td class="py-5 text-xs text-subtle font-mono">500<br/>0</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-5 font-mono text-xs text-subtle">caption<br><span class="text-[10px] opacity-70">text-xs</span></td>
+                                    <td class="py-5"><span class="font-sans text-xs font-medium text-subtle uppercase tracking-wider">Helper text / Lables</span></td>
+                                    <td class="py-5 text-xs text-subtle font-mono">12px<br/>1.5</td>
+                                    <td class="py-5 text-xs text-subtle font-mono">500<br/>0.05em<br/>upper</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3) SISTEMA DE CORES -->
+            <section id="colors" class="ds-section">
+                <div class="mb-16">
+                    <h2 class="text-sm font-bold tracking-widest text-indigo-600 uppercase mb-2 font-mono">02. Color Tokens</h2>
+                    <h3 class="text-4xl font-sans font-semibold tracking-tight">Sistema de Cores</h3>
+                    <p class="text-subtle mt-4 max-w-2xl font-sans text-base">O tema baseia-se em alto contraste, utilizando Canvas off-white e Obsidian dark, pontuados por tons frios (Índigo e Emerald) para manter o tom tecnológico e de marketing/finanças confiável.</p>
+                </div>
+
+                <div class="space-y-12">
+                    <!-- Core Themes -->
+                    <div>
+                        <h4 class="text-lg font-semibold font-sans mb-6">Core & Surfaces</h4>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                            <!-- Obsidian -->
+                            <div class="rounded-xl overflow-hidden border border-border shadow-sm group">
+                                <div class="h-28 bg-obsidian w-full relative">
+                                    <div class="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-colors"></div>
+                                </div>
+                                <div class="p-4 bg-white">
+                                    <p class="text-sm font-bold font-sans">Obsidian</p>
+                                    <p class="text-xs text-subtle font-mono mt-1">#111111</p>
+                                    <div class="mt-3 text-[10px] text-obsidian bg-gray-100 px-2 py-1 rounded inline-block">Primary Text, Dark Cards</div>
+                                </div>
+                            </div>
+                            <!-- Canvas -->
+                            <div class="rounded-xl overflow-hidden border border-border shadow-sm group">
+                                <div class="h-28 bg-canvas w-full"></div>
+                                <div class="p-4 bg-white">
+                                    <p class="text-sm font-bold font-sans">Canvas Base</p>
+                                    <p class="text-xs text-subtle font-mono mt-1">#FAFAFA</p>
+                                    <div class="mt-3 text-[10px] text-obsidian bg-gray-100 px-2 py-1 rounded inline-block">App Background</div>
+                                </div>
+                            </div>
+                            <!-- Surface -->
+                            <div class="rounded-xl overflow-hidden border border-border shadow-sm group">
+                                <div class="h-28 bg-surface w-full"></div>
+                                <div class="p-4 bg-white border-t border-border/50">
+                                    <p class="text-sm font-bold font-sans">Surface White</p>
+                                    <p class="text-xs text-subtle font-mono mt-1">#FFFFFF</p>
+                                    <div class="mt-3 text-[10px] text-obsidian bg-gray-100 px-2 py-1 rounded inline-block">Cards, Modals</div>
+                                </div>
+                            </div>
+                            <!-- Subtle -->
+                            <div class="rounded-xl overflow-hidden border border-border shadow-sm group">
+                                <div class="h-28 bg-subtle w-full"></div>
+                                <div class="p-4 bg-white">
+                                    <p class="text-sm font-bold font-sans">Subtle Text</p>
+                                    <p class="text-xs text-subtle font-mono mt-1">#737373</p>
+                                    <div class="mt-3 text-[10px] text-obsidian bg-gray-100 px-2 py-1 rounded inline-block">Secondary Text (AA Cont.)</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Semantic & Accents -->
+                    <div>
+                        <h4 class="text-lg font-semibold font-sans mb-6">Semantic Accents & Feedback</h4>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                            <!-- Brand Accent -->
+                            <div class="bg-white rounded-xl p-4 border border-border flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-full bg-indigo-600 shadow-sm border border-indigo-700/20 flex-shrink-0"></div>
+                                <div>
+                                    <p class="text-sm font-bold">Brand Indigo</p>
+                                    <p class="text-[10px] text-subtle font-mono mt-0.5">#4F46E5 / text-indigo-600</p>
+                                </div>
+                            </div>
+                            <!-- Success -->
+                            <div class="bg-white rounded-xl p-4 border border-border flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-full bg-emerald-500 shadow-sm border border-emerald-600/20 flex-shrink-0"></div>
+                                <div>
+                                    <p class="text-sm font-bold">Success Emerald</p>
+                                    <p class="text-[10px] text-subtle font-mono mt-0.5">#10b981 / Feedback</p>
+                                </div>
+                            </div>
+                            <!-- Warning -->
+                            <div class="bg-white rounded-xl p-4 border border-border flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-full bg-amber-500 shadow-sm border border-amber-600/20 flex-shrink-0"></div>
+                                <div>
+                                    <p class="text-sm font-bold">Warning Amber</p>
+                                    <p class="text-[10px] text-subtle font-mono mt-0.5">#f59e0b / Alerts</p>
+                                </div>
+                            </div>
+                            <!-- Danger -->
+                            <div class="bg-white rounded-xl p-4 border border-border flex items-center gap-4">
+                                <div class="w-12 h-12 rounded-full bg-rose-500 shadow-sm border border-rose-600/20 flex-shrink-0"></div>
+                                <div>
+                                    <p class="text-sm font-bold">Danger Rose</p>
+                                    <p class="text-[10px] text-subtle font-mono mt-0.5">#ef4444 / Destructive</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Usage Rules & Gradients -->
+                    <div class="grid lg:grid-cols-2 gap-8">
+                        <div class="premium-card rounded-2xl p-6">
+                            <h4 class="text-sm font-bold uppercase tracking-wider mb-4 border-b border-border pb-2">Contextual Usage Rules</h4>
+                            <ul class="text-sm space-y-4 text-obsidian">
+                                <li class="flex items-start gap-2">
+                                    <iconify-icon icon="solar:check-circle-bold" class="text-emerald-500 mt-0.5"></iconify-icon>
+                                    <span><strong>Text on Light:</strong> Use <code class="bg-gray-100 px-1 rounded">text-obsidian</code> for headings (AA compliant) and <code class="bg-gray-100 px-1 rounded">text-subtle</code> for descriptions.</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <iconify-icon icon="solar:check-circle-bold" class="text-emerald-500 mt-0.5"></iconify-icon>
+                                    <span><strong>Hover Elements:</strong> Most light cards use <code class="bg-gray-100 px-1 rounded">hover:-translate-y-1 hover:shadow-lg</code>, while text links transition colors smoothly.</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <iconify-icon icon="solar:check-circle-bold" class="text-emerald-500 mt-0.5"></iconify-icon>
+                                    <span><strong>Active/Disabled:</strong> Disabled buttons drop to <code class="bg-gray-100 px-1 rounded">opacity-50</code> with <code class="bg-gray-100 px-1 rounded">cursor-not-allowed</code>. Active inputs gain <code class="bg-gray-100 px-1 rounded">ring-2 ring-indigo-500/20</code>.</span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="premium-card rounded-2xl p-6 bg-[#0f1115] text-white">
+                            <h4 class="text-sm font-bold uppercase tracking-wider mb-4 border-b border-white/10 pb-2 text-gray-300">Gradient Participation</h4>
+                            <div class="space-y-4 pt-2">
+                                <div class="flex items-center justify-between">
+                                    <div class="text-sm font-medium">Text Gradient Mask</div>
+                                    <div class="w-32 h-10 rounded bg-gradient-to-r from-subtle to-obsidian/40 flex items-center justify-center border border-white/20">
+                                        <span class="text-[10px] text-white/50">Used in Headers</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div class="text-sm font-medium">Dark Surface Depth</div>
+                                    <div class="w-32 h-10 rounded bg-gradient-to-b from-transparent via-transparent to-black/60 border border-white/20 flex items-center justify-center">
+                                        <span class="text-[10px] text-white/50">Used over Imagery</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div class="text-sm font-medium">Shimmer Effect</div>
+                                    <div class="w-32 h-10 rounded overflow-hidden relative bg-white/10 border border-white/20">
+                                        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4) UI COMPONENTS -->
+            <section id="components" class="ds-section">
+                <div class="mb-16">
+                    <h2 class="text-sm font-bold tracking-widest text-indigo-600 uppercase mb-2 font-mono">03. Component Library</h2>
+                    <h3 class="text-4xl font-sans font-semibold tracking-tight">Modules & Interatividade</h3>
+                </div>
+
+                <div class="space-y-16">
+                    <!-- Buttons & Inputs Row -->
+                    <div class="grid lg:grid-cols-2 gap-8">
+                        <!-- Buttons -->
+                        <div class="premium-card p-8 rounded-3xl">
+                            <h4 class="font-bold text-obsidian mb-6 border-b border-border pb-2">Buttons & Actions</h4>
+                            <div class="flex flex-col gap-5">
+                                <button class="w-full flex items-center justify-center gap-2 bg-obsidian text-white text-sm font-semibold px-6 py-3.5 rounded shadow-[0_2px_4px_rgba(0,0,0,0.1)] transition-all hover:scale-[1.02] hover:shadow-lg hover:bg-black">
+                                    Primary Solid
+                                </button>
+                                <button class="w-full flex items-center justify-center gap-2 border border-border bg-white text-obsidian text-sm font-semibold px-6 py-3.5 rounded shadow-sm hover:shadow-md hover:bg-gray-50 transition-all">
+                                    Secondary Outline
+                                </button>
+                                <!-- Interactive Beam Anim from Gemini -->
+                                <button class="btn-beam text-white rounded font-medium shadow-lg hover:shadow-xl transition-all duration-300 w-full p-[1px]">
+                                    <div class="relative z-10 flex w-full items-center justify-center gap-2 px-6 py-3.5 bg-obsidian rounded-[3px] text-sm">
+                                        <iconify-icon icon="solar:stars-bold-duotone"></iconify-icon>
+                                        AI Generate Beam
+                                    </div>
+                                </button>
+                                <button class="text-sm font-semibold text-subtle hover:text-obsidian transition-colors underline underline-offset-4 decoration-border hover:decoration-obsidian">
+                                    Text Link Action
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Inputs & Badges -->
+                        <div class="premium-card p-8 rounded-3xl flex flex-col justify-between">
+                            <div>
+                                <h4 class="font-bold text-obsidian mb-6 border-b border-border pb-2">Inputs & Controls</h4>
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-xs font-semibold text-subtle mb-1">Company Email</label>
+                                        <input type="email" placeholder="name@company.com" class="w-full bg-white border border-border rounded-lg px-4 py-3 text-sm text-obsidian placeholder-subtle/50 focus:outline-none focus:ring-2 focus:ring-obsidian/10 focus:border-obsidian transition-all shadow-sm">
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-5 h-5 rounded border border-border bg-white flex justify-center items-center cursor-pointer hover:bg-gray-50 transition-colors">
+                                            <i data-lucide="check" class="w-3 h-3 text-transparent hover:text-border"></i>
+                                        </div>
+                                        <span class="text-sm text-subtle">Remember my device</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-8 pt-8 border-t border-border">
+                                <h4 class="font-bold text-obsidian mb-4">Badges & Tooltips</h4>
+                                <div class="flex flex-wrap gap-3">
+                                    <span class="px-2.5 py-1 bg-indigo-50 text-indigo-700 text-xs font-semibold rounded-md border border-indigo-100 flex items-center gap-1"><iconify-icon icon="solar:info-circle-linear"></iconify-icon> New Feature</span>
+                                    <span class="px-2.5 py-1 bg-obsidian text-white text-[10px] font-bold rounded-full uppercase tracking-wider shadow-sm">Beta Status</span>
+                                    
+                                    <!-- Tooltip -->
+                                    <div class="relative group ml-auto">
+                                        <div class="w-7 h-7 rounded-full border border-border text-subtle flex items-center justify-center cursor-help hover:bg-gray-100 transition-colors">
+                                            <i data-lucide="help-circle" class="w-3 h-3"></i>
+                                        </div>
+                                        <div class="absolute bottom-full right-0 mb-2 w-max px-3 py-1.5 bg-obsidian text-white text-[10px] font-medium rounded opacity-0 group-hover:opacity-100 transform translate-y-1 group-hover:translate-y-0 transition-all pointer-events-none">
+                                            Hover interaction triggered
+                                            <div class="absolute top-full right-2 border-4 border-transparent border-t-obsidian"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Complex Cards & Interactive Sections -->
+                    <div class="grid lg:grid-cols-2 gap-8">
+                        
+                        <!-- Financial Card (Dark) based on financial-infrastruc -->
+                        <div class="relative group cursor-pointer rounded-3xl overflow-hidden bg-[#1a1a1a] shadow-xl min-h-[380px] p-8 flex flex-col justify-between">
+                            <div class="absolute inset-0 bg-gradient-to-b from-black/0 to-black/80 z-10 pointer-events-none"></div>
+                            
+                            <div class="relative z-20 flex justify-between items-start text-white">
+                                <div>
+                                    <p class="text-sm font-semibold tracking-tight font-sans">Dark UI Data Card</p>
+                                    <p class="text-[10px] text-gray-400 font-mono mt-1 uppercase tracking-widest">Hover to reveal</p>
+                                </div>
+                                <div class="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-white/50 group-hover:text-white group-hover:border-white transition-all">
+                                    <i data-lucide="arrow-up-right" class="w-5 h-5"></i>
+                                </div>
+                            </div>
+                            
+                            <div class="relative z-20 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500 text-white">
+                                <h3 class="text-3xl font-manrope font-medium tracking-tighter mb-2">Vault Security</h3>
+                                <p class="text-sm text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100">Integration with Next.js Server actions ensures data never touches the client unexpectedly.</p>
+                            </div>
+                            
+                            <!-- Shimmer BG on Hover -->
+                            <div class="absolute right-0 bottom-0 top-0 w-1/2 bg-gradient-to-l from-indigo-500/10 to-transparent blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
+                        </div>
+
+                        <!-- Light Dashboard Card based on dashboard-list -->
+                        <div class="premium-card p-8 rounded-3xl flex flex-col justify-between min-h-[380px] relative overflow-hidden group">
+                            <div>
+                                <div class="flex justify-between items-center mb-8">
+                                    <h4 class="font-bold text-obsidian">Light Table List</h4>
+                                    <button class="text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors">See all</button>
+                                </div>
+                                
+                                <div class="space-y-3">
+                                    <div class="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 border border-transparent hover:border-gray-100 transition-all cursor-pointer group/row">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex justify-center items-center group-hover/row:scale-110 transition-transform">
+                                                <i data-lucide="arrow-up" class="w-4 h-4"></i>
+                                            </div>
+                                            <div>
+                                                <p class="text-sm font-semibold text-obsidian leading-none">+$24,500.00</p>
+                                                <p class="text-[10px] text-subtle mt-1">Stripe Inc.</p>
+                                            </div>
+                                        </div>
+                                        <span class="text-xs font-mono text-subtle">Success</span>
+                                    </div>
+                                    <div class="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 border border-transparent hover:border-gray-100 transition-all cursor-pointer group/row">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-8 h-8 rounded-full bg-rose-50 text-rose-600 flex justify-center items-center group-hover/row:scale-110 transition-transform">
+                                                <i data-lucide="arrow-down" class="w-4 h-4"></i>
+                                            </div>
+                                            <div>
+                                                <p class="text-sm font-semibold text-obsidian leading-none">-$1,200.00</p>
+                                                <p class="text-[10px] text-subtle mt-1">AWS Hosting</p>
+                                            </div>
+                                        </div>
+                                        <span class="text-xs font-mono text-subtle">Processed</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="w-full h-1 bg-border rounded-full overflow-hidden mt-8 relative">
+                                <div class="absolute left-0 h-full bg-indigo-500 animate-marquee" style="width: 200%;"></div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </section>
+
+            <!-- 5 & 6) ICONS AND MOTION -->
+            <section id="motion" class="ds-section">
+                <div class="max-w-4xl mx-auto text-center mb-16">
+                    <span class="inline-flex items-center rounded-full border border-gray-200 bg-white px-3 py-1 text-[10px] font-bold text-obsidian uppercase tracking-widest shadow-sm mb-6">Icons & Motion Flow</span>
+                    <h2 class="text-4xl md:text-5xl text-obsidian mb-6 leading-[1.1] font-manrope font-medium tracking-tighter">
+                        O poder de micromoções <br class="hidden md:block"/> num pacote B2B.
+                    </h2>
+                </div>
+
+                <div class="grid lg:grid-cols-3 gap-8">
+                    <!-- Icons Gallery -->
+                    <div class="premium-card p-8 rounded-3xl col-span-1 lg:col-span-2">
+                        <h4 class="font-bold text-obsidian mb-6 text-sm uppercase tracking-wider">Iconography (Lucide & Iconify)</h4>
+                        <div class="grid grid-cols-4 md:grid-cols-6 gap-6">
+                            <div class="text-center group text-subtle hover:text-indigo-600 transition-colors cursor-pointer">
+                                <i data-lucide="layout-dashboard" class="w-6 h-6 mx-auto mb-2 group-hover:-translate-y-1 transition-transform"></i>
+                                <div class="text-[9px] font-mono">dashboard</div>
+                            </div>
+                            <div class="text-center group text-subtle hover:text-emerald-500 transition-colors cursor-pointer">
+                                <i data-lucide="activity" class="w-6 h-6 mx-auto mb-2 group-hover:-translate-y-1 transition-transform"></i>
+                                <div class="text-[9px] font-mono">activity</div>
+                            </div>
+                            <div class="text-center group text-subtle hover:text-obsidian transition-colors cursor-pointer">
+                                <i data-lucide="credit-card" class="w-6 h-6 mx-auto mb-2 group-hover:-translate-y-1 transition-transform"></i>
+                                <div class="text-[9px] font-mono">credit-card</div>
+                            </div>
+                            <div class="text-center group text-subtle hover:text-rose-500 transition-colors cursor-pointer">
+                                <i data-lucide="shield-alert" class="w-6 h-6 mx-auto mb-2 group-hover:-translate-y-1 transition-transform"></i>
+                                <div class="text-[9px] font-mono">security</div>
+                            </div>
+                            <div class="text-center group text-subtle hover:text-amber-500 transition-colors cursor-pointer">
+                                <iconify-icon icon="solar:stars-line-duotone" class="text-2xl mx-auto mb-2 block group-hover:-translate-y-1 transition-transform"></iconify-icon>
+                                <div class="text-[9px] font-mono">ai-stars</div>
+                            </div>
+                            <div class="text-center group text-subtle hover:text-indigo-500 transition-colors cursor-pointer">
+                                <iconify-icon icon="solar:magic-stick-3-bold-duotone" class="text-2xl mx-auto mb-2 block group-hover:-translate-y-1 transition-transform"></iconify-icon>
+                                <div class="text-[9px] font-mono">generative</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Animation Visualizer -->
+                    <div class="bg-obsidian rounded-3xl p-8 text-white shadow-xl relative overflow-hidden flex flex-col justify-center items-center text-center cursor-pointer group" onclick="replayAnim(this)">
+                        <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,rgba(79,70,229,0.3),transparent_70%)] opacity-50 group-hover:opacity-100 transition-opacity duration-700"></div>
+                        <div class="relative z-10 space-y-3 w-full" id="animContainer">
+                            <div class="w-12 h-12 bg-indigo-500 rounded-xl mx-auto flex items-center justify-center animate-slide-up shadow-[0_0_20px_rgba(79,70,229,0.5)]">
+                                <i data-lucide="play" class="w-5 h-5 text-white"></i>
+                            </div>
+                            <h4 class="font-sans font-bold text-lg animate-slide-up delay-100 mt-4">Staggered InView</h4>
+                            <p class="text-xs text-gray-400 font-mono animate-slide-up delay-200">Click to replay the slideUp + fade workflow</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // Init Lucide
+        lucide.createIcons();
+
+        // Staggered Animation replayer
+        function replayAnim(el) {
+            const container = document.getElementById('animContainer');
+            // clone and replace to re-trigger css animations
+            const clone = container.cloneNode(true);
+            el.replaceChild(clone, container);
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html>
