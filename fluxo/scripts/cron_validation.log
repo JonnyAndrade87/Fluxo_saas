@@ -1,0 +1,38 @@
+🚀 STARTING CRON ENGINE VALIDATION TESTS (VERIFIABLE LOG)
+
+-> Seeding in-memory database with 10 exact scenarios...
+✅ Seed completed. Executing GET /api/cron...
+
+📡 CRON API RAW RESPONSE: {
+  "success": true,
+  "processedFlows": 2,
+  "sentMessages": 2
+}
+
+=======================================
+📊 RESULTS SUMMARY (PHASE 1):
+=======================================
+[S1] Fatura PENDING Dentro Regra (D-3):    ✅ PROCESSADA
+[S2] Fatura PENDING Fora da Regra (D-10):  ✅ IGNORADA
+[S3] Fatura PAID na Janela (D-3):          ✅ IGNORADA
+[S4] Fatura CANCELED na Janela (D-0):      ✅ IGNORADA
+[S5] Fatura OVERDUE na Janela (D+5):       ✅ PROCESSADA
+[S9] Filtragem de Tenant cruzado (D-3):    ✅ ISOLADO (Não disparou Regra T1 num Cliente T2)
+
+[S10] DETALHES DOS LOGS GERADOS NA TABELA:
+ - 📩 MSG Enviada para Fatura INV-S5-OVERDUE-MATCH | Título Analítico: "Atraso D+5" | Tenant: ts-t1
+ - 📩 MSG Enviada para Fatura INV-S1-OPEN-MATCH | Título Analítico: "Lembrete D-3" | Tenant: ts-t1
+
+🔄 Iniciando FASE 2: Mutação de Estados (S6 e S7)...
+ -> Marcando S1 como PAID (Pagamento Registrado)
+ -> Marcando S5 como CANCELED (Dívida Perdida)
+✅ Mutação concluída. Executando GET /api/cron novamente para ver se disparam dupla notificação...
+
+=======================================
+📊 RESULTS SUMMARY (PHASE 2 MUTATION):
+=======================================
+[S6] Invoice OPEN virou PAID. Sofreu duplo disparo?     ✅ NÃO. Parou na hora.
+[S7] Invoice OVERDUE virou CANCELED. Duplo disparo?     ✅ NÃO. Parou na hora.
+
+🎉 TESTES COMPLETOS COM SUCESSO!
+
