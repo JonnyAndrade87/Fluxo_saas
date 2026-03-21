@@ -144,3 +144,52 @@ export async function deleteInvoice(id: string) {
     revalidatePath('/cobrancas');
     return { success: true };
 }
+
+// ==============================
+// Emissão Manual de Cobrança
+// ==============================
+
+export async function getCustomersForSelect() {
+  const session = await auth();
+  const tenantId = (session?.user as any)?.tenantId;
+
+  if (!tenantId) throw new Error("Unauthorized");
+
+  const customers = await prisma.customer.findMany({
+    where: { tenantId, status: 'active' },
+    select: { id: true, name: true, documentNumber: true },
+    orderBy: { name: 'asc' }
+  });
+
+  return customers;
+}
+
+export async function createInvoice(data: { customerId: string, amount: number, dueDate: string, description?: string }) {
+  const session = await auth();
+  const tenantId = (session?.user as any)?.tenantId;
+
+  if (!tenantId) throw new Error("Unauthorized");
+
+  // Generate a random invoice number (simulating an external erp or internal sequence)
+  const invoiceNumber = `INV-${Math.floor(100000 + Math.random() * 900000)}`;
+
+  const newInvoice = await prisma.invoice.create({
+    data: {
+      tenantId,
+      customerId: data.customerId,
+      invoiceNumber,
+      amount: data.amount,
+      balanceDue: data.amount,
+      dueDate: new Date(data.dueDate),
+      status: 'pending',
+      // If we had a description field, we'd add it here. For now customData or notes could be used.
+    }
+  });
+
+  // Revalidate both views that display invoices
+  revalidatePath('/cobrancas');
+  revalidatePath('/clientes');
+  revalidatePath('/'); // Dashboard
+
+  return { success: true, invoice: newInvoice };
+}

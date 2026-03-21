@@ -67,8 +67,8 @@ export default function ClientesClient({ initialData }: { initialData: any[] }) 
             Diretório unificado de contatos financeiros, histórico de Lifetime Value (LTV) e exposição de risco.
           </p>
         </div>
-        <Button variant="beam" className="gap-2 shadow-sm rounded-full px-6">
-          <Plus className="w-4 h-4" /> Cadastrar Cliente
+        <Button variant="beam" onClick={() => window.dispatchEvent(new CustomEvent('open-new-invoice-modal'))} className="gap-2 shadow-sm rounded-full px-6">
+          <Plus className="w-4 h-4" /> Nova Cobrança
         </Button>
       </div>
 

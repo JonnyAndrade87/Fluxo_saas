@@ -90,7 +90,7 @@ export default function ReceivablesClient({ initialData }: { initialData: any[] 
             Gestão unificada de faturas. Analise o status, filtre por risco e engatilhe ações rápidas.
           </p>
         </div>
-        <Button variant="beam" className="gap-2 shadow-sm rounded-full px-6">
+        <Button variant="beam" onClick={() => window.dispatchEvent(new CustomEvent('open-new-invoice-modal'))} className="gap-2 shadow-sm rounded-full px-6">
           <Plus className="w-4 h-4" /> Nova Cobrança
         </Button>
       </div>
