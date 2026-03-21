@@ -72,11 +72,11 @@ export default function GenericImportPage() {
   return (
     <div className="animate-in fade-in zoom-in-95 duration-500 w-full flex flex-col pt-8 pb-10">
       
-      <div className="mb-8 space-y-3">
+      <div className="mb-8 space-y-3 w-full">
         <h1 className="text-3xl font-heading font-extrabold tracking-tight text-obsidian">
           Importador de Lotes
         </h1>
-        <p className="text-muted-foreground text-sm max-w-lg">
+        <p className="text-muted-foreground text-sm max-w-2xl">
           Suba arquivos .CSV com milhares de títulos a receber. O <strong>Motor do Fluxo</strong> irá mapear as colunas e injetar inteligentemente tudo na sua operação.
         </p>
       </div>
@@ -95,7 +95,7 @@ export default function GenericImportPage() {
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         onClick={() => fileInputRef.current?.click()}
-        className={`w-full max-w-3xl bg-white border-2 border-dashed transition-all rounded-3xl p-16 flex flex-col items-center justify-center text-center cursor-pointer group shadow-sm mb-6 ${
+        className={`w-full max-w-3xl mx-auto mt-8 bg-white border-2 border-dashed transition-all rounded-3xl p-16 flex flex-col items-center justify-center text-center cursor-pointer group shadow-sm mb-6 ${
           isHovering ? 'border-indigo-500 bg-indigo-50/50 scale-[1.01]' : 'border-indigo-200 hover:border-indigo-400 hover:bg-indigo-50/30'
         }`}
       >
@@ -117,13 +117,13 @@ export default function GenericImportPage() {
       </div>
 
       {error && (
-        <div className="flex items-center gap-2 text-sm text-rose-600 bg-rose-50 p-4 rounded-xl border border-rose-100 max-w-3xl animate-in fade-in duration-300 mb-6">
+        <div className="flex items-center gap-2 text-sm text-rose-600 bg-rose-50 p-4 rounded-xl mx-auto border border-rose-100 max-w-3xl w-full animate-in fade-in duration-300 mb-6">
           <AlertCircle className="w-4 h-4 shrink-0" />
           <p>{error}</p>
         </div>
       )}
 
-      <div className="flex items-center justify-between w-full max-w-3xl">
+      <div className="flex items-center justify-center w-full max-w-3xl mx-auto">
         <a href="#" className="flex items-center gap-2 text-sm text-indigo-600 hover:text-indigo-800 font-medium transition-colors">
           <Download className="w-4 h-4" /> Baixar Modelo Vazio Padrão
         </a>

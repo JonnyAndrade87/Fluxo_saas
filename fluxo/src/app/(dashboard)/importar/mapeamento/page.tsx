@@ -88,9 +88,9 @@ export default function GenericMappingPage() {
   return (
     <div className="animate-in fade-in slide-in-from-right-8 duration-500 w-full flex flex-col pt-8 pb-10">
       
-      <div className="mb-10 space-y-3">
+      <div className="mb-10 space-y-3 w-full">
         <div className="flex items-center gap-3">
-           <Link href="/importar" className="text-sm font-bold text-muted-foreground hover:text-obsidian px-3 py-1.5 rounded-lg border border-border/60 bg-white">
+           <Link href="/importar" className="text-sm font-bold text-muted-foreground hover:text-obsidian px-3 py-1.5 rounded-lg border border-border/60 bg-white shadow-sm transition-all hover:border-indigo-200">
                Voltar
            </Link>
            <h1 className="text-2xl font-heading font-extrabold tracking-tight text-obsidian">
@@ -103,13 +103,13 @@ export default function GenericMappingPage() {
       </div>
 
       {error && (
-        <div className="bg-rose-50 border border-rose-200 text-rose-600 p-4 rounded-xl text-sm mb-6 flex items-center gap-2">
+        <div className="bg-rose-50 border border-rose-200 text-rose-600 mx-auto p-4 rounded-xl text-sm mb-6 flex items-center gap-2 w-full max-w-5xl">
            <strong>Erro de Ingestão:</strong> {error}
         </div>
       )}
 
       {/* Mapping Card */}
-      <div className="rounded-2xl border border-indigo-100 bg-white shadow-xl shadow-indigo-50/50 mb-10 overflow-hidden overflow-x-auto custom-scrollbar">
+      <div className="rounded-2xl border border-indigo-100 mx-auto w-full max-w-5xl bg-white shadow-xl shadow-indigo-50/50 mb-10 overflow-hidden overflow-x-auto custom-scrollbar">
         <div className="flex items-center justify-between p-4 border-b border-border/60 bg-muted/20 min-w-max">
           <div className="flex items-center gap-2 text-indigo-700 font-semibold text-sm">
             <Eye className="w-4 h-4" /> Amostra de {Math.min(rawData.length, 3)} linhas e opções de Mapeamento
@@ -157,7 +157,7 @@ export default function GenericMappingPage() {
         </table>
       </div>
 
-      <div className="flex items-center justify-end w-full">
+      <div className="flex items-center justify-end w-full max-w-5xl mx-auto">
         <Button variant="beam" className="h-11 px-8" onClick={processAndSubmit} disabled={isSubmitting}>
           {isSubmitting ? (
              <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Injetando Lote...</>
