@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 
 export default function ReguaClient() {
+  const [activeTab, setActiveTab] = useState('regua');
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -81,34 +82,47 @@ export default function ReguaClient() {
         {/* Settings Navigation Sidebar */}
         <div className="lg:col-span-3 space-y-2">
           <nav className="flex flex-col gap-1 sticky top-6">
-            <a href="#" className="bg-indigo-50 border border-indigo-100/50 text-indigo-700 font-semibold px-4 py-3 rounded-xl text-sm flex items-center gap-3 transition-colors">
+            <button 
+              onClick={() => setActiveTab('regua')}
+              className={`w-full text-left font-semibold px-4 py-3 rounded-xl text-sm flex items-center gap-3 transition-colors ${activeTab === 'regua' ? 'bg-indigo-50 border border-indigo-100/50 text-indigo-700' : 'text-muted-foreground hover:bg-muted/50 hover:text-obsidian'}`}
+            >
               <BellRing className="w-4 h-4" /> Régua Principal
-            </a>
-            <a href="#" className="text-muted-foreground hover:bg-muted/50 hover:text-obsidian font-medium px-4 py-3 rounded-xl text-sm flex items-center gap-3 transition-colors">
+            </button>
+            <button 
+              onClick={() => setActiveTab('templates')}
+              className={`w-full text-left font-semibold px-4 py-3 rounded-xl text-sm flex items-center gap-3 transition-colors ${activeTab === 'templates' ? 'bg-indigo-50 border border-indigo-100/50 text-indigo-700' : 'text-muted-foreground hover:bg-muted/50 hover:text-obsidian'}`}
+            >
               <FileText className="w-4 h-4" /> Templates de Mensagem
-            </a>
-            <a href="#" className="text-muted-foreground hover:bg-muted/50 hover:text-obsidian font-medium px-4 py-3 rounded-xl text-sm flex items-center gap-3 transition-colors">
+            </button>
+            <button 
+              onClick={() => setActiveTab('webhooks')}
+              className={`w-full text-left font-semibold px-4 py-3 rounded-xl text-sm flex items-center gap-3 transition-colors ${activeTab === 'webhooks' ? 'bg-indigo-50 border border-indigo-100/50 text-indigo-700' : 'text-muted-foreground hover:bg-muted/50 hover:text-obsidian'}`}
+            >
               <Zap className="w-4 h-4" /> Gatilhos Externos (Webhooks)
-            </a>
-            <a href="#" className="text-muted-foreground hover:bg-muted/50 hover:text-obsidian font-medium px-4 py-3 rounded-xl text-sm flex items-center gap-3 transition-colors">
+            </button>
+            <button 
+              onClick={() => setActiveTab('logs')}
+              className={`w-full text-left font-semibold px-4 py-3 rounded-xl text-sm flex items-center gap-3 transition-colors ${activeTab === 'logs' ? 'bg-indigo-50 border border-indigo-100/50 text-indigo-700' : 'text-muted-foreground hover:bg-muted/50 hover:text-obsidian'}`}
+            >
               <Settings className="w-4 h-4" /> Logs de Disparo
-            </a>
+            </button>
           </nav>
         </div>
 
-        {/* Rules Content */}
+        {/* Dynamic Content */}
         <div className="lg:col-span-9 space-y-6">
-          <Card className="premium-card relative overflow-hidden bg-white shadow-xl shadow-obsidian/5 border-border/60">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-sky-500 to-emerald-500" />
-            <CardHeader className="pb-4 bg-[#FAFAFB] border-b border-border/50">
-              <CardTitle className="text-lg text-obsidian font-heading font-extrabold flex items-center gap-2">
-                 Motor de Comunicação Omnichannel
-              </CardTitle>
-              <CardDescription className="text-xs">
-                Configure os canais (Email, WhatsApp) e a cadência exata para evitar inadimplência e recuperar crédito sem esforço manual.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6 pt-6">
+          {activeTab === 'regua' && (
+            <Card className="premium-card relative overflow-hidden bg-white shadow-xl shadow-obsidian/5 border-border/60 animate-in fade-in zoom-in-95 duration-300">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-sky-500 to-emerald-500" />
+              <CardHeader className="pb-4 bg-[#FAFAFB] border-b border-border/50">
+                <CardTitle className="text-lg text-obsidian font-heading font-extrabold flex items-center gap-2">
+                   Motor de Comunicação Omnichannel
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  Configure os canais (Email, WhatsApp) e a cadência exata para evitar inadimplência e recuperar crédito sem esforço manual.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6 pt-6">
               
               {/* Event 1: Before Due Date */}
               <div className={`p-5 rounded-2xl border transition-all duration-300 relative group ${preAtivado ? 'border-indigo-100 bg-[#FAFAFB] hover:border-indigo-300 hover:shadow-lg hover:shadow-indigo-500/5' : 'border-border/50 bg-slate-50 opacity-60 grayscale-[50%]'}`}>
@@ -227,7 +241,7 @@ export default function ReguaClient() {
                             <input type="checkbox" defaultChecked className="accent-rose-600 w-3.5 h-3.5" />
                             <Mail className="w-3.5 h-3.5 text-rose-600" /> E-mail Jurídico
                          </label>
-                         <label className={`cursor-pointer text-xs font-bold flex items-center gap-2 bg-white border px-3 py-1.5 rounded-lg transition-colors shadow-sm hover:shadow-md bg-rose-600 text-white border-transparent`}>
+                         <label className={`cursor-pointer text-xs font-bold flex items-center gap-2 border px-3 py-1.5 rounded-lg transition-colors shadow-sm hover:shadow-md bg-rose-600 text-white border-transparent`}>
                             <input type="checkbox" defaultChecked className="accent-white w-3.5 h-3.5" />
                             <MessageSquare className="w-3.5 h-3.5 text-white" /> Disparo SMS & WhatsApp
                          </label>
@@ -239,6 +253,117 @@ export default function ReguaClient() {
 
             </CardContent>
           </Card>
+          )}
+
+          {activeTab === 'templates' && (
+            <Card className="premium-card relative overflow-hidden bg-white shadow-xl shadow-obsidian/5 border-border/60 animate-in fade-in zoom-in-95 duration-300">
+              <CardHeader className="pb-4 border-b border-border/50">
+                <CardTitle className="text-lg text-obsidian font-heading font-extrabold flex items-center gap-2">
+                  Templates de Copywriting
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  Personalize os textos exatos que seus clientes receberão no WhatsApp e E-mail.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6 space-y-6">
+                <div className="space-y-2">
+                  <label className="text-[11px] font-bold text-obsidian uppercase tracking-wider">Template: Pré-Vencimento (WhatsApp)</label>
+                  <textarea 
+                    className="w-full h-24 p-3 text-sm rounded-xl border border-border bg-[#FAFAFB] focus:ring-2 focus:ring-indigo-500 outline-none" 
+                    defaultValue={"Olá {{nome}},\nSua fatura de n.º {{fatura}} vence em breve! Segue a chave PIX Copia e Cola para a programação: \n\n{{pix_copia_cola}}"}
+                  />
+                  <p className="text-[10px] text-muted-foreground mt-1">Variáveis disponíveis: {'{{nome}}'}, {'{{fatura}}'}, {'{{valor}}'}, {'{{vencimento}}'}, {'{{pix_copia_cola}}'}</p>
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-[11px] font-bold text-obsidian uppercase tracking-wider">Template: Atraso Severo (E-mail Jurídico)</label>
+                  <textarea 
+                    className="w-full h-32 p-3 text-sm rounded-xl border border-rose-200 bg-rose-50/30 focus:ring-2 focus:ring-rose-500 outline-none" 
+                    defaultValue={"Prezado(a) responsável pelo setor financeiro da {{empresa}},\n\nConstatamos que o título {{fatura}} no valor de R$ {{valor}} encontra-se em aberto a mais de {{dias_atraso}} dias.\nSolicitamos a regularização sob pena de encaminhamento ao departamento de cobrança externa."}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {activeTab === 'webhooks' && (
+            <Card className="premium-card relative overflow-hidden bg-white shadow-xl shadow-obsidian/5 border-border/60 animate-in fade-in zoom-in-95 duration-300">
+              <CardHeader className="pb-4 border-b border-border/50">
+                <CardTitle className="text-lg text-obsidian font-heading font-extrabold flex items-center gap-2">
+                  Gatilhos e Webhooks
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  Dispare POSTs automáticos para sistemas externos (Make, Zapier, seu ERP) quando eventos ocorrerem.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6 space-y-4">
+                <div className="p-4 rounded-xl border border-border bg-[#FAFAFB] flex items-center justify-between">
+                   <div className="space-y-1">
+                     <p className="font-semibold text-sm">invoice.paid</p>
+                     <p className="text-xs text-muted-foreground">Disparado quando o Pix for compensado.</p>
+                   </div>
+                   <Input defaultValue="https://hook.make.com/xyz123abc" className="w-[300px] h-9 text-xs" />
+                </div>
+                <div className="p-4 rounded-xl border border-border bg-[#FAFAFB] flex items-center justify-between">
+                   <div className="space-y-1">
+                     <p className="font-semibold text-sm">invoice.overdue_7days</p>
+                     <p className="text-xs text-muted-foreground">Disparado no sétimo dia de atraso.</p>
+                   </div>
+                   <Input placeholder="URL do Endpoint..." className="w-[300px] h-9 text-xs" />
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {activeTab === 'logs' && (
+            <Card className="premium-card relative overflow-hidden bg-white shadow-xl shadow-obsidian/5 border-border/60 animate-in fade-in zoom-in-95 duration-300">
+              <CardHeader className="pb-4 border-b border-border/50">
+                <CardTitle className="text-lg text-obsidian font-heading font-extrabold flex items-center gap-2">
+                  Logs de Disparo
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  Rastreabilidade total das últimas 50 comunicações disparadas pela Régua pelo motor interno.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <table className="w-full text-sm text-left">
+                   <thead className="bg-[#FAFAFB] text-muted-foreground text-xs uppercase border-b border-border/50">
+                      <tr>
+                        <th className="font-semibold py-4 px-4">Status</th>
+                        <th className="font-semibold py-4 px-4">Data/Hora</th>
+                        <th className="font-semibold py-4 px-4">Cliente</th>
+                        <th className="font-semibold py-4 px-4">Canal</th>
+                        <th className="font-semibold py-4 px-4 text-right">Fatura</th>
+                      </tr>
+                   </thead>
+                   <tbody>
+                      <tr className="border-b border-border/30 hover:bg-slate-50 transition-colors">
+                        <td className="py-3 px-4"><Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">Enviado</Badge></td>
+                        <td className="py-3 px-4 text-muted-foreground">Há 5 minutos</td>
+                        <td className="py-3 px-4 font-medium">Borda Tech Ltda</td>
+                        <td className="py-3 px-4 flex items-center gap-1"><MessageSquare className="w-3.5 h-3.5 text-emerald-600"/> Z-API</td>
+                        <td className="py-3 px-4 text-right text-muted-foreground">#INV-9921</td>
+                      </tr>
+                      <tr className="border-b border-border/30 hover:bg-slate-50 transition-colors">
+                        <td className="py-3 px-4"><Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">Enviado</Badge></td>
+                        <td className="py-3 px-4 text-muted-foreground">Há 15 minutos</td>
+                        <td className="py-3 px-4 font-medium">Norte Frios</td>
+                        <td className="py-3 px-4 flex items-center gap-1"><Mail className="w-3.5 h-3.5 text-indigo-600"/> SendGrid</td>
+                        <td className="py-3 px-4 text-right text-muted-foreground">#INV-4399</td>
+                      </tr>
+                      <tr className="border-b border-border/30 hover:bg-slate-50 transition-colors">
+                        <td className="py-3 px-4"><Badge variant="outline" className="bg-rose-50 text-rose-700 border-rose-200">Falha (Bounce)</Badge></td>
+                        <td className="py-3 px-4 text-muted-foreground">Há 2 horas</td>
+                        <td className="py-3 px-4 font-medium">Alfa Indústria</td>
+                        <td className="py-3 px-4 flex items-center gap-1"><Mail className="w-3.5 h-3.5 text-indigo-600"/> SendGrid</td>
+                        <td className="py-3 px-4 text-right text-muted-foreground">#INV-1022</td>
+                      </tr>
+                   </tbody>
+                </table>
+              </CardContent>
+            </Card>
+          )}
+
         </div>
       </div>
     </div>
