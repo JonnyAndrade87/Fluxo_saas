@@ -1,33 +1,60 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { 
-  Settings, 
-  BellRing, 
-  MessageSquare, 
-  Mail, 
-  Clock, 
-  Zap,
-  AlertTriangle,
-  Save,
-  Loader2,
-  CheckCircle,
-  FileText
+  Settings, BellRing, MessageSquare, Mail, Clock, Zap, CheckCircle, Save, Loader2, FileText, Activity, 
+  UploadCloud, Search, Filter, Eye, MoreHorizontal, History, RefreshCw, Send, PlayCircle, Plus, Copy, Check, AlertTriangle
 } from "lucide-react";
+
+// Reusable Custom Toggle with exact design semantics
+const CustomToggle = ({ checked, onChange, label }: { checked: boolean, onChange: (val: boolean) => void, label?: string }) => (
+  <label className="flex items-center cursor-pointer group w-fit">
+    <div className="relative">
+      <input 
+         type="checkbox" 
+         className="sr-only" 
+         checked={checked} 
+         onChange={(e) => onChange(e.target.checked)} 
+      />
+      <div className={`block w-10 h-6 rounded-full transition-colors duration-300 ${checked ? 'bg-indigo-600' : 'bg-slate-200 border border-slate-300'}`}></div>
+      <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 shadow-sm ${checked ? 'translate-x-4' : 'translate-x-0'}`}></div>
+    </div>
+    {label && (
+      <div className={`ml-3 text-[13px] font-medium select-none transition-colors ${checked ? 'text-obsidian' : 'text-muted-foreground'}`}>
+        {checked ? 'Ativado' : 'Inativo'}
+      </div>
+    )}
+  </label>
+);
 
 export default function ReguaClient() {
   const [activeTab, setActiveTab] = useState('regua');
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  // States for each Rule
+  // States for Sequence (Regua) Array
   const [preAtivado, setPreAtivado] = useState(true);
   const [diaAtivado, setDiaAtivado] = useState(true);
   const [posAtivado, setPosAtivado] = useState(true);
+
+  // Custom Toast State for UX Feedback
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const defaultWp = `Olá, {nome}. Tudo bem?\nPassando para lembrar que a fatura {fatura}, no valor de {valor}, vence em {vencimento}.\nPara facilitar, segue a chave PIX para pagamento:\n\n{pix_copia_cola}\n\nSe o pagamento já foi realizado, desconsidere esta mensagem.`;
+  const defaultEmail = `Prezado(a),\n\nIdentificamos que a fatura {fatura}, no valor de {valor}, permanece em aberto há {dias_atraso} dias após o vencimento.\n\nSolicitamos a regularização o quanto antes para evitar o encaminhamento do caso para cobrança externa.\n\nCaso o pagamento já tenha sido efetuado, pedimos a gentileza de desconsiderar esta mensagem.`;
+
+  const [wpText, setWpText] = useState(defaultWp);
+  const [emailText, setEmailText] = useState(defaultEmail);
+  const [activeField, setActiveField] = useState<'wp' | 'email'>('wp');
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
 
   const handleSave = () => {
     setIsSaving(true);
@@ -39,333 +66,507 @@ export default function ReguaClient() {
     }, 1200);
   };
 
-  // Custom Toggle Component (Reusable)
-  const CustomToggle = ({ checked, onChange, label, className = "bg-indigo-500" }: { checked: boolean, onChange: (val: boolean) => void, label: string, className?: string }) => (
-    <label className="flex items-center cursor-pointer group w-fit">
-      <div className="relative">
-        <input 
-           type="checkbox" 
-           className="sr-only" 
-           checked={checked} 
-           onChange={(e) => onChange(e.target.checked)} 
-        />
-        <div className={`block w-10 h-6 rounded-full transition-colors duration-300 ${checked ? className : 'bg-slate-200 border border-slate-300'}`}></div>
-        <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 shadow-sm ${checked ? 'translate-x-4' : 'translate-x-0'}`}></div>
-      </div>
-      <div className={`ml-3 text-xs font-semibold select-none transition-colors ${checked ? 'text-obsidian' : 'text-muted-foreground'}`}>
-        {checked ? 'Ativado' : 'Desativado'}
-      </div>
-    </label>
-  );
+  const handleInsertVariable = (variable: string) => {
+    if (activeField === 'wp') {
+      setWpText(prev => prev + ' ' + variable);
+    } else {
+      setEmailText(prev => prev + ' ' + variable);
+    }
+    showToast(`Variável ${variable} inserida com sucesso!`);
+  };
+
+  const handleRestore = (field: 'wp' | 'email') => {
+    if (field === 'wp') setWpText(defaultWp);
+    if (field === 'email') setEmailText(defaultEmail);
+    showToast('Template restaurado para o padrão.');
+  };
 
   return (
     <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500 pb-10">
       
-      {/* Page Header */}
+      {/* GLOBAL HEADER: Refactored for Context and Control */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-border/50 pb-6">
-        <div className="space-y-1">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50/50 border border-border text-xs font-semibold text-indigo-700 mb-2 shadow-sm">
-            <BellRing className="w-3.5 h-3.5" /> Motor Ativo
+        <div className="space-y-2">
+          <div className="flex items-center gap-3 mb-1">
+             <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-100/50 text-[11px] font-bold text-emerald-700 uppercase tracking-widest shadow-sm shadow-emerald-500/5">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Automação Ativa
+             </div>
+             <span className="text-[11px] font-medium text-muted-foreground">Última atualização: Hoje às 10:42</span>
           </div>
-          <h1 className="text-3xl font-heading font-extrabold tracking-tight text-obsidian">Régua de Cobrança & Automação</h1>
-          <p className="text-muted-foreground text-sm max-w-lg">
-            Defina a cadência de mensagens automáticas baseada no ciclo de vida das faturas (Pré, Dia-D, e Atraso).
+          <h1 className="text-3xl font-heading font-extrabold tracking-tight text-obsidian pb-1">Automação de cobrança</h1>
+          <p className="text-muted-foreground text-[15px] max-w-xl leading-relaxed">
+            Configure quando e como seus clientes serão notificados antes e depois do vencimento da fatura.
           </p>
         </div>
-        <Button variant="beam" onClick={handleSave} disabled={isSaving} className="gap-2 shadow-sm rounded-full px-8 transition-all">
-          {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : saved ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <Save className="w-4 h-4" />}
-          {isSaving ? 'Salvando Motor...' : saved ? 'Salvo!' : 'Tornar Vigente'}
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button variant="outline" className="h-10 px-5 rounded-full font-semibold text-slate-600 border-slate-200 hover:bg-slate-50">
+            Salvar rascunho
+          </Button>
+          <Button 
+            variant="beam" 
+            onClick={handleSave} 
+            disabled={isSaving} 
+            className={`h-10 px-6 rounded-full font-semibold shadow-sm shadow-indigo-500/20 transition-all duration-300 ${saved ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/30' : ''}`}
+          >
+            {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : saved ? <CheckCircle className="w-4 h-4 text-white mr-2" /> : <UploadCloud className="w-4 h-4 mr-2" />}
+            {isSaving ? 'Publicando...' : saved ? 'Publicado com Sucesso!' : 'Publicar automação'}
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-8 lg:grid-cols-12 min-h-[600px]">
-        {/* Settings Navigation Sidebar */}
+        
+        {/* SIDEBAR NAVIGATION: Refactored Microcopy and UX */}
         <div className="lg:col-span-3 space-y-2">
-          <nav className="flex flex-col gap-1 sticky top-6">
+          <nav className="flex flex-col gap-1.5 sticky top-6">
             <button 
               onClick={() => setActiveTab('regua')}
-              className={`w-full text-left font-semibold px-4 py-3 rounded-xl text-sm flex items-center gap-3 transition-colors ${activeTab === 'regua' ? 'bg-indigo-50 border border-indigo-100/50 text-indigo-700' : 'text-muted-foreground hover:bg-muted/50 hover:text-obsidian'}`}
+              className={`w-full text-left font-semibold px-4 py-3 rounded-lg text-[14px] flex items-center gap-3 transition-colors ${activeTab === 'regua' ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50 hover:text-obsidian'}`}
             >
-              <BellRing className="w-4 h-4" /> Régua Principal
+              <Activity className="w-4 h-4" /> Sequência da régua
             </button>
             <button 
               onClick={() => setActiveTab('templates')}
-              className={`w-full text-left font-semibold px-4 py-3 rounded-xl text-sm flex items-center gap-3 transition-colors ${activeTab === 'templates' ? 'bg-indigo-50 border border-indigo-100/50 text-indigo-700' : 'text-muted-foreground hover:bg-muted/50 hover:text-obsidian'}`}
+              className={`w-full text-left font-semibold px-4 py-3 rounded-lg text-[14px] flex items-center gap-3 transition-colors ${activeTab === 'templates' ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50 hover:text-obsidian'}`}
             >
-              <FileText className="w-4 h-4" /> Templates de Mensagem
+              <FileText className="w-4 h-4" /> Templates de mensagem
             </button>
             <button 
               onClick={() => setActiveTab('webhooks')}
-              className={`w-full text-left font-semibold px-4 py-3 rounded-xl text-sm flex items-center gap-3 transition-colors ${activeTab === 'webhooks' ? 'bg-indigo-50 border border-indigo-100/50 text-indigo-700' : 'text-muted-foreground hover:bg-muted/50 hover:text-obsidian'}`}
+              className={`w-full text-left font-semibold px-4 py-3 rounded-lg text-[14px] flex items-center gap-3 transition-colors ${activeTab === 'webhooks' ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50 hover:text-obsidian'}`}
             >
-              <Zap className="w-4 h-4" /> Gatilhos Externos (Webhooks)
+              <Zap className="w-4 h-4" /> Webhooks e integrações
             </button>
             <button 
               onClick={() => setActiveTab('logs')}
-              className={`w-full text-left font-semibold px-4 py-3 rounded-xl text-sm flex items-center gap-3 transition-colors ${activeTab === 'logs' ? 'bg-indigo-50 border border-indigo-100/50 text-indigo-700' : 'text-muted-foreground hover:bg-muted/50 hover:text-obsidian'}`}
+              className={`w-full text-left font-semibold px-4 py-3 rounded-lg text-[14px] flex items-center gap-3 transition-colors ${activeTab === 'logs' ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50 hover:text-obsidian'}`}
             >
-              <Settings className="w-4 h-4" /> Logs de Disparo
+              <History className="w-4 h-4" /> Histórico de disparos
             </button>
           </nav>
         </div>
 
-        {/* Dynamic Content */}
+
+        {/* MAIN CONTENT AREA */}
         <div className="lg:col-span-9 space-y-6">
+          
+          {/* TAB 1: SEQUÊNCIA DA RÉGUA */}
           {activeTab === 'regua' && (
-            <Card className="premium-card relative overflow-hidden bg-white shadow-xl shadow-obsidian/5 border-border/60 animate-in fade-in zoom-in-95 duration-300">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 via-sky-500 to-emerald-500" />
-              <CardHeader className="pb-4 bg-[#FAFAFB] border-b border-border/50">
-                <CardTitle className="text-lg text-obsidian font-heading font-extrabold flex items-center gap-2">
-                   Motor de Comunicação Omnichannel
-                </CardTitle>
-                <CardDescription className="text-xs">
-                  Configure os canais (Email, WhatsApp) e a cadência exata para evitar inadimplência e recuperar crédito sem esforço manual.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6 pt-6">
-              
-              {/* Event 1: Before Due Date */}
-              <div className={`p-5 rounded-2xl border transition-all duration-300 relative group ${preAtivado ? 'border-indigo-100 bg-[#FAFAFB] hover:border-indigo-300 hover:shadow-lg hover:shadow-indigo-500/5' : 'border-border/50 bg-slate-50 opacity-60 grayscale-[50%]'}`}>
-                <div className={`absolute -left-3 top-6 w-6 h-6 rounded-full border flex items-center justify-center shadow-sm transition-colors ${preAtivado ? 'bg-white border-indigo-200 text-indigo-500' : 'bg-slate-100 border-border text-slate-400'}`}>
-                  <Clock className="w-3 h-3" />
-                </div>
-                <div className="flex flex-col sm:flex-row gap-6 ml-4">
-                  <div className="w-full sm:w-[40%] space-y-3">
-                    <h4 className="font-bold text-obsidian text-sm">Aviso de Pré-Vencimento</h4>
-                    <p className="text-[11px] leading-relaxed text-muted-foreground">Antecipe o recebimento lembrando seu cliente antes da data limite, enviando a Fatura original.</p>
-                    <div className="pt-2">
-                      <CustomToggle checked={preAtivado} onChange={setPreAtivado} label="Pré" className="bg-indigo-500" />
-                    </div>
-                  </div>
-                  
-                  <div className={`w-full sm:w-[60%] space-y-4 transition-all ${!preAtivado && 'pointer-events-none'}`}>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <label className="text-[11px] font-bold text-obsidian uppercase tracking-wider">Quantos dias antes?</label>
-                        <Input defaultValue="3" className="h-10 font-mono bg-white focus-visible:ring-indigo-500 border-border shadow-sm text-sm" type="number" min="1" max="15" />
-                        <span className="text-[10px] text-muted-foreground block text-right mt-1">Dia D- Menos</span>
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className="text-[11px] font-bold text-obsidian uppercase tracking-wider">Horário do envio</label>
-                        <Input defaultValue="09:00" className="h-10 font-mono bg-white focus-visible:ring-indigo-500 border-border shadow-sm text-sm" type="time" />
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-1.5">
-                       <label className="text-[11px] font-bold text-obsidian uppercase tracking-wider block mb-2">Canais de Atuação</label>
-                       <div className="flex items-center gap-3">
-                         <label className="cursor-pointer text-xs font-semibold flex items-center gap-2 bg-white border border-border px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-colors shadow-sm">
-                            <input type="checkbox" defaultChecked className="accent-indigo-600 w-3.5 h-3.5" />
-                            <Mail className="w-3.5 h-3.5 text-indigo-600" /> E-mail
-                         </label>
-                         <label className="cursor-pointer text-xs font-semibold flex items-center gap-2 bg-white border border-border px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-colors shadow-sm">
-                            <input type="checkbox" className="accent-emerald-600 w-3.5 h-3.5" />
-                            <MessageSquare className="w-3.5 h-3.5 text-emerald-600" /> WhatsApp (+0,10c)
-                         </label>
-                       </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+            <div className="space-y-5 animate-in fade-in duration-300">
+               <div className="flex flex-col space-y-1 mb-4">
+                  <h3 className="text-xl font-heading font-extrabold text-obsidian">Sequência da régua</h3>
+                  <p className="text-sm text-muted-foreground">O fluxo cronológico de comunicação disparada automaticamente pelo motor.</p>
+               </div>
 
-              {/* Event 2: On Due Date */}
-              <div className={`p-5 rounded-2xl border transition-all duration-300 relative group ${diaAtivado ? 'border-amber-100 bg-amber-50/20 hover:border-amber-300 hover:shadow-lg hover:shadow-amber-500/5' : 'border-border/50 bg-slate-50 opacity-60 grayscale-[50%]'}`}>
-                <div className={`absolute -left-3 top-6 w-6 h-6 rounded-full border flex items-center justify-center shadow-sm transition-colors ${diaAtivado ? 'bg-amber-100 border-amber-200 text-amber-600' : 'bg-slate-100 border-border text-slate-400'}`}>
-                  <Zap className="w-3 h-3" />
-                </div>
-                <div className="flex flex-col sm:flex-row gap-6 ml-4">
-                  <div className="w-full sm:w-[40%] space-y-3">
-                    <h4 className={`font-bold text-sm ${diaAtivado ? 'text-amber-900' : 'text-obsidian'}`}>Hoje é o Vencimento! (D-0)</h4>
-                    <p className={`text-[11px] leading-relaxed ${diaAtivado ? 'text-amber-800/80' : 'text-muted-foreground'}`}>Aviso incisivo disparado apenas na data cravada do título com PIX Copy/Paste.</p>
-                    <div className="pt-2">
-                      <CustomToggle checked={diaAtivado} onChange={setDiaAtivado} label="Dia" className="bg-amber-500" />
-                    </div>
-                  </div>
-                  
-                  <div className={`w-full sm:w-[60%] space-y-4 transition-all ${!diaAtivado && 'pointer-events-none'}`}>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1.5 col-span-2">
-                        <label className={`text-[11px] font-bold uppercase tracking-wider ${diaAtivado ? 'text-amber-900' : 'text-obsidian'}`}>Horário Cirúrgico</label>
-                        <Input defaultValue="08:30" className={`h-10 font-mono bg-white border shadow-sm text-sm ${diaAtivado ? 'border-amber-200 focus-visible:ring-amber-500' : 'border-border'}`} type="time" />
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-1.5">
-                       <label className={`text-[11px] font-bold uppercase tracking-wider block mb-2 ${diaAtivado ? 'text-amber-900' : 'text-obsidian'}`}>Canais de Atuação</label>
-                       <div className="flex flex-wrap items-center gap-3">
-                         <label className={`cursor-pointer text-xs font-semibold flex items-center gap-2 bg-white border px-3 py-1.5 rounded-lg transition-colors shadow-sm hover:shadow-md ${diaAtivado ? 'border-amber-200' : 'border-border'}`}>
-                            <input type="checkbox" defaultChecked className="accent-emerald-600 w-3.5 h-3.5" />
-                            <Mail className="w-3.5 h-3.5 text-indigo-600" /> E-mail (Garantido)
-                         </label>
-                         <label className={`cursor-pointer text-xs font-bold flex items-center gap-2 bg-white border px-3 py-1.5 rounded-lg transition-colors shadow-sm hover:shadow-md ${diaAtivado ? 'border-amber-200 text-emerald-700' : 'border-border'}`}>
-                            <input type="checkbox" defaultChecked className="accent-emerald-600 w-3.5 h-3.5" />
-                            <MessageSquare className="w-3.5 h-3.5 text-emerald-600" /> WhatsApp Prioritário
-                         </label>
-                       </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+               {/* Stage 1: Pré-Vencimento (Softer styling) */}
+               <Card className={`relative overflow-hidden bg-white shadow-sm border-border/80 transition-all duration-300 ${!preAtivado && 'opacity-60 saturate-50'}`}>
+                  {preAtivado && <div className="absolute top-0 left-0 w-1 h-full bg-slate-300" />}
+                  <CardContent className="p-6">
+                     <div className="flex flex-col lg:flex-row gap-8">
+                        {/* Information Block */}
+                        <div className="lg:w-[35%] space-y-4">
+                           <div>
+                              <div className="flex items-center gap-2 mb-1">
+                                 <Badge variant="secondary" className="bg-slate-100 text-slate-700 border-none font-semibold text-[10px] tracking-wider uppercase px-2">Pré-Vencimento</Badge>
+                              </div>
+                              <h4 className="font-heading font-bold text-base text-obsidian mt-2">Lembrete antes do vencimento</h4>
+                              <p className="text-[13px] text-muted-foreground mt-1.5 leading-relaxed">
+                                Evita esquecimentos lembrando o sacado sobre prazos antes da data limite.
+                              </p>
+                           </div>
+                           <CustomToggle checked={preAtivado} onChange={setPreAtivado} label="Ativado" />
+                        </div>
+                        {/* Settings Block */}
+                        <div className={`lg:w-[65%] grid lg:grid-cols-2 gap-6 ${!preAtivado && 'pointer-events-none'}`}>
+                           <div className="space-y-2">
+                              <label className="text-[12px] font-bold text-obsidian uppercase tracking-wider">Timing do Disparo</label>
+                              <div className="flex gap-3">
+                                 <div className="flex-1">
+                                    <Input defaultValue="3" type="number" min="1" className="h-10 bg-slate-50/50 shadow-sm" />
+                                    <span className="text-[11px] text-muted-foreground mt-1 block">Dias antes</span>
+                                 </div>
+                                 <div className="flex-1">
+                                    <Input defaultValue="09:00" type="time" className="h-10 bg-slate-50/50 shadow-sm" />
+                                    <span className="text-[11px] text-muted-foreground mt-1 block">Horário</span>
+                                 </div>
+                              </div>
+                           </div>
+                           <div className="space-y-3">
+                              <label className="text-[12px] font-bold text-obsidian uppercase tracking-wider">Canais de Envio</label>
+                              <div className="space-y-2">
+                                 <label className="flex items-center gap-3 text-sm font-medium text-obsidian cursor-pointer hover:bg-slate-50 p-1.5 -ml-1.5 rounded-md transition-colors">
+                                    <input type="checkbox" defaultChecked className="accent-indigo-600 w-4 h-4 rounded border-slate-300" />
+                                    <Mail className="w-4 h-4 text-slate-400" /> E-mail
+                                 </label>
+                                 <label className="flex items-center gap-3 text-sm font-medium text-obsidian cursor-pointer hover:bg-slate-50 p-1.5 -ml-1.5 rounded-md transition-colors">
+                                    <input type="checkbox" className="accent-indigo-600 w-4 h-4 rounded border-slate-300" />
+                                    <MessageSquare className="w-4 h-4 text-emerald-500" /> WhatsApp
+                                 </label>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                  </CardContent>
+               </Card>
 
-              {/* Event 3: After Due Date (Atraso) */}
-              <div className={`p-5 rounded-2xl border transition-all duration-300 relative group ${posAtivado ? 'border-rose-100 bg-rose-50/20 hover:border-rose-300 hover:shadow-lg hover:shadow-rose-500/5' : 'border-border/50 bg-slate-50 opacity-60 grayscale-[50%]'}`}>
-                <div className={`absolute -left-3 top-6 w-6 h-6 rounded-full border flex items-center justify-center shadow-sm transition-colors ${posAtivado ? 'bg-rose-100 border-rose-200 text-rose-600' : 'bg-slate-100 border-border text-slate-400'}`}>
-                  <AlertTriangle className="w-3 h-3" />
-                </div>
-                <div className="flex flex-col sm:flex-row gap-6 ml-4">
-                  <div className="w-full sm:w-[40%] space-y-3">
-                    <h4 className={`font-bold text-sm ${posAtivado ? 'text-rose-900' : 'text-obsidian'}`}>Recuperação de Atraso</h4>
-                    <p className={`text-[11px] leading-relaxed ${posAtivado ? 'text-rose-800/80' : 'text-muted-foreground'}`}>Mensagens severas focadas em cobrar dívidas e encaminhar para negativação C-Level.</p>
-                    <div className="pt-2">
-                       <CustomToggle checked={posAtivado} onChange={setPosAtivado} label="Pós" className="bg-rose-500" />
-                    </div>
-                  </div>
-                  
-                  <div className={`w-full sm:w-[60%] space-y-4 transition-all ${!posAtivado && 'pointer-events-none'}`}>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <label className={`text-[11px] font-bold uppercase tracking-wider ${posAtivado ? 'text-rose-900' : 'text-obsidian'}`}>Cadência (Dias Vencidos)</label>
-                        <Input defaultValue="1, 3, 7, 15" className={`h-10 font-mono bg-white border shadow-sm text-sm ${posAtivado ? 'border-rose-200 focus-visible:ring-rose-500 text-rose-900' : 'border-border'}`} type="text" />
-                        <span className={`text-[10px] block text-right mt-1 ${posAtivado ? 'text-rose-700/60' : 'text-muted-foreground'}`}>Ex: 1,3,7...</span>
-                      </div>
-                      <div className="space-y-1.5">
-                        <label className={`text-[11px] font-bold uppercase tracking-wider ${posAtivado ? 'text-rose-900' : 'text-obsidian'}`}>Horário Útil</label>
-                        <Input defaultValue="10:00" className={`h-10 font-mono bg-white border shadow-sm text-sm ${posAtivado ? 'border-rose-200 focus-visible:ring-rose-500 text-rose-900' : 'border-border'}`} type="time" />
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-1.5">
-                       <label className={`text-[11px] font-bold uppercase tracking-wider block mb-2 ${posAtivado ? 'text-rose-900' : 'text-obsidian'}`}>Força Tarefa Omnichannel</label>
-                       <div className="flex flex-wrap items-center gap-3">
-                         <label className={`cursor-pointer text-xs font-bold flex items-center gap-2 bg-white border px-3 py-1.5 rounded-lg transition-colors shadow-sm hover:shadow-md ${posAtivado ? 'border-rose-400 text-rose-800' : 'border-border'}`}>
-                            <input type="checkbox" defaultChecked className="accent-rose-600 w-3.5 h-3.5" />
-                            <Mail className="w-3.5 h-3.5 text-rose-600" /> E-mail Jurídico
-                         </label>
-                         <label className={`cursor-pointer text-xs font-bold flex items-center gap-2 border px-3 py-1.5 rounded-lg transition-colors shadow-sm hover:shadow-md bg-rose-600 text-white border-transparent`}>
-                            <input type="checkbox" defaultChecked className="accent-white w-3.5 h-3.5" />
-                            <MessageSquare className="w-3.5 h-3.5 text-white" /> Disparo SMS & WhatsApp
-                         </label>
-                       </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+               {/* Separator / Arrow logic */}
+               <div className="w-px h-6 bg-border mx-auto" />
 
-            </CardContent>
-          </Card>
+               {/* Stage 2: Dia D (Subtle Indigo) */}
+               <Card className={`relative overflow-hidden bg-white shadow-sm border-border/80 transition-all duration-300 ${!diaAtivado && 'opacity-60 saturate-50'}`}>
+                  {diaAtivado && <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500" />}
+                  <CardContent className="p-6">
+                     <div className="flex flex-col lg:flex-row gap-8">
+                        <div className="lg:w-[35%] space-y-4">
+                           <div>
+                              <div className="flex items-center gap-2 mb-1">
+                                 <Badge variant="secondary" className="bg-indigo-50 text-indigo-700 border-indigo-100 font-semibold text-[10px] tracking-wider uppercase px-2">Data Exata</Badge>
+                              </div>
+                              <h4 className="font-heading font-bold text-base text-obsidian mt-2">Aviso no dia do vencimento</h4>
+                              <p className="text-[13px] text-muted-foreground mt-1.5 leading-relaxed">
+                                Notifica no próprio dia (D-0) aumentando drásticamente a conversão sem juros.
+                              </p>
+                           </div>
+                           <CustomToggle checked={diaAtivado} onChange={setDiaAtivado} label="Ativado" />
+                        </div>
+                        <div className={`lg:w-[65%] grid lg:grid-cols-2 gap-6 ${!diaAtivado && 'pointer-events-none'}`}>
+                           <div className="space-y-2">
+                              <label className="text-[12px] font-bold text-obsidian uppercase tracking-wider">Timing do Disparo</label>
+                                 <div>
+                                    <Input defaultValue="08:30" type="time" className="h-10 bg-slate-50/50 shadow-sm max-w-[140px]" />
+                                    <span className="text-[11px] text-muted-foreground mt-1 block">Horário exato</span>
+                                 </div>
+                           </div>
+                           <div className="space-y-3">
+                              <label className="text-[12px] font-bold text-obsidian uppercase tracking-wider">Canais de Envio</label>
+                              <div className="space-y-2">
+                                 <label className="flex items-center gap-3 text-sm font-medium text-obsidian cursor-pointer hover:bg-slate-50 p-1.5 -ml-1.5 rounded-md transition-colors">
+                                    <input type="checkbox" defaultChecked className="accent-indigo-600 w-4 h-4 rounded border-slate-300" />
+                                    <Mail className="w-4 h-4 text-slate-400" /> E-mail
+                                 </label>
+                                 <label className="flex items-center gap-3 text-sm font-medium text-obsidian cursor-pointer hover:bg-slate-50 p-1.5 -ml-1.5 rounded-md transition-colors">
+                                    <input type="checkbox" defaultChecked className="accent-indigo-600 w-4 h-4 rounded border-slate-300" />
+                                    <MessageSquare className="w-4 h-4 text-emerald-500" /> WhatsApp
+                                 </label>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                  </CardContent>
+               </Card>
+
+               <div className="w-px h-6 bg-border mx-auto" />
+
+               {/* Stage 3: Atraso (Softer indication, no screaming red unless failure) */}
+               <Card className={`relative overflow-hidden bg-white shadow-sm border-border/80 transition-all duration-300 ${!posAtivado && 'opacity-60 saturate-50'}`}>
+                  {posAtivado && <div className="absolute top-0 left-0 w-1 h-full bg-slate-700" />}
+                  <CardContent className="p-6">
+                     <div className="flex flex-col lg:flex-row gap-8">
+                        <div className="lg:w-[35%] space-y-4">
+                           <div>
+                              <div className="flex items-center gap-2 mb-1">
+                                 <Badge variant="secondary" className="bg-slate-100 text-slate-700 border-none font-semibold text-[10px] tracking-wider uppercase px-2">Pós-Vencimento</Badge>
+                              </div>
+                              <h4 className="font-heading font-bold text-base text-obsidian mt-2">Cobrança em atraso suportado</h4>
+                              <p className="text-[13px] text-muted-foreground mt-1.5 leading-relaxed">
+                                Cadência de lembretes cobrando faturas pendentes, escalando a intensidade dia a dia.
+                              </p>
+                           </div>
+                           <CustomToggle checked={posAtivado} onChange={setPosAtivado} label="Ativado" />
+                        </div>
+                        <div className={`lg:w-[65%] grid lg:grid-cols-2 gap-6 ${!posAtivado && 'pointer-events-none'}`}>
+                           <div className="space-y-2">
+                              <label className="text-[12px] font-bold text-obsidian uppercase tracking-wider">Ciclo de Cadência</label>
+                              <div className="flex gap-3">
+                                 <div className="flex-1">
+                                    <Input defaultValue="1, 3, 7, 15" type="text" className="h-10 bg-slate-50/50 shadow-sm" />
+                                    <span className="text-[11px] text-muted-foreground mt-1 block">Dias vencidos (Ex: 1,3,7)</span>
+                                 </div>
+                                 <div className="flex-[0.6]">
+                                    <Input defaultValue="10:00" type="time" className="h-10 bg-slate-50/50 shadow-sm" />
+                                    <span className="text-[11px] text-muted-foreground mt-1 block">Horário</span>
+                                 </div>
+                              </div>
+                           </div>
+                           <div className="space-y-3">
+                              <label className="text-[12px] font-bold text-obsidian uppercase tracking-wider">Canais de Envio</label>
+                              <div className="space-y-2">
+                                 <label className="flex items-center gap-3 text-sm font-medium text-obsidian cursor-pointer hover:bg-slate-50 p-1.5 -ml-1.5 rounded-md transition-colors">
+                                    <input type="checkbox" defaultChecked className="accent-indigo-600 w-4 h-4 rounded border-slate-300" />
+                                    <Mail className="w-4 h-4 text-slate-400" /> E-mail Jurídico
+                                 </label>
+                                 <label className="flex items-center gap-3 text-sm font-medium text-obsidian cursor-pointer hover:bg-slate-50 p-1.5 -ml-1.5 rounded-md transition-colors">
+                                    <input type="checkbox" defaultChecked className="accent-indigo-600 w-4 h-4 rounded border-slate-300" />
+                                    <MessageSquare className="w-4 h-4 text-emerald-500" /> WhatsApp Prioritário
+                                 </label>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                  </CardContent>
+               </Card>
+            </div>
           )}
 
+
+          {/* TAB 2: TEMPLATES DE MENSAGEM */}
           {activeTab === 'templates' && (
-            <Card className="premium-card relative overflow-hidden bg-white shadow-xl shadow-obsidian/5 border-border/60 animate-in fade-in zoom-in-95 duration-300">
-              <CardHeader className="pb-4 border-b border-border/50">
-                <CardTitle className="text-lg text-obsidian font-heading font-extrabold flex items-center gap-2">
-                  Templates de Copywriting
-                </CardTitle>
-                <CardDescription className="text-xs">
-                  Personalize os textos exatos que seus clientes receberão no WhatsApp e E-mail.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-6 space-y-6">
-                <div className="space-y-2">
-                  <label className="text-[11px] font-bold text-obsidian uppercase tracking-wider">Template: Pré-Vencimento (WhatsApp)</label>
-                  <textarea 
-                    className="w-full h-24 p-3 text-sm rounded-xl border border-border bg-[#FAFAFB] focus:ring-2 focus:ring-indigo-500 outline-none" 
-                    defaultValue={"Olá {{nome}},\nSua fatura de n.º {{fatura}} vence em breve! Segue a chave PIX Copia e Cola para a programação: \n\n{{pix_copia_cola}}"}
-                  />
-                  <p className="text-[10px] text-muted-foreground mt-1">Variáveis disponíveis: {'{{nome}}'}, {'{{fatura}}'}, {'{{valor}}'}, {'{{vencimento}}'}, {'{{pix_copia_cola}}'}</p>
-                </div>
-                
-                <div className="space-y-2">
-                  <label className="text-[11px] font-bold text-obsidian uppercase tracking-wider">Template: Atraso Severo (E-mail Jurídico)</label>
-                  <textarea 
-                    className="w-full h-32 p-3 text-sm rounded-xl border border-rose-200 bg-rose-50/30 focus:ring-2 focus:ring-rose-500 outline-none" 
-                    defaultValue={"Prezado(a) responsável pelo setor financeiro da {{empresa}},\n\nConstatamos que o título {{fatura}} no valor de R$ {{valor}} encontra-se em aberto a mais de {{dias_atraso}} dias.\nSolicitamos a regularização sob pena de encaminhamento ao departamento de cobrança externa."}
-                  />
-                </div>
-              </CardContent>
-            </Card>
+            <div className="space-y-5 animate-in fade-in duration-300">
+               <div className="flex flex-col space-y-1 mb-4">
+                  <h3 className="text-xl font-heading font-extrabold text-obsidian">Templates de mensagem</h3>
+                  <p className="text-sm text-muted-foreground">Edite as mensagens enviadas automaticamente em cada etapa da cobrança.</p>
+               </div>
+
+               {/* Active Chips Bar */}
+               <div className="p-4 rounded-xl border border-border bg-white shadow-sm space-y-2">
+                  <p className="text-[12px] font-bold text-obsidian uppercase tracking-wider">Variáveis Dinâmicas</p>
+                  <div className="flex flex-wrap gap-2">
+                     {['{nome}', '{empresa}', '{fatura}', '{valor}', '{vencimento}', '{dias_atraso}', '{pix_copia_cola}'].map(tag => (
+                        <button key={tag} onClick={() => handleInsertVariable(tag)} className="px-3 py-1.5 rounded-md bg-slate-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-700 font-mono text-[11px] font-semibold border border-transparent hover:border-indigo-100 transition-all cursor-copy">
+                           {tag}
+                        </button>
+                     ))}
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">Clique para copiar uma variável para o seu template.</p>
+               </div>
+
+               <div className="grid lg:grid-cols-2 gap-6 pt-2">
+                  {/* Template Card 1 */}
+                  <Card className="bg-white shadow-sm border-border/80 flex flex-col h-full">
+                     <CardHeader className="p-5 border-b border-border/50 bg-[#FAFAFB]">
+                        <div className="flex items-center justify-between">
+                           <CardTitle className="text-[14px] flex items-center gap-2 font-bold text-obsidian">
+                              Lembrete antes do vencimento <span className="text-muted-foreground text-xs font-normal">• WhatsApp</span>
+                           </CardTitle>
+                           <MessageSquare className="w-4 h-4 text-emerald-500" />
+                        </div>
+                        <CardDescription className="text-xs pt-1">Disparado 3 dias antes da data estipulada.</CardDescription>
+                     </CardHeader>
+                     <CardContent className="p-0 flex-1 relative bg-slate-50/30">
+                        {/* Fake WhatsApp Message Preview Vibe */}
+                        <div className="p-5">
+                           <div className="relative">
+                              <textarea
+                                 className="w-full h-[220px] bg-[#E7FFDB] text-[#202C33] p-3.5 rounded-xl rounded-tl-none text-[13px] leading-relaxed shadow-sm border border-emerald-100/50 resize-none font-medium focus:outline-none focus:ring-2 focus:ring-emerald-400/50"
+                                 value={wpText}
+                                 onChange={(e) => setWpText(e.target.value)}
+                                 onFocus={() => setActiveField('wp')}
+                              />
+                              <Button variant="ghost" size="icon" className="absolute top-2 right-2 w-7 h-7 bg-white/50 hover:bg-white text-slate-800 rounded-md">
+                                 <Plus className="w-3.5 h-3.5" />
+                              </Button>
+                           </div>
+                        </div>
+                     </CardContent>
+                     <CardFooter className="p-4 border-t border-border/50 bg-white gap-3">
+                        <Button variant="outline" className="w-full text-xs font-semibold" onClick={() => handleRestore('wp')}>Restaurar padrão</Button>
+                        <Button variant="secondary" className="w-full text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100" onClick={() => showToast('Mensagem de teste enviada para seu número cadastrado.')}>Enviar mensagem</Button>
+                     </CardFooter>
+                  </Card>
+
+                  {/* Template Card 2 */}
+                  <Card className="bg-white shadow-sm border-border/80 flex flex-col h-full">
+                     <CardHeader className="p-5 border-b border-border/50 bg-[#FAFAFB]">
+                        <div className="flex items-center justify-between">
+                           <CardTitle className="text-[14px] flex items-center gap-2 font-bold text-obsidian">
+                              Cobrança em atraso suportado <span className="text-muted-foreground text-xs font-normal">• E-mail</span>
+                           </CardTitle>
+                           <Mail className="w-4 h-4 text-slate-400" />
+                        </div>
+                        <CardDescription className="text-xs pt-1">Disparado na cadência D+1, D+3, etc.</CardDescription>
+                     </CardHeader>
+                     <CardContent className="p-5 flex-1 space-y-3">
+                        <Input defaultValue="Identificamos pendência na fatura {fatura}" className="bg-white border-border/80 font-medium text-xs h-9" />
+                        <textarea 
+                           className="w-full h-[180px] p-4 text-[13px] leading-relaxed rounded-xl border border-border/80 bg-white focus:ring-2 focus:ring-indigo-500 outline-none resize-none font-medium" 
+                           value={emailText}
+                           onChange={(e) => setEmailText(e.target.value)}
+                           onFocus={() => setActiveField('email')}
+                        />
+                     </CardContent>
+                     <CardFooter className="p-4 border-t border-border/50 bg-white gap-3">
+                        <Button variant="outline" className="w-full text-xs font-semibold" onClick={() => handleRestore('email')}>Restaurar padrão</Button>
+                        <Button variant="secondary" className="w-full text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100" onClick={() => showToast('Prévia de E-mail disparada para admin@fluxo.com.')}>Enviar prévia</Button>
+                     </CardFooter>
+                  </Card>
+
+               </div>
+            </div>
           )}
 
+
+          {/* TAB 3: WEBHOOKS E INTEGRAÇÕES */}
           {activeTab === 'webhooks' && (
-            <Card className="premium-card relative overflow-hidden bg-white shadow-xl shadow-obsidian/5 border-border/60 animate-in fade-in zoom-in-95 duration-300">
-              <CardHeader className="pb-4 border-b border-border/50">
-                <CardTitle className="text-lg text-obsidian font-heading font-extrabold flex items-center gap-2">
-                  Gatilhos e Webhooks
-                </CardTitle>
-                <CardDescription className="text-xs">
-                  Dispare POSTs automáticos para sistemas externos (Make, Zapier, seu ERP) quando eventos ocorrerem.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-6 space-y-4">
-                <div className="p-4 rounded-xl border border-border bg-[#FAFAFB] flex items-center justify-between">
-                   <div className="space-y-1">
-                     <p className="font-semibold text-sm">invoice.paid</p>
-                     <p className="text-xs text-muted-foreground">Disparado quando o Pix for compensado.</p>
-                   </div>
-                   <Input defaultValue="https://hook.make.com/xyz123abc" className="w-[300px] h-9 text-xs" />
-                </div>
-                <div className="p-4 rounded-xl border border-border bg-[#FAFAFB] flex items-center justify-between">
-                   <div className="space-y-1">
-                     <p className="font-semibold text-sm">invoice.overdue_7days</p>
-                     <p className="text-xs text-muted-foreground">Disparado no sétimo dia de atraso.</p>
-                   </div>
-                   <Input placeholder="URL do Endpoint..." className="w-[300px] h-9 text-xs" />
-                </div>
-              </CardContent>
-            </Card>
+            <div className="space-y-5 animate-in fade-in duration-300">
+               <div className="flex flex-col space-y-1 mb-4">
+                  <h3 className="text-xl font-heading font-extrabold text-obsidian">Webhooks e integrações</h3>
+                  <p className="text-sm text-muted-foreground">Envie eventos da régua para sistemas externos como ERP, automações e plataformas (Make, n8n).</p>
+               </div>
+
+               <div className="flex items-center justify-between pt-2">
+                  <h4 className="text-[12px] font-bold text-obsidian uppercase tracking-wider">Endpoints Ativos</h4>
+                  <Button variant="outline" className="h-8 text-xs font-semibold gap-2 border-border shadow-sm" onClick={() => showToast('Abrindo modal de novo evento webhook...')}><Plus className="w-3.5 h-3.5"/> Adicionar Evento</Button>
+               </div>
+
+               <div className="space-y-4">
+                  <Card className="bg-white shadow-sm border-border/80">
+                     <CardContent className="p-5">
+                        <div className="flex items-start justify-between">
+                           <div className="space-y-1.5">
+                              <div className="flex items-center gap-3">
+                                 <h5 className="font-bold text-obsidian text-[14px]">invoice.paid</h5>
+                                 <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 border-none">Ativo</Badge>
+                              </div>
+                              <p className="text-xs text-muted-foreground">Dispara um POST payload quando um Pix ou boleto for compensado.</p>
+                           </div>
+                           <Button variant="ghost" size="icon" className="text-muted-foreground"><MoreHorizontal className="w-4 h-4"/></Button>
+                        </div>
+                        <div className="mt-5 space-y-3">
+                           <div>
+                              <label className="text-[11px] font-bold text-obsidian uppercase tracking-wider mb-1 block">URL do Endpoint de destino</label>
+                              <div className="flex gap-2">
+                                 <Input defaultValue="https://hook.make.com/xyz123abc9981242" className="bg-[#FAFAFB] text-xs font-mono read-only" />
+                                 <Button variant="outline" size="icon" className="w-10 h-10 shrink-0" onClick={() => showToast('URL do webhook copiada para área de transferência!')}><Copy className="w-4 h-4 text-slate-500"/></Button>
+                              </div>
+                           </div>
+                           <div className="flex items-center justify-between pt-2">
+                              <p className="text-[11px] text-muted-foreground">Último disparo: <span className="font-medium">Hoje às 09:15</span> (Status 200 OK)</p>
+                              <Button variant="link" className="text-indigo-600 text-xs h-auto p-0 font-semibold gap-1.5" onClick={() => showToast('Disparando POST Payload de teste aguarde...')}><PlayCircle className="w-3.5 h-3.5" /> Testar Webhook</Button>
+                           </div>
+                        </div>
+                     </CardContent>
+                  </Card>
+
+                  <Card className="bg-white shadow-sm border-border/80">
+                     <CardContent className="p-5">
+                        <div className="flex items-start justify-between">
+                           <div className="space-y-1.5">
+                              <div className="flex items-center gap-3">
+                                 <h5 className="font-bold text-obsidian text-[14px]">invoice.overdue_critical</h5>
+                                 <Badge variant="outline" className="text-slate-500 border-slate-200">Inativo</Badge>
+                              </div>
+                              <p className="text-xs text-muted-foreground">Acionado no evento de atraso severo para bloquear licença no seu ERP de forma automática.</p>
+                           </div>
+                           <Button variant="ghost" size="icon" className="text-muted-foreground"><MoreHorizontal className="w-4 h-4"/></Button>
+                        </div>
+                        <div className="mt-5 space-y-3 opacity-50">
+                           <div>
+                              <label className="text-[11px] font-bold text-obsidian uppercase tracking-wider mb-1 block">Secret Header (Bearer)</label>
+                              <div className="flex gap-2">
+                                 <Input type="password" defaultValue="token12345" className="bg-[#FAFAFB] text-xs font-mono" />
+                              </div>
+                           </div>
+                        </div>
+                     </CardContent>
+                  </Card>
+               </div>
+            </div>
           )}
 
+
+          {/* TAB 4: HISTÓRICO DE DISPAROS */}
           {activeTab === 'logs' && (
-            <Card className="premium-card relative overflow-hidden bg-white shadow-xl shadow-obsidian/5 border-border/60 animate-in fade-in zoom-in-95 duration-300">
-              <CardHeader className="pb-4 border-b border-border/50">
-                <CardTitle className="text-lg text-obsidian font-heading font-extrabold flex items-center gap-2">
-                  Logs de Disparo
-                </CardTitle>
-                <CardDescription className="text-xs">
-                  Rastreabilidade total das últimas 50 comunicações disparadas pela Régua pelo motor interno.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <table className="w-full text-sm text-left">
-                   <thead className="bg-[#FAFAFB] text-muted-foreground text-xs uppercase border-b border-border/50">
-                      <tr>
-                        <th className="font-semibold py-4 px-4">Status</th>
-                        <th className="font-semibold py-4 px-4">Data/Hora</th>
-                        <th className="font-semibold py-4 px-4">Cliente</th>
-                        <th className="font-semibold py-4 px-4">Canal</th>
-                        <th className="font-semibold py-4 px-4 text-right">Fatura</th>
-                      </tr>
-                   </thead>
-                   <tbody>
-                      <tr className="border-b border-border/30 hover:bg-slate-50 transition-colors">
-                        <td className="py-3 px-4"><Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">Enviado</Badge></td>
-                        <td className="py-3 px-4 text-muted-foreground">Há 5 minutos</td>
-                        <td className="py-3 px-4 font-medium">Borda Tech Ltda</td>
-                        <td className="py-3 px-4 flex items-center gap-1"><MessageSquare className="w-3.5 h-3.5 text-emerald-600"/> Z-API</td>
-                        <td className="py-3 px-4 text-right text-muted-foreground">#INV-9921</td>
-                      </tr>
-                      <tr className="border-b border-border/30 hover:bg-slate-50 transition-colors">
-                        <td className="py-3 px-4"><Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">Enviado</Badge></td>
-                        <td className="py-3 px-4 text-muted-foreground">Há 15 minutos</td>
-                        <td className="py-3 px-4 font-medium">Norte Frios</td>
-                        <td className="py-3 px-4 flex items-center gap-1"><Mail className="w-3.5 h-3.5 text-indigo-600"/> SendGrid</td>
-                        <td className="py-3 px-4 text-right text-muted-foreground">#INV-4399</td>
-                      </tr>
-                      <tr className="border-b border-border/30 hover:bg-slate-50 transition-colors">
-                        <td className="py-3 px-4"><Badge variant="outline" className="bg-rose-50 text-rose-700 border-rose-200">Falha (Bounce)</Badge></td>
-                        <td className="py-3 px-4 text-muted-foreground">Há 2 horas</td>
-                        <td className="py-3 px-4 font-medium">Alfa Indústria</td>
-                        <td className="py-3 px-4 flex items-center gap-1"><Mail className="w-3.5 h-3.5 text-indigo-600"/> SendGrid</td>
-                        <td className="py-3 px-4 text-right text-muted-foreground">#INV-1022</td>
-                      </tr>
-                   </tbody>
-                </table>
-              </CardContent>
-            </Card>
+            <div className="space-y-5 animate-in fade-in duration-300">
+               <div className="flex flex-col space-y-1 mb-4">
+                  <h3 className="text-xl font-heading font-extrabold text-obsidian">Histórico de disparos</h3>
+                  <p className="text-sm text-muted-foreground">Acompanhe os envios mais recentes da régua, com status, canal, horário e detalhes.</p>
+               </div>
+
+               {/* Filters / Search Bar */}
+               <div className="flex flex-col sm:flex-row items-center gap-3">
+                  <div className="relative flex-1 w-full">
+                     <Search className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground" />
+                     <Input placeholder="Buscar por cliente, fatura ou e-mail..." className="pl-9 h-10 bg-white border-border/80 shadow-sm text-sm" />
+                  </div>
+                  <Button variant="outline" className="h-10 border-border/80 shadow-sm text-sm shrink-0 font-semibold text-slate-600 gap-2" onClick={() => showToast('Aba lateral de filtros detalhados abriria aqui.')}>
+                     <Filter className="w-4 h-4" /> Filtros avançados
+                  </Button>
+               </div>
+
+               <Card className="bg-white shadow-sm border border-border/80 overflow-hidden">
+                  <table className="w-full text-[13px] text-left">
+                     <thead className="bg-[#FAFAFB] text-muted-foreground text-[11px] font-bold uppercase tracking-wider border-b border-border/60">
+                        <tr>
+                          <th className="py-4 px-5">Status</th>
+                          <th className="py-4 px-5">Data/Hora</th>
+                          <th className="py-4 px-5">Destinatário</th>
+                          <th className="py-4 px-5">Ação/Canal</th>
+                          <th className="py-4 px-5 text-right"></th>
+                        </tr>
+                     </thead>
+                     <tbody className="font-medium text-obsidian">
+                        <tr className="border-b border-border/30 hover:bg-slate-50 transition-colors group">
+                          <td className="py-3.5 px-5">
+                             <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-emerald-50 text-emerald-700 text-[11px] font-bold"><Check className="w-3 h-3"/> Sucesso</div>
+                          </td>
+                          <td className="py-3.5 px-5 text-muted-foreground">Hoje, 09:00</td>
+                          <td className="py-3.5 px-5">
+                             <p>Borda Tech Ltda</p>
+                             <p className="text-[11px] text-muted-foreground font-normal">Fatura #INV-9921</p>
+                          </td>
+                          <td className="py-3.5 px-5">
+                             <span className="flex items-center gap-1.5 text-emerald-600"><MessageSquare className="w-3.5 h-3.5"/> WhatsApp Pós-ven.</span>
+                          </td>
+                          <td className="py-3.5 px-5 text-right">
+                             <Button variant="ghost" size="icon" className="w-8 h-8 opacity-0 group-hover:opacity-100 transition-opacity"><Eye className="w-4 h-4 m-0" /></Button>
+                          </td>
+                        </tr>
+                        
+                        <tr className="border-b border-border/30 hover:bg-slate-50 transition-colors group">
+                          <td className="py-3.5 px-5">
+                             <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-slate-100 text-slate-700 text-[11px] font-bold"><UploadCloud className="w-3 h-3"/> Enfileirado</div>
+                          </td>
+                          <td className="py-3.5 px-5 text-muted-foreground">Hoje, 09:05</td>
+                          <td className="py-3.5 px-5">
+                             <p>Alfa Indústria</p>
+                             <p className="text-[11px] text-muted-foreground font-normal">Fatura #INV-1022</p>
+                          </td>
+                          <td className="py-3.5 px-5">
+                             <span className="flex items-center gap-1.5 text-slate-600"><Mail className="w-3.5 h-3.5"/> Lembrete Email</span>
+                          </td>
+                          <td className="py-3.5 px-5 text-right">
+                             <Button variant="ghost" size="icon" className="w-8 h-8 opacity-0 group-hover:opacity-100 transition-opacity"><Eye className="w-4 h-4 m-0" /></Button>
+                          </td>
+                        </tr>
+
+                        <tr className="border-b border-border/30 hover:bg-slate-50 transition-colors group">
+                          <td className="py-3.5 px-5">
+                             <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-rose-50 text-rose-700 text-[11px] font-bold"><AlertTriangle className="w-3 h-3"/> Falha</div>
+                          </td>
+                          <td className="py-3.5 px-5 text-muted-foreground">Ontem, 16:30</td>
+                          <td className="py-3.5 px-5">
+                             <p>Norte Frios</p>
+                             <p className="text-[11px] text-muted-foreground font-normal">Fatura #INV-4399</p>
+                          </td>
+                          <td className="py-3.5 px-5">
+                             <span className="flex items-center gap-1.5 text-rose-600"><Mail className="w-3.5 h-3.5"/> Email Bounced</span>
+                          </td>
+                          <td className="py-3.5 px-5 text-right">
+                             <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button variant="ghost" size="icon" title="Tentar Novamente" className="w-8 h-8 text-indigo-500 hover:text-indigo-600 hover:bg-indigo-50" onClick={() => showToast('Comando de Re-tentativa forçada foi disparado!')}><RefreshCw className="w-3.5 h-3.5 m-0" /></Button>
+                                <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => showToast('Visualizando erro retornado pelo Serviço Externo (Bounce).')}><Eye className="w-4 h-4 m-0" /></Button>
+                             </div>
+                          </td>
+                        </tr>
+                     </tbody>
+                  </table>
+               </Card>
+            </div>
           )}
 
         </div>
       </div>
+
+      {/* CUSTOM TOAST NOTIFICATION FOR UX FEEDBACK */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 animate-in slide-in-from-bottom-5 fade-in duration-300">
+          <div className="bg-slate-900 text-white px-5 py-3 rounded-lg shadow-xl shadow-slate-900/20 font-medium text-[13px] flex items-center gap-3 border border-slate-700">
+             <CheckCircle className="w-4 h-4 text-emerald-400" />
+             {toastMessage}
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }
