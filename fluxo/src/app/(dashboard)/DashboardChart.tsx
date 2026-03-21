@@ -7,8 +7,9 @@ export default function DashboardChart({ data }: { data: any[] }) {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
   };
 
-  const formatMonth = (tick: string) => {
+  const formatMonth = (tick: any) => {
     // Expected format: "2026-03-10". Return "10/03"
+    if (typeof tick !== 'string') return tick;
     const parts = tick.split('-');
     if (parts.length === 3) return `${parts[2]}/${parts[1]}`;
     return tick;
@@ -46,7 +47,7 @@ export default function DashboardChart({ data }: { data: any[] }) {
             domain={['dataMin', 'dataMax + 1000']}
           />
           <Tooltip 
-            formatter={(value: number, name: string) => [formatCurrency(value), name === 'recebido' ? 'Recebido' : 'Projetado']}
+            formatter={(value: any, name: any) => [formatCurrency(Number(value) || 0), name === 'recebido' ? 'Recebido' : 'Projetado']}
             labelFormatter={formatMonth}
             contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', fontSize: '13px' }}
           />
