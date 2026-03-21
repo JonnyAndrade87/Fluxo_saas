@@ -10,6 +10,19 @@ export const dynamic = 'force-dynamic';
  *   - Dunning v2 stages format: { stages: [{ id, isActive, days, channels, ... }] }
  */
 export async function GET(request: Request) {
+  // ── Security Guard ────────────────────────────────────────────────────────
+  // Must provide: Authorization: Bearer <CRON_SECRET>
+  const cronSecret = process.env.CRON_SECRET;
+  if (cronSecret) {
+    const authHeader = request.headers.get('authorization');
+    if (authHeader !== `Bearer ${cronSecret}`) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized: invalid or missing CRON_SECRET header.' },
+        { status: 401 }
+      );
+    }
+  }
+
   try {
     const today = new Date();
     today.setHours(0, 0, 0, 0);

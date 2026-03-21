@@ -40,16 +40,40 @@ export default function RegisterPage() {
       </div>
 
       <form action={dispatch} className="space-y-6 relative z-10">
-        <div className="space-y-4">
+      <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <label className="text-sm font-semibold text-obsidian select-none" htmlFor="name">Seu Nome</label>
+              <Input
+                id="name"
+                type="text"
+                name="name"
+                placeholder="Jane Doe"
+                required
+                className="h-11 text-sm tracking-tight"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-semibold text-obsidian select-none" htmlFor="companyName">Empresa</label>
+              <Input
+                id="companyName"
+                type="text"
+                name="companyName"
+                placeholder="Acme Ltda."
+                required
+                className="h-11 text-sm"
+              />
+            </div>
+          </div>
           <div className="space-y-1.5">
-            <label className="text-sm font-semibold text-obsidian select-none" htmlFor="name">Seu Nome</label>
+            <label className="text-sm font-semibold text-obsidian select-none" htmlFor="cnpj">CNPJ da Empresa</label>
             <Input
-              id="name"
+              id="cnpj"
               type="text"
-              name="name"
-              placeholder="Jane Doe"
+              name="cnpj"
+              placeholder="00.000.000/0001-00"
               required
-              className="h-11 text-sm tracking-tight"
+              className="h-11 font-mono text-sm tracking-wider"
             />
           </div>
           <div className="space-y-1.5">
@@ -76,6 +100,7 @@ export default function RegisterPage() {
             />
           </div>
         </div>
+
 
         {state?.error && (
           <div className="flex items-center gap-2 text-sm text-rose-600 bg-rose-50 p-3 rounded-lg border border-rose-100 animate-in fade-in duration-300">

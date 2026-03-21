@@ -3,6 +3,7 @@
 import prisma from '@/lib/db';
 import { auth } from '../../auth';
 import { revalidatePath } from 'next/cache';
+import { requireAuth, requireRole } from '@/lib/permissions';
 
 export async function getCustomersList(search?: string) {
   const session = await auth();
@@ -132,17 +133,9 @@ export async function getCustomerDetails(customerId: string) {
 }
 
 export async function upsertCustomer(data: any) {
-  const session = await auth();
-  const tenantId = (session?.user as any)?.tenantId;
-  let userId = (session?.user as any)?.id;
-
-  if (!tenantId) throw new Error("Unauthorized");
-
-  // Fallback for old JWT sessions that don't have ID mapped
-  if (!userId) {
-     const tUser = await prisma.tenantUser.findFirst({ where: { tenantId } });
-     userId = tUser?.userId;
-  }
+  const ctx = await requireAuth();
+  requireRole(['admin', 'operator'], ctx);
+  const { tenantId, userId } = ctx; // requireAuth() guarantees both are non-empty strings
 
   const { id, name, documentNumber, email, phone, status, tags, address, notes, assignedUserId } = data;
 
@@ -188,17 +181,8 @@ export async function upsertCustomer(data: any) {
 }
 
 export async function addCustomerNote(customerId: string, content: string) {
-  const session = await auth();
-  const tenantId = (session?.user as any)?.tenantId;
-  let userId = (session?.user as any)?.id;
-
-  // Fallback for old JWT sessions
-  if (!userId && tenantId) {
-     const tUser = await prisma.tenantUser.findFirst({ where: { tenantId } });
-     userId = tUser?.userId;
-  }
-
-  if (!tenantId || !userId) throw new Error("Unauthorized");
+  const ctx = await requireAuth(); // any authenticated user can add notes
+  const { tenantId, userId } = ctx;
 
   const note = await prisma.customerNote.create({
     data: {
@@ -214,10 +198,9 @@ export async function addCustomerNote(customerId: string, content: string) {
 }
 
 export async function upsertFinancialContact(data: any) {
-  const session = await auth();
-  const tenantId = (session?.user as any)?.tenantId;
-
-  if (!tenantId) throw new Error("Unauthorized");
+  const ctx = await requireAuth();
+  requireRole(['admin', 'operator'], ctx);
+  const { tenantId } = ctx;
 
   const { id, customerId, name, email, phone, isPrimary } = data;
 

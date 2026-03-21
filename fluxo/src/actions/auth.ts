@@ -35,20 +35,21 @@ export async function register(prevState: { error?: string, success?: boolean } 
     const rawEmail = formData.get('email');
     const rawPassword = formData.get('password');
     const rawName = formData.get('name');
+    const rawCompanyName = formData.get('companyName');
+    const rawCnpj = formData.get('cnpj');
     
-    // Type guards
     if (typeof rawEmail !== 'string' || typeof rawPassword !== 'string' || typeof rawName !== 'string') {
-       return { error: 'Invalid field data.' };
+       return { error: 'Dados inválidos no formulário.' };
     }
 
-    if (rawPassword.length < 6) return { error: 'Password must be at least 6 characters.' };
-    if (!rawEmail || !rawName) return { error: 'All fields are required.' };
+    if (rawPassword.length < 6) return { error: 'A senha deve ter ao menos 6 caracteres.' };
+    if (!rawEmail || !rawName) return { error: 'Todos os campos são obrigatórios.' };
 
     const email = rawEmail.toLowerCase();
+    const companyName = typeof rawCompanyName === 'string' && rawCompanyName.trim() ? rawCompanyName.trim() : `${rawName}'s Company`;
+    const cnpj = typeof rawCnpj === 'string' && rawCnpj.trim() ? rawCnpj.trim() : `TMP-${Date.now()}`;
 
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-    });
+    const existingUser = await prisma.user.findUnique({ where: { email } });
 
     if (existingUser) {
       return { error: 'A user with this email already exists.' };
@@ -60,8 +61,8 @@ export async function register(prevState: { error?: string, success?: boolean } 
     await prisma.$transaction(async (tx: any) => {
       const tenant = await tx.tenant.create({
         data: {
-          name: `${rawName}'s Company`,
-          documentNumber: `TMP-${Date.now()}`, // Would be collected in a real form
+          name: companyName,
+          documentNumber: cnpj,
         }
       });
 
