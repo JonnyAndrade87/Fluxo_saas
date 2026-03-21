@@ -78,6 +78,10 @@ export async function getCustomersList(search?: string) {
       status: customer.status,
       email: customer.email || contact?.email,
       phone: customer.phone || contact?.phone,
+      // Contact display fields (used by table)
+      contactName: contact?.name || null,
+      contactEmail: contact?.email || customer.email || null,
+      contactPhone: contact?.phone || customer.phone || null,
       tags: customer.tags ? customer.tags.split(',').map(t => t.trim()) : [],
       assigneeName: customer.assignee?.fullName || 'Não atribuído',
       latestDelay: maxDelay,
@@ -205,7 +209,7 @@ export async function addCustomerNote(customerId: string, content: string) {
     }
   });
 
-  revalidatePath(`/clientes/${customerId}`);
+  revalidatePath('/clientes');
   return note;
 }
 
@@ -227,7 +231,7 @@ export async function upsertFinancialContact(data: any) {
   let contact;
   if (id) {
     contact = await prisma.financialContact.update({
-      where: { id, tenantId },
+      where: { id },
       data: { name, email, phone, isPrimary }
     });
   } else {
