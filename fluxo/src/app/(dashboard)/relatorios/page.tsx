@@ -1,92 +1,49 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { getReportMetrics } from "@/actions/reports"
-import ReportsCharts from "./charts"
-import { BarChart3, TrendingUp, AlertTriangle, Download } from "lucide-react"
+import { getReportMetrics } from '@/actions/reports';
+import ReportsClient from './ReportsClient';
+import { BarChart3, Download } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+
+export const metadata = {
+  title: 'Relatórios | Fluxo',
+  description: 'Inteligência financeira consolidada para gestão de cobranças B2B',
+};
 
 export default async function RelatoriosPage() {
-  const metrics = await getReportMetrics();
+  const metrics = await getReportMetrics('6m');
 
   if (!metrics) {
-    return <div className="p-8 text-center text-muted-foreground">Ocorreu um erro ao carregar o módulo analítico.</div>;
+    return (
+      <div className="p-12 text-center text-muted-foreground">
+        <BarChart3 className="w-8 h-8 mx-auto mb-3 opacity-20" />
+        <p className="font-medium">Erro ao carregar o módulo analítico.</p>
+        <p className="text-sm mt-1">Verifique sua sessão e tente novamente.</p>
+      </div>
+    );
   }
-
-  // Formatting utils
-  const formatCurrency = (val: number) => 
-    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
-
-  const defaultRate = metrics.totalReceivables > 0 
-    ? ((metrics.totalOverdue / metrics.totalReceivables) * 100).toFixed(1) 
-    : '0.0';
 
   return (
     <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500 pb-10">
-      
+
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-border/50 pb-6">
         <div className="space-y-1">
-          <h1 className="text-3xl font-heading font-extrabold tracking-tight text-obsidian">Inteligência Financeira</h1>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50/50 border border-border text-xs font-semibold text-indigo-700 mb-2 shadow-sm">
+            <BarChart3 className="w-3.5 h-3.5" />
+            Inteligência Financeira
+          </div>
+          <h1 className="text-3xl font-heading font-extrabold tracking-tight text-obsidian">Relatórios</h1>
           <p className="text-muted-foreground text-sm max-w-lg">
-            Acompanhe a saúde do seu caixa, volume de faturamento e taxas de recuperação (Últimos 6 meses).
+            Saúde do caixa, volume de faturamento, taxa de recuperação e ranking de clientes por risco.
           </p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-white border border-border/80 rounded-lg text-sm font-medium text-obsidian hover:bg-muted/50 hover:border-indigo-200 transition-colors shadow-sm">
+        <Button variant="outline" className="gap-2 shadow-sm h-9 text-[13px]" disabled>
           <Download className="w-4 h-4 text-indigo-600" /> Exportar PDF
-        </button>
+        </Button>
       </div>
 
-      {/* High Level KPIs */}
-      <div className="grid gap-4 md:grid-cols-3">
-        
-        <Card className="premium-card relative overflow-hidden group">
-          <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500" />
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Faturamento Bruto (6m)</CardTitle>
-            <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-500">
-               <BarChart3 className="w-4 h-4" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold font-mono text-obsidian">{formatCurrency(metrics.totalReceivables)}</div>
-          </CardContent>
-        </Card>
-
-        <Card className="premium-card relative overflow-hidden group">
-          <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500" />
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Caixa Realizado (Recebido)</CardTitle>
-            <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500">
-               <TrendingUp className="w-4 h-4" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold font-mono text-obsidian">{formatCurrency(metrics.totalPaid)}</div>
-          </CardContent>
-        </Card>
-
-        <Card className="premium-card relative overflow-hidden group">
-          <div className="absolute top-0 left-0 w-1 h-full bg-rose-500" />
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Inadimplência Efetiva</CardTitle>
-            <div className="w-8 h-8 rounded-full bg-rose-50 flex items-center justify-center text-rose-500">
-               <AlertTriangle className="w-4 h-4" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-baseline gap-2">
-              <div className="text-2xl font-bold font-mono text-rose-600">{defaultRate}%</div>
-              <span className="text-xs text-muted-foreground">({formatCurrency(metrics.totalOverdue)})</span>
-            </div>
-          </CardContent>
-        </Card>
-
-      </div>
-
-      {/* Charts Grid */}
-      <ReportsCharts 
-        barData={metrics.monthlyCashflow} 
-        pieData={metrics.statusDistribution} 
-      />
+      {/* Interactive Client Component */}
+      <ReportsClient initialData={metrics} />
 
     </div>
-  )
+  );
 }
