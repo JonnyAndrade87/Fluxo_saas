@@ -43,9 +43,11 @@ model User {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relationships
-  tenants         TenantUser[]
-  paymentPromises PaymentPromise[] // Whoever registered the promise
-  activityLogs    ActivityLog[]
+  tenants           TenantUser[]
+  paymentPromises   PaymentPromise[]
+  activityLogs      ActivityLog[]
+  assignedCustomers Customer[]
+  customerNotes     CustomerNote[]
 
   @@map("users")
 }
@@ -75,19 +77,28 @@ model Customer {
   name            String
   documentNumber  String   @map("document_number")
   status          String   @default("active") // active, inactive, blocklisted
-  customData      String?  @map("custom_data") // SQLite does not support JSONB natively. Using String to store serialized JSON. Use Json in Postgres.
+  email           String?  // Main company email
+  phone           String?  // Main company phone/whatsapp
+  address         String?  // Company address
+  notes           String?  // General internal observations
+  tags            String?  // Comma separated tags for segmentation
+  assignedUserId  String?  @map("assigned_user_id") // internal responsible
+  customData      String?  @map("custom_data") // SQLite JSONB fallback
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
   // Foreign Keys
-  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  assignee User?  @relation(fields: [assignedUserId], references: [id], onDelete: SetNull)
 
   // Relationships
   financialContacts FinancialContact[]
   invoices          Invoice[]
   communications    Communication[]
+  customerNotes     CustomerNote[]
 
   @@index([tenantId])
+  @@index([assignedUserId])
   @@map("customers")
 }
 
@@ -108,6 +119,23 @@ model FinancialContact {
 
   @@index([customerId])
   @@map("financial_contacts")
+}
+
+model CustomerNote {
+  id         String   @id @default(uuid())
+  tenantId   String   @map("tenant_id")
+  customerId String   @map("customer_id")
+  userId     String   @map("user_id") // Who wrote the note
+  content    String
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // Foreign Keys
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@map("customer_notes")
 }
 
 // ==========================================

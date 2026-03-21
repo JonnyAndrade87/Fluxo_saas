@@ -9,6 +9,9 @@ import {
   Search, Filter, Plus, Users, User, Building2, MoreHorizontal, Mail, Phone, X, CreditCard, Activity, ArrowUpRight, ArrowDownRight, CircleDollarSign, Clock, FileText
 } from "lucide-react";
 import { getCustomersList, getCustomerDetails } from "@/actions/customers";
+import CustomerFormModal from "./CustomerFormModal";
+import CustomerTimeline from "./CustomerTimeline";
+import ContactFormModal from "./ContactFormModal";
 
 export default function ClientesClient({ initialData }: { initialData: any[] }) {
   const [customers, setCustomers] = useState(initialData);
@@ -20,6 +23,13 @@ export default function ClientesClient({ initialData }: { initialData: any[] }) 
   // UI State
   const [drawerData, setDrawerData] = useState<any | null>(null);
   const [isDrawerLoading, setIsDrawerLoading] = useState(false);
+
+  // Modal State
+  const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
+  const [editingCustomer, setEditingCustomer] = useState<any | null>(null);
+
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+  const [editingContact, setEditingContact] = useState<any | null>(null);
 
   const fetchCustomers = () => {
     startTransition(async () => {
@@ -67,8 +77,8 @@ export default function ClientesClient({ initialData }: { initialData: any[] }) 
             Diretório unificado de contatos financeiros, histórico de Lifetime Value (LTV) e exposição de risco.
           </p>
         </div>
-        <Button variant="beam" onClick={() => window.dispatchEvent(new CustomEvent('open-new-invoice-modal'))} className="gap-2 shadow-sm rounded-full px-6">
-          <Plus className="w-4 h-4" /> Nova Cobrança
+        <Button variant="beam" onClick={() => { setEditingCustomer(null); setIsCustomerModalOpen(true); }} className="gap-2 shadow-sm rounded-full px-6">
+          <Plus className="w-4 h-4" /> Novo Cliente
         </Button>
       </div>
 
@@ -214,11 +224,43 @@ export default function ClientesClient({ initialData }: { initialData: any[] }) 
                    <div className="flex-1 overflow-y-auto bg-slate-50">
                       <div className="p-6 space-y-6">
                         
+                        {/* Status Financeiro Cards */}
+                        <div className="grid grid-cols-3 gap-3">
+                           <div className="bg-white border border-border/60 rounded-xl p-3 shadow-sm text-center">
+                              <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider mb-1">A Receber</p>
+                              <p className="text-sm font-bold text-obsidian">
+                                 {formatCurrency(drawerData.invoices.filter((i:any) => i.status === 'pending').reduce((acc: number, item: any) => acc + item.balanceDue, 0))}
+                              </p>
+                           </div>
+                           <div className="bg-rose-50 border border-rose-100 rounded-xl p-3 shadow-sm text-center">
+                              <p className="text-[10px] text-rose-600 uppercase font-bold tracking-wider mb-1 flex items-center justify-center gap-1">
+                                <ArrowDownRight className="w-3 h-3" /> Em Atraso
+                              </p>
+                              <p className="text-sm font-bold text-rose-700">
+                                 {formatCurrency(drawerData.invoices.filter((i:any) => i.status === 'overdue').reduce((acc: number, item: any) => acc + item.balanceDue, 0))}
+                              </p>
+                           </div>
+                           <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3 shadow-sm text-center">
+                              <p className="text-[10px] text-emerald-600 uppercase font-bold tracking-wider mb-1 flex items-center justify-center gap-1">
+                                <ArrowUpRight className="w-3 h-3" /> Recebido (LTV)
+                              </p>
+                              <p className="text-sm font-bold text-emerald-700">
+                                 {formatCurrency(drawerData.invoices.filter((i:any) => i.status === 'paid').reduce((acc: number, item: any) => acc + item.amount, 0))}
+                              </p>
+                           </div>
+                        </div>
+
                         {/* Contatos Rápidos Box */}
                         <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-4 space-y-3">
-                           <h4 className="font-semibold text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-2 border-b border-border/50 pb-2">
-                             <Phone className="w-3.5 h-3.5 text-indigo-500" /> Contatos Adicionados
-                           </h4>
+                           <div className="flex items-center justify-between border-b border-border/50 pb-2">
+                             <h4 className="font-semibold text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                               <Phone className="w-3.5 h-3.5 text-indigo-500" /> Contatos Adicionados
+                             </h4>
+                             <Button variant="ghost" size="sm" onClick={() => { setEditingContact(null); setIsContactModalOpen(true); }} className="h-6 text-[10px] text-indigo-600 hover:text-indigo-700 bg-indigo-50 shrink-0 px-2 py-0">
+                               <Plus className="w-3 h-3 mr-1" /> Novo
+                             </Button>
+                           </div>
+                           
                            {drawerData.financialContacts.length > 0 ? (
                               <div className="divide-y divide-border/40">
                                  {drawerData.financialContacts.map((contact: any) => (
@@ -230,7 +272,7 @@ export default function ClientesClient({ initialData }: { initialData: any[] }) 
                                            {contact.phone && <a href={`tel:${contact.phone}`} className="hover:text-indigo-600 hover:underline">{contact.phone}</a>}
                                          </div>
                                        </div>
-                                       <Button variant="outline" size="icon" className="h-7 w-7 border-indigo-100 text-indigo-600 hover:bg-indigo-50 shrink-0">
+                                       <Button variant="outline" size="icon" onClick={() => { setEditingContact(contact); setIsContactModalOpen(true); }} className="h-7 w-7 border-indigo-100 text-indigo-600 hover:bg-indigo-50 shrink-0">
                                           <ArrowUpRight className="w-3 h-3" />
                                        </Button>
                                     </div>
@@ -275,19 +317,27 @@ export default function ClientesClient({ initialData }: { initialData: any[] }) 
                              <div className="text-center py-6 text-sm text-muted-foreground">
                                 <FileText className="w-6 h-6 mx-auto mb-2 opacity-30" />
                                 Nenhuma fatura vinculada.
-                             </div>
+                              </div>
                            )}
                         </div>
+
+                        {/* Notas e Timeline Component */}
+                        <CustomerTimeline 
+                           customerId={drawerData.id}
+                           notes={drawerData.customerNotes}
+                           communications={drawerData.communications}
+                           onNoteAdded={() => openCustomerDrawer(drawerData.id)}
+                        />
 
                       </div>
                    </div>
 
                    {/* Footer Actions */}
                    <div className="p-4 bg-white border-t border-border/50 shadow-[0_-10px_40px_rgba(0,0,0,0.03)] shrink-0 flex gap-3">
-                      <Button className="flex-1 font-semibold text-[13px] bg-obsidian hover:bg-indigo-900 border border-transparent text-white transition-colors h-10 shadow-lg">
+                      <Button onClick={() => window.dispatchEvent(new CustomEvent('open-new-invoice-modal', { detail: { customerId: drawerData.id } }))} className="flex-1 font-semibold text-[13px] bg-indigo-600 hover:bg-indigo-700 border border-transparent text-white transition-colors h-10 shadow-lg">
                         <Plus className="w-4 h-4 mr-1.5" /> Nova Fatura Manual
                       </Button>
-                      <Button variant="outline" className="flex-1 font-semibold text-[13px] h-10 border-border text-obsidian">
+                      <Button variant="outline" onClick={() => { setEditingCustomer(drawerData); setIsCustomerModalOpen(true); }} className="flex-1 font-semibold text-[13px] h-10 border-border text-obsidian hover:bg-slate-50">
                         Editar Cliente
                       </Button>
                    </div>
@@ -295,6 +345,25 @@ export default function ClientesClient({ initialData }: { initialData: any[] }) 
                )}
             </div>
          </div>
+      )}
+
+      {/* Form Modal */}
+      {isCustomerModalOpen && (
+         <CustomerFormModal 
+            initialData={editingCustomer} 
+            onClose={() => { setIsCustomerModalOpen(false); setEditingCustomer(null); }} 
+            onSuccess={() => { setIsCustomerModalOpen(false); setEditingCustomer(null); fetchCustomers(); }}
+         />
+      )}
+
+      {/* Contact Modal */}
+      {isContactModalOpen && drawerData && (
+         <ContactFormModal 
+            customerId={drawerData.id}
+            initialData={editingContact} 
+            onClose={() => { setIsContactModalOpen(false); setEditingContact(null); }} 
+            onSuccess={() => { setIsContactModalOpen(false); setEditingContact(null); openCustomerDrawer(drawerData.id); }}
+         />
       )}
 
     </div>

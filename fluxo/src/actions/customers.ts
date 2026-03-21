@@ -2,6 +2,7 @@
 
 import prisma from '@/lib/db';
 import { auth } from '../../auth';
+import { revalidatePath } from 'next/cache';
 
 export async function getCustomersList(search?: string) {
   const session = await auth();
@@ -11,13 +12,13 @@ export async function getCustomersList(search?: string) {
     throw new Error("Unauthorized Access: No active B2B Tenant found.");
   }
 
-  // Fetch Customers along with their primary financial contact and invoices for aggregations
   const whereClause: any = { tenantId };
   if (search && search.trim() !== '') {
     whereClause.OR = [
       { name: { contains: search } },
       { documentNumber: { contains: search } },
-      { financialContacts: { some: { email: { contains: search } } } }
+      { email: { contains: search } },
+      { tags: { contains: search } }
     ];
   }
 
@@ -29,7 +30,10 @@ export async function getCustomersList(search?: string) {
         take: 1
       },
       invoices: {
-        select: { status: true, amount: true, balanceDue: true }
+        select: { status: true, amount: true, balanceDue: true, dueDate: true }
+      },
+      assignee: {
+        select: { fullName: true }
       }
     },
     orderBy: {
@@ -37,11 +41,13 @@ export async function getCustomersList(search?: string) {
     }
   });
 
-  // Aggregate LTV (Life Time Value) and Risk
   const enhancedCustomers = customersRaw.map(customer => {
     let totalLtv = 0;
     let totalRisk = 0;
     let overdueCount = 0;
+    let maxDelay = 0;
+
+    const today = new Date();
 
     customer.invoices.forEach(inv => {
       if (inv.status === 'paid') {
@@ -50,19 +56,32 @@ export async function getCustomersList(search?: string) {
       if (inv.status === 'overdue') {
         totalRisk += inv.balanceDue;
         overdueCount++;
+        const diffTime = today.getTime() - inv.dueDate.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        if (diffDays > maxDelay) {
+           maxDelay = diffDays;
+        }
       }
     });
 
     const contact = customer.financialContacts[0] || null;
+
+    let riskLevel: 'Crítico' | 'Alto' | 'Médio' | 'Baixo' = 'Baixo';
+    if (maxDelay > 60 || totalRisk > 25000) riskLevel = 'Crítico';
+    else if (maxDelay > 30 || totalRisk > 10000) riskLevel = 'Alto';
+    else if (maxDelay > 0) riskLevel = 'Médio';
 
     return {
       id: customer.id,
       name: customer.name,
       documentNumber: customer.documentNumber,
       status: customer.status,
-      contactName: contact?.name || 'Sem Contato',
-      contactEmail: contact?.email || '',
-      contactPhone: contact?.phone || '',
+      email: customer.email || contact?.email,
+      phone: customer.phone || contact?.phone,
+      tags: customer.tags ? customer.tags.split(',').map(t => t.trim()) : [],
+      assigneeName: customer.assignee?.fullName || 'Não atribuído',
+      latestDelay: maxDelay,
+      riskLevel,
       metrics: {
         totalLtv,
         totalRisk,
@@ -75,12 +94,10 @@ export async function getCustomersList(search?: string) {
   return enhancedCustomers;
 }
 
-// Keep old signature working if needed, but point to new
 export async function getCustomers() {
   return await getCustomersList();
 }
 
-// Action for fetching full Customer details (Drawer timeline)
 export async function getCustomerDetails(customerId: string) {
   const session = await auth();
   const tenantId = (session?.user as any)?.tenantId;
@@ -91,12 +108,135 @@ export async function getCustomerDetails(customerId: string) {
     where: { id: customerId, tenantId },
     include: {
       financialContacts: true,
+      assignee: true,
+      customerNotes: {
+        include: { user: { select: { fullName: true } } },
+        orderBy: { createdAt: 'desc' },
+      },
+      communications: {
+         orderBy: { sentAt: 'desc' },
+         take: 15
+      },
       invoices: {
         orderBy: { dueDate: 'desc' },
-        take: 15 // Last 15 invoices for Timeline
+        take: 20
       }
     }
   });
 
   return customer;
 }
+
+export async function upsertCustomer(data: any) {
+  const session = await auth();
+  const tenantId = (session?.user as any)?.tenantId;
+  let userId = (session?.user as any)?.id;
+
+  if (!tenantId) throw new Error("Unauthorized");
+
+  // Fallback for old JWT sessions that don't have ID mapped
+  if (!userId) {
+     const tUser = await prisma.tenantUser.findFirst({ where: { tenantId } });
+     userId = tUser?.userId;
+  }
+
+  const { id, name, documentNumber, email, phone, status, tags, address, notes, assignedUserId } = data;
+
+  let customer;
+  if (id) {
+    customer = await prisma.customer.update({
+      where: { id, tenantId },
+      data: { name, documentNumber, email, phone, status, tags, address, notes, assignedUserId }
+    });
+  } else {
+    customer = await prisma.customer.create({
+      data: { tenantId, name, documentNumber, email, phone, status, tags, address, notes, assignedUserId }
+    });
+    
+    // Auto-create a primary financial contact if email/phone was provided
+    if (email || phone) {
+       await prisma.financialContact.create({
+          data: {
+             tenantId,
+             customerId: customer.id,
+             name: "Contato Principal",
+             email: email || "",
+             phone: phone || "",
+             isPrimary: true
+          }
+       });
+    }
+  }
+
+  // Log activity
+  await prisma.activityLog.create({
+    data: {
+      tenantId,
+      userId,
+      action: id ? 'CUSTOMER_UPDATED' : 'CUSTOMER_CREATED',
+      entityType: 'customer',
+      entityId: customer.id
+    }
+  });
+
+  revalidatePath('/clientes');
+  return customer;
+}
+
+export async function addCustomerNote(customerId: string, content: string) {
+  const session = await auth();
+  const tenantId = (session?.user as any)?.tenantId;
+  let userId = (session?.user as any)?.id;
+
+  // Fallback for old JWT sessions
+  if (!userId && tenantId) {
+     const tUser = await prisma.tenantUser.findFirst({ where: { tenantId } });
+     userId = tUser?.userId;
+  }
+
+  if (!tenantId || !userId) throw new Error("Unauthorized");
+
+  const note = await prisma.customerNote.create({
+    data: {
+      tenantId,
+      customerId,
+      userId,
+      content
+    }
+  });
+
+  revalidatePath(`/clientes/${customerId}`);
+  return note;
+}
+
+export async function upsertFinancialContact(data: any) {
+  const session = await auth();
+  const tenantId = (session?.user as any)?.tenantId;
+
+  if (!tenantId) throw new Error("Unauthorized");
+
+  const { id, customerId, name, email, phone, isPrimary } = data;
+
+  if (isPrimary) {
+     await prisma.financialContact.updateMany({
+        where: { customerId, tenantId },
+        data: { isPrimary: false }
+     });
+  }
+
+  let contact;
+  if (id) {
+    contact = await prisma.financialContact.update({
+      where: { id, tenantId },
+      data: { name, email, phone, isPrimary }
+    });
+  } else {
+    contact = await prisma.financialContact.create({
+      data: { tenantId, customerId, name, email, phone, isPrimary }
+    });
+  }
+
+  revalidatePath(`/clientes/${customerId}`);
+  return contact;
+}
+

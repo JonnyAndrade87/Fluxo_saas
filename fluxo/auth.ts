@@ -45,6 +45,7 @@ export const { auth, signIn, signOut, handlers: { GET, POST } } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.tenantId = (user as any).tenantId;
+        token.id = user.id;
       }
       return token;
     },
@@ -52,6 +53,7 @@ export const { auth, signIn, signOut, handlers: { GET, POST } } = NextAuth({
       if (token) {
         if (session.user) {
            (session.user as any).tenantId = token.tenantId;
+           (session.user as any).id = token.id || token.sub;
         }
       }
       return session;
