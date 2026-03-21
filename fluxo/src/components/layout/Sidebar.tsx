@@ -20,7 +20,7 @@ const navGroups = [
   {
     label: "Operacional",
     items: [
-      { name: "Overview", href: "/", icon: LayoutDashboard },
+      { name: "Visão Geral", href: "/", icon: LayoutDashboard },
       { name: "Cobranças", href: "/cobrancas", icon: Receipt },
       { name: "Clientes", href: "/clientes", icon: Users },
       { name: "Importar Lote", href: "/importar", icon: CloudUpload },
