@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { saveBillingFlow, getBillingFlow } from '@/actions/automation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,10 +44,33 @@ export default function ReguaClient() {
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
   const [selectedLog, setSelectedLog] = useState<any>(null);
 
-  // States for Sequence (Regua) Array
   const [preAtivado, setPreAtivado] = useState(true);
   const [diaAtivado, setDiaAtivado] = useState(true);
   const [posAtivado, setPosAtivado] = useState(true);
+
+  // Timing States
+  const [preDias, setPreDias] = useState("3");
+  const [preHora, setPreHora] = useState("09:00");
+  const [diaHora, setDiaHora] = useState("08:30");
+  const [posDias, setPosDias] = useState("5");
+  const [posHora, setPosHora] = useState("14:00");
+
+  useEffect(() => {
+    getBillingFlow().then(data => {
+      if (data) {
+        if (data.preAtivado !== undefined) setPreAtivado(data.preAtivado);
+        if (data.diaAtivado !== undefined) setDiaAtivado(data.diaAtivado);
+        if (data.posAtivado !== undefined) setPosAtivado(data.posAtivado);
+        if (data.preDias) setPreDias(data.preDias);
+        if (data.preHora) setPreHora(data.preHora);
+        if (data.diaHora) setDiaHora(data.diaHora);
+        if (data.posDias) setPosDias(data.posDias);
+        if (data.posHora) setPosHora(data.posHora);
+        if (data.wpText) setWpText(data.wpText);
+        if (data.emailText) setEmailText(data.emailText);
+      }
+    }).catch(() => console.error("Could not load billing flows."));
+  }, []);
 
   // Custom Toast State for UX Feedback
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -74,14 +98,26 @@ export default function ReguaClient() {
     }, 800);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setIsSaving(true);
     setSaved(false);
-    setTimeout(() => {
-       setIsSaving(false);
+    
+    const payload = {
+       preAtivado, diaAtivado, posAtivado,
+       preDias, preHora, diaHora, posDias, posHora,
+       wpText, emailText
+    };
+
+    try {
+       await saveBillingFlow(payload);
        setSaved(true);
+       showToast('As regras de automação foram aplicadas globalmente!');
        setTimeout(() => setSaved(false), 3000);
-    }, 1200);
+    } catch(err) {
+       showToast('Erro ao salvar no banco de dados.');
+    } finally {
+       setIsSaving(false);
+    }
   };
 
   const handleInsertVariable = (variable: string) => {
@@ -206,11 +242,11 @@ export default function ReguaClient() {
                               <label className="text-[12px] font-bold text-obsidian uppercase tracking-wider">Timing do Disparo</label>
                               <div className="flex gap-3">
                                  <div className="flex-1">
-                                    <Input defaultValue="3" type="number" min="1" className="h-10 bg-slate-50/50 shadow-sm" />
+                                    <Input value={preDias} onChange={(e) => setPreDias(e.target.value)} type="number" min="1" className="h-10 bg-slate-50/50 shadow-sm" />
                                     <span className="text-[11px] text-muted-foreground mt-1 block">Dias antes</span>
                                  </div>
                                  <div className="flex-1">
-                                    <Input defaultValue="09:00" type="time" className="h-10 bg-slate-50/50 shadow-sm" />
+                                    <Input value={preHora} onChange={(e) => setPreHora(e.target.value)} type="time" className="h-10 bg-slate-50/50 shadow-sm" />
                                     <span className="text-[11px] text-muted-foreground mt-1 block">Horário</span>
                                  </div>
                               </div>
@@ -256,10 +292,10 @@ export default function ReguaClient() {
                         <div className={`lg:w-[65%] grid lg:grid-cols-2 gap-6 ${!diaAtivado && 'pointer-events-none'}`}>
                            <div className="space-y-2">
                               <label className="text-[12px] font-bold text-obsidian uppercase tracking-wider">Timing do Disparo</label>
-                                 <div>
-                                    <Input defaultValue="08:30" type="time" className="h-10 bg-slate-50/50 shadow-sm max-w-[140px]" />
-                                    <span className="text-[11px] text-muted-foreground mt-1 block">Horário exato</span>
-                                 </div>
+                                  <div>
+                                     <Input value={diaHora} onChange={(e) => setDiaHora(e.target.value)} type="time" className="h-10 bg-slate-50/50 shadow-sm max-w-[140px]" />
+                                     <span className="text-[11px] text-muted-foreground mt-1 block">Horário exato</span>
+                                  </div>
                            </div>
                            <div className="space-y-3">
                               <label className="text-[12px] font-bold text-obsidian uppercase tracking-wider">Canais de Envio</label>
@@ -303,11 +339,11 @@ export default function ReguaClient() {
                               <label className="text-[12px] font-bold text-obsidian uppercase tracking-wider">Ciclo de Cadência</label>
                               <div className="flex gap-3">
                                  <div className="flex-1">
-                                    <Input defaultValue="1, 3, 7, 15" type="text" className="h-10 bg-slate-50/50 shadow-sm" />
+                                    <Input value={posDias} onChange={(e) => setPosDias(e.target.value)} type="text" className="h-10 bg-slate-50/50 shadow-sm" />
                                     <span className="text-[11px] text-muted-foreground mt-1 block">Dias vencidos (Ex: 1,3,7)</span>
                                  </div>
                                  <div className="flex-[0.6]">
-                                    <Input defaultValue="10:00" type="time" className="h-10 bg-slate-50/50 shadow-sm" />
+                                    <Input value={posHora} onChange={(e) => setPosHora(e.target.value)} type="time" className="h-10 bg-slate-50/50 shadow-sm" />
                                     <span className="text-[11px] text-muted-foreground mt-1 block">Horário</span>
                                  </div>
                               </div>
