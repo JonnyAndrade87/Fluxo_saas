@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { 
   Settings, BellRing, MessageSquare, Mail, Clock, Zap, CheckCircle, Save, Loader2, FileText, Activity, 
-  UploadCloud, Search, Filter, Eye, MoreHorizontal, History, RefreshCw, Send, PlayCircle, Plus, Copy, Check, AlertTriangle
+  UploadCloud, Search, Filter, Eye, MoreHorizontal, History, RefreshCw, Send, PlayCircle, Plus, Copy, Check, AlertTriangle, X
 } from "lucide-react";
 
 // Reusable Custom Toggle with exact design semantics
@@ -36,6 +36,13 @@ export default function ReguaClient() {
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
+  const [isDraftSaving, setIsDraftSaving] = useState(false);
+  const [draftSaved, setDraftSaved] = useState(false);
+
+  // Log Modal State
+  const [isLogModalOpen, setIsLogModalOpen] = useState(false);
+  const [selectedLog, setSelectedLog] = useState<any>(null);
+
   // States for Sequence (Regua) Array
   const [preAtivado, setPreAtivado] = useState(true);
   const [diaAtivado, setDiaAtivado] = useState(true);
@@ -54,6 +61,17 @@ export default function ReguaClient() {
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
+  };
+
+  const handleSaveDraft = () => {
+    setIsDraftSaving(true);
+    setDraftSaved(false);
+    setTimeout(() => {
+       setIsDraftSaving(false);
+       setDraftSaved(true);
+       showToast('Rascunho atualizado e guardado com sucesso.');
+       setTimeout(() => setDraftSaved(false), 3000);
+    }, 800);
   };
 
   const handleSave = () => {
@@ -99,14 +117,20 @@ export default function ReguaClient() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline" className="h-10 px-5 rounded-full font-semibold text-slate-600 border-slate-200 hover:bg-slate-50">
-            Salvar rascunho
+          <Button 
+            variant="outline" 
+            onClick={handleSaveDraft} 
+            disabled={isDraftSaving} 
+            className={`h-10 px-5 rounded-full font-semibold border-slate-200 transition-all duration-300 ${draftSaved ? 'bg-slate-100 text-obsidian border-slate-300 scale-105 animate-in zoom-in-95' : 'text-slate-600 hover:bg-slate-50 active:scale-95'}`}
+          >
+            {isDraftSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : draftSaved ? <Save className="w-4 h-4 mr-2" /> : null}
+            {isDraftSaving ? 'Salvando...' : draftSaved ? 'Salvo no Rascunho' : 'Salvar rascunho'}
           </Button>
           <Button 
-            variant="beam" 
+            variant={saved ? "default" : "beam"}
             onClick={handleSave} 
             disabled={isSaving} 
-            className={`h-10 px-6 rounded-full font-semibold shadow-sm shadow-indigo-500/20 transition-all duration-300 ${saved ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/30' : ''}`}
+            className={`h-10 px-6 rounded-full font-semibold shadow-sm shadow-indigo-500/20 transition-all duration-300 ${saved ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/30 scale-105 animate-in zoom-in-95' : 'active:scale-95'}`}
           >
             {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : saved ? <CheckCircle className="w-4 h-4 text-white mr-2" /> : <UploadCloud className="w-4 h-4 mr-2" />}
             {isSaving ? 'Publicando...' : saved ? 'Publicado com Sucesso!' : 'Publicar automação'}
@@ -360,7 +384,7 @@ export default function ReguaClient() {
                      </CardContent>
                      <CardFooter className="p-4 border-t border-border/50 bg-white gap-3">
                         <Button variant="outline" className="w-full text-xs font-semibold" onClick={() => handleRestore('wp')}>Restaurar padrão</Button>
-                        <Button variant="secondary" className="w-full text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100" onClick={() => showToast('Mensagem de teste enviada para seu número cadastrado.')}>Enviar mensagem</Button>
+                        <Button variant="secondary" className="w-full text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100" onClick={() => showToast('Mensagem de teste do WhatsApp disparada com sucesso.')}>Testar mensagem</Button>
                      </CardFooter>
                   </Card>
 
@@ -386,7 +410,7 @@ export default function ReguaClient() {
                      </CardContent>
                      <CardFooter className="p-4 border-t border-border/50 bg-white gap-3">
                         <Button variant="outline" className="w-full text-xs font-semibold" onClick={() => handleRestore('email')}>Restaurar padrão</Button>
-                        <Button variant="secondary" className="w-full text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100" onClick={() => showToast('Prévia de E-mail disparada para admin@fluxo.com.')}>Enviar prévia</Button>
+                        <Button variant="secondary" className="w-full text-xs font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100" onClick={() => showToast('Prévia de E-mail disparada para admin@fluxo.com.')}>Testar E-mail</Button>
                      </CardFooter>
                   </Card>
 
@@ -508,7 +532,7 @@ export default function ReguaClient() {
                              <span className="flex items-center gap-1.5 text-emerald-600"><MessageSquare className="w-3.5 h-3.5"/> WhatsApp Pós-ven.</span>
                           </td>
                           <td className="py-3.5 px-5 text-right">
-                             <Button variant="ghost" size="icon" className="w-8 h-8 opacity-0 group-hover:opacity-100 transition-opacity"><Eye className="w-4 h-4 m-0" /></Button>
+                             <Button variant="ghost" size="icon" className="w-8 h-8 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => { setSelectedLog({ status: 'Sucesso', date: 'Hoje, 09:00', client: 'Borda Tech Ltda', invoice: 'INV-9921', channel: 'WhatsApp Pós-ven.', payload: '{"event": "message.sent", "to": "551199999999", "status": "delivered", "template": "remind_due"}' }); setIsLogModalOpen(true); }}><Eye className="w-4 h-4 m-0" /></Button>
                           </td>
                         </tr>
                         
@@ -525,7 +549,7 @@ export default function ReguaClient() {
                              <span className="flex items-center gap-1.5 text-slate-600"><Mail className="w-3.5 h-3.5"/> Lembrete Email</span>
                           </td>
                           <td className="py-3.5 px-5 text-right">
-                             <Button variant="ghost" size="icon" className="w-8 h-8 opacity-0 group-hover:opacity-100 transition-opacity"><Eye className="w-4 h-4 m-0" /></Button>
+                             <Button variant="ghost" size="icon" className="w-8 h-8 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => { setSelectedLog({ status: 'Enfileirado', date: 'Hoje, 09:05', client: 'Alfa Indústria', invoice: 'INV-1022', channel: 'Lembrete Email', payload: '{"event": "email.queued", "to": "contato@alfa.com", "status": "pending", "provider": "aws_ses"}' }); setIsLogModalOpen(true); }}><Eye className="w-4 h-4 m-0" /></Button>
                           </td>
                         </tr>
 
@@ -544,7 +568,7 @@ export default function ReguaClient() {
                           <td className="py-3.5 px-5 text-right">
                              <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <Button variant="ghost" size="icon" title="Tentar Novamente" className="w-8 h-8 text-indigo-500 hover:text-indigo-600 hover:bg-indigo-50" onClick={() => showToast('Comando de Re-tentativa forçada foi disparado!')}><RefreshCw className="w-3.5 h-3.5 m-0" /></Button>
-                                <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => showToast('Visualizando erro retornado pelo Serviço Externo (Bounce).')}><Eye className="w-4 h-4 m-0" /></Button>
+                                <Button variant="ghost" size="icon" className="w-8 h-8" onClick={() => { setSelectedLog({ status: 'Falha', date: 'Ontem, 16:30', client: 'Norte Frios', invoice: 'INV-4399', channel: 'Email Bounced', payload: '{"event": "email.failed", "error": "soft_bounce", "reason": "mailbox_full", "provider_message": "552 5.2.2 Quota exceeded (mailbox for user is full)"}' }); setIsLogModalOpen(true); }}><Eye className="w-4 h-4 m-0" /></Button>
                              </div>
                           </td>
                         </tr>
@@ -556,6 +580,45 @@ export default function ReguaClient() {
 
         </div>
       </div>
+
+      {/* LOG MODAL OVERLAY */}
+      {isLogModalOpen && selectedLog && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-obsidian/40 backdrop-blur-sm animate-in fade-in duration-200">
+           <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-5 duration-300">
+              <div className="flex items-center justify-between p-5 border-b border-border/60 bg-[#FAFAFB]">
+                 <div>
+                    <h3 className="font-heading font-extrabold text-obsidian text-lg">Detalhes da Transação</h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">ID Interno de rastreio de disparo</p>
+                 </div>
+                 <Button variant="ghost" size="icon" className="rounded-full w-8 h-8 hover:bg-slate-200 text-slate-500" onClick={() => setIsLogModalOpen(false)}>
+                    <X className="w-4 h-4" />
+                 </Button>
+              </div>
+              <div className="p-6 space-y-5">
+                 <div className="grid grid-cols-2 gap-4">
+                    <div>
+                       <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Cliente / Fatura</span>
+                       <span className="block text-sm font-semibold text-obsidian">{selectedLog.client}</span>
+                       <span className="block text-xs text-muted-foreground">{selectedLog.invoice}</span>
+                    </div>
+                    <div>
+                       <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Timing da Execução</span>
+                       <span className="block text-sm font-semibold text-obsidian">{selectedLog.date}</span>
+                    </div>
+                 </div>
+                 <div className="space-y-2">
+                    <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Payload Registrado (Raw JSON)</span>
+                    <div className="bg-[#1E1E1E] rounded-lg p-4 font-mono text-[11px] text-[#D4D4D4] whitespace-pre-wrap leading-relaxed overflow-x-auto shadow-inner border border-obsidian/20">
+                       {JSON.stringify(JSON.parse(selectedLog.payload), null, 2)}
+                    </div>
+                 </div>
+              </div>
+              <div className="p-4 border-t border-border/60 bg-[#FAFAFB] flex justify-end">
+                 <Button variant="outline" className="text-xs font-semibold" onClick={() => setIsLogModalOpen(false)}>Fechar Log</Button>
+              </div>
+           </div>
+        </div>
+      )}
 
       {/* CUSTOM TOAST NOTIFICATION FOR UX FEEDBACK */}
       {toastMessage && (
