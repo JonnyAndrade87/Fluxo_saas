@@ -18,7 +18,7 @@ export interface CollectionCustomerSummary {
 
 export interface TimelineEvent {
   id: string;
-  type: 'communication' | 'note' | 'promise' | 'invoice_event' | 'activity';
+  type: 'communication' | 'note' | 'promise' | 'activity' | 'task';
   createdAt: Date;
   // Communication fields
   channel?: string;
@@ -38,6 +38,12 @@ export interface TimelineEvent {
   // Activity fields
   action?: string;
   entityType?: string;
+  // Task fields
+  title?: string;
+  description?: string | null;
+  dueDate?: Date;
+  completedAt?: Date | null;
+  assigneeName?: string | null;
 }
 
 export interface CollectionDetail {
@@ -167,6 +173,16 @@ export async function getCollectionDetail(customerId: string): Promise<Collectio
     orderBy: { createdAt: 'desc' }
   });
 
+  // Get tasks linked to customer
+  const tasks = await prisma.task.findMany({
+    where: { tenantId, customerId },
+    include: {
+      assignee: { select: { fullName: true } },
+      invoice: { select: { invoiceNumber: true } }
+    },
+    orderBy: { createdAt: 'desc' }
+  });
+
   // Build unified timeline
   const timeline: TimelineEvent[] = [];
 
@@ -206,6 +222,23 @@ export async function getCollectionDetail(customerId: string): Promise<Collectio
       promiseNotes: promise.notes,
       authorName: promise.user.fullName,
       invoiceNumber: promise.invoice.invoiceNumber,
+      invoiceId: promise.invoiceId,
+    });
+  }
+
+  for (const task of tasks) {
+    timeline.push({
+      id: task.id,
+      type: 'task',
+      createdAt: task.createdAt,
+      title: task.title,
+      description: task.description,
+      status: task.status,
+      dueDate: task.dueDate,
+      completedAt: task.completedAt,
+      assigneeName: task.assignee?.fullName,
+      invoiceNumber: task.invoice?.invoiceNumber ?? null,
+      invoiceId: task.invoiceId,
     });
   }
 

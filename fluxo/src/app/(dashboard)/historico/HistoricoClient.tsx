@@ -9,8 +9,9 @@ import {
   Search, MessageSquare, Mail, FileText, AlertTriangle, CheckCircle,
   Clock, User, Phone, StickyNote, Handshake, Loader2, Inbox,
   ChevronRight, Filter, Building2, Calendar, Tag, X,
-  CheckCheck, Send, Hourglass, WifiOff
+  CheckCheck, Send, Hourglass, WifiOff, CheckSquare, Square, Plus
 } from 'lucide-react';
+import { createTask, completeTask } from '@/actions/tasks';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -182,7 +183,149 @@ function TimelineItem({ event }: { event: TimelineEvent }) {
     );
   }
 
+  if (event.type === 'task') {
+    const isCompleted = event.status === 'completed';
+    const [isPending, startTransition] = useTransition();
+
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    const isOverdue = !isCompleted && event.dueDate && (event.dueDate.getTime() < now.getTime());
+
+    const handleComplete = () => {
+      startTransition(async () => {
+        await completeTask(event.id);
+      });
+    };
+
+    return (
+      <div className="flex gap-3 group">
+        <div className="flex flex-col items-center">
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+            isCompleted ? 'bg-slate-100 text-slate-400' : 'bg-indigo-50 text-indigo-600'
+          }`}>
+            <CheckSquare className="w-3.5 h-3.5" />
+          </div>
+          <div className="w-px flex-1 bg-border/60 mt-1" />
+        </div>
+        <div className={`pb-5 flex-1 min-w-0 ${isCompleted ? 'opacity-60' : ''}`}>
+          <div className="flex items-center justify-between gap-2 mb-1.5">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[12px] font-bold text-obsidian uppercase tracking-wide">Tarefa Manual</span>
+              {isCompleted ? (
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-500">Concluída</span>
+              ) : (
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-700">Pendente</span>
+              )}
+            </div>
+            <span className="text-[11px] text-muted-foreground shrink-0">{fmtDateTime(event.createdAt)}</span>
+          </div>
+
+          <div className="p-3 bg-white border border-border/80 shadow-sm rounded-xl text-[12.5px] max-w-md group-hover:border-indigo-100 transition-colors">
+            <div className="flex items-start gap-3">
+              <button 
+                onClick={handleComplete}
+                disabled={isCompleted || isPending}
+                className="mt-0.5 shrink-0 text-muted-foreground hover:text-indigo-600 disabled:pointer-events-none transition-colors"
+                title="Marcar como concluída"
+              >
+                {isCompleted ? <CheckSquare className="w-4 h-4 text-emerald-500" /> : isPending ? <Loader2 className="w-4 h-4 animate-spin text-indigo-400" /> : <Square className="w-4 h-4" />}
+              </button>
+              <div className="space-y-1">
+                <p className={`font-semibold text-obsidian ${isCompleted ? 'line-through text-muted-foreground' : ''}`}>{event.title}</p>
+                {event.description && <p className="text-muted-foreground leading-relaxed">{event.description}</p>}
+                
+                <div className="flex items-center gap-3 mt-2 text-[11px] text-slate-500 flex-wrap">
+                  {event.dueDate && (
+                    <span className={`flex items-center gap-1 ${isOverdue ? 'text-rose-600 font-bold' : ''}`}>
+                      <Calendar className="w-3 h-3" /> {fmtDate(event.dueDate)}
+                      {isOverdue && <span className="ml-1 text-[9px] uppercase tracking-wider bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded-sm font-bold">Atrasada</span>}
+                    </span>
+                  )}
+                  {event.invoiceNumber && (
+                    <span className="font-mono bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-sm">Fat. #{event.invoiceNumber}</span>
+                  )}
+                  {event.assigneeName && (
+                    <span className="flex items-center gap-1"><User className="w-3 h-3" /> {event.assigneeName}</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return null;
+}
+
+// ─── Task Modal ───────────────────────────────────────────────────────────────
+
+function TaskModal({ isOpen, onClose, customerId, invoices }: {
+  isOpen: boolean; onClose: () => void; customerId: string; invoices: any[];
+}) {
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [invoiceId, setInvoiceId] = useState('');
+  const [dueDate, setDueDate] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  if (!isOpen) return null;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await createTask({ customerId, title, description, invoiceId: invoiceId || undefined, dueDate });
+      onClose();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm animate-in fade-in p-4">
+      <div className="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden animate-in zoom-in-95 my-auto">
+        <form onSubmit={handleSubmit}>
+          <div className="flex items-center justify-between p-4 border-b border-border/50">
+            <h3 className="font-bold text-obsidian">Nova Tarefa Manual</h3>
+            <button type="button" onClick={onClose} className="p-1 rounded-md text-muted-foreground hover:bg-slate-100">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="p-5 space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-700">Opção de Fatura (Opcional)</label>
+              <select value={invoiceId} onChange={e => setInvoiceId(e.target.value)} className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                <option value="">Nenhuma (Geral)</option>
+                {invoices.map(inv => (
+                  <option key={inv.id} value={inv.id}>Fatura #{inv.invoiceNumber} - {fmt.format(inv.amount)}</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-700">Título da Tarefa *</label>
+              <Input required value={title} onChange={e => setTitle(e.target.value)} placeholder="Ex: Ligar para confirmar promessa" autoFocus />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-700">Descrição</label>
+              <textarea value={description} onChange={e => setDescription(e.target.value)} className="flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" placeholder="Detalhes do follow-up..." />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-700">Data Limite *</label>
+              <Input required type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} />
+            </div>
+          </div>
+          <div className="p-4 bg-slate-50 border-t border-border/50 flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Criar Tarefa'}
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
 }
 
 // ─── Left Panel Item ──────────────────────────────────────────────────────────
@@ -255,9 +398,11 @@ export default function HistoricoClient() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [eventTypeFilter, setEventTypeFilter] = useState<string>('all');
+  const [invoiceFilter, setInvoiceFilter] = useState<string>('all');
   const [loadingList, startListTransition] = useTransition();
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [activeTab, setActiveTab] = useState<'timeline' | 'invoices'>('timeline');
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
 
   const loadCustomers = useCallback(() => {
     startListTransition(async () => {
@@ -284,8 +429,9 @@ export default function HistoricoClient() {
   };
 
   const filteredTimeline = detail?.timeline.filter(e => {
-    if (eventTypeFilter === 'all') return true;
-    return e.type === eventTypeFilter;
+    if (eventTypeFilter !== 'all' && e.type !== eventTypeFilter) return false;
+    if (invoiceFilter !== 'all' && e.invoiceId !== invoiceFilter) return false;
+    return true;
   }) ?? [];
 
   return (
@@ -460,21 +606,45 @@ export default function HistoricoClient() {
                   </button>
                 ))}
               </div>
-              {activeTab === 'timeline' && (
-                <div className="flex items-center gap-1.5">
-                  <Filter className="w-3.5 h-3.5 text-muted-foreground" />
-                  <select
-                    value={eventTypeFilter}
-                    onChange={e => setEventTypeFilter(e.target.value)}
-                    className="text-xs font-semibold text-slate-600 bg-transparent border-0 focus:ring-0 pr-1 cursor-pointer"
-                  >
-                    <option value="all">Todos os eventos</option>
-                    <option value="communication">Mensagens enviadas</option>
-                    <option value="note">Notas internas</option>
-                    <option value="promise">Promessas</option>
-                  </select>
-                </div>
-              )}
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setIsTaskModalOpen(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[13px] font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors border border-indigo-200"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Tarefa
+                </button>
+                {activeTab === 'timeline' && (
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded-md border border-border/50">
+                      <Filter className="w-3 h-3 text-muted-foreground" />
+                      <select
+                        value={eventTypeFilter}
+                        onChange={e => setEventTypeFilter(e.target.value)}
+                        className="text-[11px] font-bold text-slate-600 bg-transparent border-0 focus:ring-0 pr-1 cursor-pointer"
+                      >
+                        <option value="all">Tipos: Todos</option>
+                        <option value="communication">Envios</option>
+                        <option value="note">Notas</option>
+                        <option value="promise">Promessas</option>
+                        <option value="task">Tarefas</option>
+                      </select>
+                    </div>
+                    <div className="flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded-md border border-border/50">
+                      <FileText className="w-3 h-3 text-muted-foreground" />
+                      <select
+                        value={invoiceFilter}
+                        onChange={e => setInvoiceFilter(e.target.value)}
+                        className="text-[11px] font-bold text-slate-600 bg-transparent border-0 focus:ring-0 pr-1 cursor-pointer max-w-[140px]"
+                      >
+                        <option value="all">Fatura: Todas</option>
+                        {detail.invoices.map(inv => (
+                          <option key={inv.id} value={inv.id}>#{inv.invoiceNumber}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Scrollable content */}
@@ -514,11 +684,23 @@ export default function HistoricoClient() {
                               <Calendar className="w-3 h-3" /> Vence em {fmtDate(inv.dueDate)}
                             </p>
                           </div>
-                          <div className="text-right">
-                            <p className="text-[16px] font-extrabold text-obsidian">{fmt.format(inv.amount)}</p>
-                            {inv.balanceDue < inv.amount && (
-                              <p className="text-[11px] text-emerald-600 font-semibold">Saldo: {fmt.format(inv.balanceDue)}</p>
-                            )}
+                          <div className="flex items-center gap-4">
+                            <div className="text-right">
+                              <p className="text-[16px] font-extrabold text-obsidian">{fmt.format(inv.amount)}</p>
+                              {inv.balanceDue < inv.amount && (
+                                <p className="text-[11px] text-emerald-600 font-semibold">Saldo: {fmt.format(inv.balanceDue)}</p>
+                              )}
+                            </div>
+                            <button
+                              onClick={() => {
+                                setInvoiceFilter(inv.id);
+                                setActiveTab('timeline');
+                              }}
+                              className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-400 hover:text-indigo-600 transition-colors"
+                              title="Ver histórico desta fatura"
+                            >
+                              <ChevronRight className="w-4 h-4" />
+                            </button>
                           </div>
                         </div>
                       );
@@ -531,6 +713,14 @@ export default function HistoricoClient() {
         )}
       </div>
 
+      {detail && (
+        <TaskModal 
+          isOpen={isTaskModalOpen} 
+          onClose={() => setIsTaskModalOpen(false)} 
+          customerId={detail.customer.id} 
+          invoices={detail.invoices} 
+        />
+      )}
     </div>
   );
 }

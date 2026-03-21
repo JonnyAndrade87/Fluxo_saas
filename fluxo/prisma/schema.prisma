@@ -30,6 +30,7 @@ model Tenant {
   communications     Communication[]
   paymentPromises    PaymentPromise[]
   activityLogs       ActivityLog[]
+  tasks              Task[]
 
   @@map("tenants")
 }
@@ -48,6 +49,7 @@ model User {
   activityLogs      ActivityLog[]
   assignedCustomers Customer[]
   customerNotes     CustomerNote[]
+  tasks             Task[]
 
   @@map("users")
 }
@@ -96,6 +98,7 @@ model Customer {
   invoices          Invoice[]
   communications    Communication[]
   customerNotes     CustomerNote[]
+  tasks             Task[]
 
   @@index([tenantId])
   @@index([assignedUserId])
@@ -164,6 +167,7 @@ model Invoice {
   installments    InvoiceInstallment[]
   communications  Communication[]
   paymentPromises PaymentPromise[]
+  tasks           Task[]
 
   @@index([tenantId, status])
   @@index([tenantId, dueDate])
@@ -296,4 +300,33 @@ model ActivityLog {
 
   @@index([tenantId, createdAt(sort: Desc)])
   @@map("activity_logs")
+}
+
+// ==========================================
+// TASKS
+// ==========================================
+
+model Task {
+  id          String    @id @default(uuid())
+  tenantId    String    @map("tenant_id")
+  customerId  String    @map("customer_id")
+  invoiceId   String?   @map("invoice_id")
+  title       String
+  description String?
+  status      String    @default("pending") // pending, completed, canceled
+  dueDate     DateTime  @map("due_date")
+  assigneeId  String?   @map("assignee_id")
+  completedAt DateTime? @map("completed_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  // Foreign Keys
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  invoice  Invoice? @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  assignee User?    @relation(fields: [assigneeId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, status, dueDate])
+  @@index([assigneeId, status])
+  @@map("tasks")
 }
