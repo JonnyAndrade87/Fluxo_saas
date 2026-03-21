@@ -8,7 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import {
   Search, MessageSquare, Mail, FileText, AlertTriangle, CheckCircle,
   Clock, User, Phone, StickyNote, Handshake, Loader2, Inbox,
-  ChevronRight, Filter, Building2, Calendar, Tag, X
+  ChevronRight, Filter, Building2, Calendar, Tag, X,
+  CheckCheck, Send, Hourglass, WifiOff
 } from 'lucide-react';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -50,7 +51,20 @@ const CHANNEL_ICON = (channel?: string) => {
 
 function TimelineItem({ event }: { event: TimelineEvent }) {
   if (event.type === 'communication') {
-    const isFailed = event.status === 'failed';
+    // Full 5-state status badge
+    const COMM_STATUS: Record<string, { label: string; cls: string; Icon: any }> = {
+      queued:    { label: 'Na fila',   cls: 'bg-slate-100 text-slate-500',   Icon: Hourglass },
+      sent:      { label: 'Enviado',   cls: 'bg-blue-50 text-blue-600',      Icon: Send },
+      delivered: { label: 'Entregue',  cls: 'bg-emerald-50 text-emerald-600', Icon: CheckCircle },
+      read:      { label: 'Lido',      cls: 'bg-emerald-100 text-emerald-700', Icon: CheckCheck },
+      failed:    { label: 'Falha',     cls: 'bg-rose-50 text-rose-600',      Icon: AlertTriangle },
+    };
+    const commSt = COMM_STATUS[event.status ?? 'sent'] ?? COMM_STATUS.sent;
+    const StatusIcon = commSt.Icon;
+
+    const channelLabel = event.channel === 'whatsapp' ? 'WhatsApp' : 'E-mail';
+    const titleLabel = event.status === 'queued' ? `${channelLabel} (na fila)` : `${channelLabel} Enviado`;
+
     return (
       <div className="flex gap-3 group">
         <div className="flex flex-col items-center">
@@ -64,20 +78,15 @@ function TimelineItem({ event }: { event: TimelineEvent }) {
         </div>
         <div className="pb-5 flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2 mb-1.5">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="text-[12px] font-bold text-obsidian uppercase tracking-wide">
-                {event.channel === 'whatsapp' ? 'WhatsApp' : 'E-mail'} Enviado
+                {titleLabel}
               </span>
-              {isFailed && (
-                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-50 text-rose-600">
-                  <AlertTriangle className="w-3 h-3" /> Falha
-                </span>
-              )}
-              {!isFailed && event.status === 'delivered' && (
-                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-600">
-                  <CheckCircle className="w-3 h-3" /> Entregue
-                </span>
-              )}
+              {/* Status badge */}
+              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${commSt.cls}`}>
+                <StatusIcon className="w-2.5 h-2.5" />
+                {commSt.label}
+              </span>
             </div>
             <span className="text-[11px] text-muted-foreground shrink-0">{fmtDateTime(event.createdAt)}</span>
           </div>
@@ -94,6 +103,13 @@ function TimelineItem({ event }: { event: TimelineEvent }) {
           }`}>
             <p className="line-clamp-3">{event.content}</p>
           </div>
+          {/* Error detail for failed messages */}
+          {event.status === 'failed' && (event as any).errorMessage && (
+            <p className="mt-1.5 text-[11px] text-rose-600 flex items-center gap-1">
+              <WifiOff className="w-3 h-3 shrink-0" />
+              {(event as any).errorMessage}
+            </p>
+          )}
         </div>
       </div>
     );

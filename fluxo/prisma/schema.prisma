@@ -212,16 +212,21 @@ model BillingFlow {
 }
 
 model Communication {
-  id          String   @id @default(uuid())
-  tenantId    String   @map("tenant_id")
-  customerId  String   @map("customer_id")
-  invoiceId   String?  @map("invoice_id")
-  channel     String   // email, whatsapp, sms, portal_view
-  messageType String   @map("message_type") // reminder, late_notice, thank_you, manual_message
-  content     String
-  status      String   @default("sent") // sent, delivered, read, failed
-  sentAt      DateTime @default(now()) @map("sent_at")
-  createdAt   DateTime @default(now()) @map("created_at")
+  id           String    @id @default(uuid())
+  tenantId     String    @map("tenant_id")
+  customerId   String    @map("customer_id")
+  invoiceId    String?   @map("invoice_id")
+  channel      String    // email, whatsapp, sms, portal_view, system
+  messageType  String    @map("message_type") // reminder, late_notice, thank_you, manual_message, payment_confirmed
+  content      String
+  status       String    @default("queued") // queued, sent, delivered, read, failed
+  externalId   String?   @map("external_id")   // Provider message ID (Resend ID, Z-API messageId)
+  errorMessage String?   @map("error_message") // Failure detail
+  retryCount   Int       @default(0) @map("retry_count")
+  sentAt       DateTime  @default(now()) @map("sent_at")
+  deliveredAt  DateTime? @map("delivered_at")
+  readAt       DateTime? @map("read_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
 
   // Foreign Keys
   tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -229,7 +234,29 @@ model Communication {
   invoice  Invoice? @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
 
   @@index([tenantId, sentAt])
+  @@index([externalId])
   @@map("communications")
+}
+
+model MessageQueue {
+  id          String    @id @default(uuid())
+  tenantId    String    @map("tenant_id")
+  channel     String    // email | whatsapp
+  to          String    // email address or E.164 phone number
+  subject     String?   // email only
+  body        String
+  metadata    String?   // JSON: { invoiceId, customerId, messageType, communicationId }
+  status      String    @default("queued") // queued | sending | sent | failed
+  retryCount  Int       @default(0) @map("retry_count")
+  maxRetries  Int       @default(3) @map("max_retries")
+  errorLog    String?   @map("error_log")
+  scheduledAt DateTime  @default(now()) @map("scheduled_at")
+  sentAt      DateTime? @map("sent_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@index([status, retryCount])
+  @@index([tenantId])
+  @@map("message_queue")
 }
 
 model PaymentPromise {
