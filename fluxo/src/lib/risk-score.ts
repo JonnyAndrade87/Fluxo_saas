@@ -12,10 +12,10 @@
  * 5. Reincidência de promessas quebradas (promisesBrokenCount)
  * 
  * Faixas de Risco:
- * 0-25:  🟢 Baixo
- * 26-50: 🟡 Médio
- * 51-75: 🟠 Alto
- * 76-100: 🔴 Crítico
+ * 0-15:  🟢 Baixo
+ * 16-40: 🟡 Médio
+ * 41-70: 🟠 Alto
+ * 71-100: 🔴 Crítico
  */
 
 export interface RiskScoreComponent {
@@ -205,11 +205,11 @@ export function calculateRiskScore(data: {
   
   const score = Math.min(100, Math.round(totalPoints));
 
-  // Definir nível de risco
+  // Definir nível de risco (mais sensível aos atrasos)
   let level: 'Baixo' | 'Médio' | 'Alto' | 'Crítico';
-  if (score <= 25) level = 'Baixo';
-  else if (score <= 50) level = 'Médio';
-  else if (score <= 75) level = 'Alto';
+  if (score <= 15) level = 'Baixo';
+  else if (score <= 40) level = 'Médio';
+  else if (score <= 70) level = 'Alto';
   else level = 'Crítico';
 
   // Determinar nível de reincidência
