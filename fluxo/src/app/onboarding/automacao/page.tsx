@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Smartphone, Check, PlayCircle, ToggleRight, MessageSquare } from "lucide-react"
+import { PlayCircle, ToggleRight, MessageSquare } from "lucide-react"
 
 export default function OnboardingAutomationPage() {
   return (

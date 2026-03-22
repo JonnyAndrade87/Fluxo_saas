@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useTransition, useRef } from 'react';
+import { useState, useEffect, useTransition, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,7 @@ import {
   MoreHorizontal, CheckCircle, PauseCircle, CalendarClock, Trash2, X, User, Phone, Mail, Clock
 } from "lucide-react";
 import { 
-  getFilteredInvoices, GetInvoicesParams, 
+  getFilteredInvoices, 
   markInvoiceAsPaid, pauseInvoice, registerPromiseToPay, deleteInvoice 
 } from "@/actions/invoices";
 
@@ -28,12 +28,12 @@ export default function ReceivablesClient({ initialData }: { initialData: any[] 
   const [selectedInvoice, setSelectedInvoice] = useState<any | null>(null);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
 
-  const fetchInvoices = () => {
+  const fetchInvoices = useCallback(() => {
     startTransition(async () => {
        const data = await getFilteredInvoices({ search, status, dateRange, sortBy });
        setInvoices(data);
     });
-  };
+  }, [search, status, dateRange, sortBy]);
 
   useEffect(() => {
     // Debounce search
@@ -41,10 +41,10 @@ export default function ReceivablesClient({ initialData }: { initialData: any[] 
        fetchInvoices();
     }, 400);
     return () => clearTimeout(timer);
-  }, [search, status, dateRange, sortBy]);
+  }, [fetchInvoices]);
 
   // Actions
-  const handleAction = async (actionFn: Function, id: string, extraArg?: any) => {
+  const handleAction = async (actionFn: (id: string, extraArg?: any) => Promise<any>, id: string, extraArg?: any) => {
      setActiveDropdown(null);
      startTransition(async () => {
        await actionFn(id, extraArg);
@@ -190,8 +190,7 @@ export default function ReceivablesClient({ initialData }: { initialData: any[] 
                       <div className="text-xs text-muted-foreground mt-0.5">Doc: {item.customer?.documentNumber || 'N/A'}</div>
                     </td>
                     <td className="px-6 py-4">
-                      {/* @ts-ignore */}
-                      <Badge variant={getBadgeVariant(item.status)} className="px-2.5 py-1 whitespace-nowrap shadow-sm">
+                      <Badge variant={getBadgeVariant(item.status) as any} className="px-2.5 py-1 whitespace-nowrap shadow-sm">
                         {translateStatus(item.status)}
                       </Badge>
                     </td>

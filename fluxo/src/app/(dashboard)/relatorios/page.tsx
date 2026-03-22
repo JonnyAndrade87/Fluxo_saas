@@ -1,7 +1,6 @@
 import { getReportMetrics } from '@/actions/reports';
 import ReportsClient from './ReportsClient';
-import { BarChart3, Download } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { BarChart3 } from 'lucide-react';
 
 export const metadata = {
   title: 'Relatórios | Fluxo',

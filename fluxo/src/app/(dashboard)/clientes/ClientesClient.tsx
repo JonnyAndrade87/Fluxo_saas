@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect, useTransition } from 'react';
+import { useState, useEffect, useTransition, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Search, Filter, Plus, Users, User, Building2, MoreHorizontal, Mail, Phone, X, CreditCard, Activity, ArrowUpRight, ArrowDownRight, CircleDollarSign, Clock, FileText
+import {
+  Search, Filter, Plus, Users, User, Building2, Mail, Phone, X, CreditCard, Activity, ArrowUpRight, ArrowDownRight, CircleDollarSign, Clock, FileText
 } from "lucide-react";
 import { getCustomersList, getCustomerDetails } from "@/actions/customers";
 import CustomerFormModal from "./CustomerFormModal";
@@ -21,22 +21,25 @@ export default function ClientesClient({ initialData }: { initialData: any[] }) 
   const [search, setSearch] = useState('');
   
   // UI State
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [drawerData, setDrawerData] = useState<any | null>(null);
   const [isDrawerLoading, setIsDrawerLoading] = useState(false);
 
   // Modal State
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [editingCustomer, setEditingCustomer] = useState<any | null>(null);
 
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [editingContact, setEditingContact] = useState<any | null>(null);
 
-  const fetchCustomers = () => {
+  const fetchCustomers = useCallback(() => {
     startTransition(async () => {
        const data = await getCustomersList(search);
        setCustomers(data);
     });
-  };
+  }, [search, startTransition]);
 
   useEffect(() => {
     // Debounce search
@@ -44,7 +47,7 @@ export default function ClientesClient({ initialData }: { initialData: any[] }) 
        fetchCustomers();
     }, 400);
     return () => clearTimeout(timer);
-  }, [search]);
+  }, [fetchCustomers, search]);
 
   const openCustomerDrawer = async (customerId: string) => {
     setIsDrawerLoading(true);
@@ -170,7 +173,6 @@ export default function ClientesClient({ initialData }: { initialData: any[] }) 
                        )}
                     </td>
                     <td className="px-6 py-4 text-center">
-                      {/* @ts-ignore */}
                       <Badge variant={customer.status === "active" ? "success" : "secondary"} className="px-2.5 py-1 whitespace-nowrap shadow-sm">
                         {customer.status === "active" ? "Ativo" : "Inativo"}
                       </Badge>

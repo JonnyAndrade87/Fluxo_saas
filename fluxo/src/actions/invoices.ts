@@ -4,6 +4,13 @@ import prisma from '@/lib/db';
 import { auth } from '../../auth';
 import { revalidatePath } from 'next/cache';
 
+interface SessionUser {
+  tenantId: string | null;
+  id: string;
+  email: string;
+  role: string;
+}
+
 export type GetInvoicesParams = {
   search?: string;
   status?: string;
@@ -13,11 +20,11 @@ export type GetInvoicesParams = {
 
 export async function getFilteredInvoices(params: GetInvoicesParams = {}) {
   const session = await auth();
-  const tenantId = (session?.user as any)?.tenantId;
+  const tenantId = (session?.user as SessionUser)?.tenantId;
   if (!tenantId) throw new Error("Unauthorized");
 
   const { search, status, sortBy, dateRange } = params;
-  const whereClause: any = { tenantId };
+  const whereClause: Record<string, any> = { tenantId };
 
   if (status && status !== 'all') whereClause.status = status;
 
@@ -73,7 +80,7 @@ export async function getInvoices() {
 
 export async function markInvoiceAsPaid(id: string) {
   const session = await auth();
-  const tenantId = (session?.user as any)?.tenantId;
+  const tenantId = (session?.user as SessionUser)?.tenantId;
   if (!tenantId) throw new Error("Unauthorized");
 
   // Fetch the invoice first to build the communication message
@@ -115,7 +122,7 @@ export async function markInvoiceAsPaid(id: string) {
 
 export async function pauseInvoice(id: string) {
   const session = await auth();
-  const tenantId = (session?.user as any)?.tenantId;
+  const tenantId = (session?.user as SessionUser)?.tenantId;
   if (!tenantId) throw new Error("Unauthorized");
 
   const inv = await prisma.invoice.findFirst({ where: { id, tenantId } });
@@ -136,8 +143,8 @@ export async function pauseInvoice(id: string) {
 
 export async function registerPromiseToPay(id: string, dateString: string) {
   const session = await auth();
-  const tenantId = (session?.user as any)?.tenantId;
-  let userId = (session?.user as any)?.id;
+  const tenantId = (session?.user as SessionUser)?.tenantId;
+  let userId: string | undefined = (session?.user as SessionUser)?.id;
   if (!tenantId) throw new Error("Unauthorized");
 
   // Fallback userId
@@ -171,7 +178,7 @@ export async function registerPromiseToPay(id: string, dateString: string) {
 
 export async function deleteInvoice(id: string) {
   const session = await auth();
-  const tenantId = (session?.user as any)?.tenantId;
+  const tenantId = (session?.user as SessionUser)?.tenantId;
   if (!tenantId) throw new Error("Unauthorized");
 
   const inv = await prisma.invoice.findFirst({ where: { id, tenantId } });
@@ -188,7 +195,7 @@ export async function deleteInvoice(id: string) {
 
 export async function getCustomersForSelect() {
   const session = await auth();
-  const tenantId = (session?.user as any)?.tenantId;
+  const tenantId = (session?.user as SessionUser)?.tenantId;
   if (!tenantId) throw new Error("Unauthorized");
   return prisma.customer.findMany({
     where: { tenantId, status: 'active' },
@@ -204,7 +211,7 @@ export async function createInvoice(data: {
   description?: string;
 }) {
   const session = await auth();
-  const tenantId = (session?.user as any)?.tenantId;
+  const tenantId = (session?.user as SessionUser)?.tenantId;
   if (!tenantId) throw new Error("Unauthorized");
 
   const invoiceNumber = `INV-${Math.floor(100000 + Math.random() * 900000)}`;

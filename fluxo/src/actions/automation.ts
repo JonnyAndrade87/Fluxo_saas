@@ -122,7 +122,7 @@ export async function getBillingFlow() {
     // Migration: If the payload is old format (missing 'stages' array), overwrite with default
     if (!data.stages) return DEFAULT_FLOW_CONFIG;
     return data;
-  } catch (error) {
+  } catch {
     return DEFAULT_FLOW_CONFIG;
   }
 }

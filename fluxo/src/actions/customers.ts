@@ -5,15 +5,22 @@ import { auth } from '../../auth';
 import { revalidatePath } from 'next/cache';
 import { requireAuth, requireRole } from '@/lib/permissions';
 
+interface SessionUser {
+  tenantId: string | null;
+  id: string;
+  email: string;
+  role: string;
+}
+
 export async function getCustomersList(search?: string) {
   const session = await auth();
-  const tenantId = (session?.user as any)?.tenantId;
+  const tenantId = (session?.user as SessionUser)?.tenantId;
 
   if (!tenantId) {
     throw new Error("Unauthorized Access: No active B2B Tenant found.");
   }
 
-  const whereClause: any = { tenantId };
+  const whereClause: Record<string, any> = { tenantId };
   if (search && search.trim() !== '') {
     whereClause.OR = [
       { name: { contains: search } },
@@ -105,7 +112,7 @@ export async function getCustomers() {
 
 export async function getCustomerDetails(customerId: string) {
   const session = await auth();
-  const tenantId = (session?.user as any)?.tenantId;
+  const tenantId = (session?.user as SessionUser)?.tenantId;
 
   if (!tenantId) throw new Error("Unauthorized");
 

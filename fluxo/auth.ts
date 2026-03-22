@@ -4,6 +4,30 @@ import { authConfig } from './auth.config';
 import { z } from 'zod';
 import prisma from '@/lib/db';
 import bcrypt from 'bcryptjs';
+import { JWT } from 'next-auth/jwt';
+import { Session } from 'next-auth';
+
+interface AuthUser {
+  id: string;
+  email: string;
+  name: string;
+  tenantId: string | null;
+  role: string;
+}
+
+interface AuthToken extends JWT {
+  id?: string;
+  tenantId?: string | null;
+  role?: string;
+}
+
+interface AuthSession extends Session {
+  user: Session['user'] & {
+    id?: string;
+    tenantId?: string | null;
+    role?: string;
+  };
+}
 
 export const { auth, signIn, signOut, handlers: { GET, POST } } = NextAuth({
   ...authConfig,
@@ -40,26 +64,27 @@ export const { auth, signIn, signOut, handlers: { GET, POST } } = NextAuth({
           email: user.email,
           name: user.fullName,
           tenantId: tenantUser?.tenantId ?? null,
-          role: tenantUser?.role ?? 'operator',  // ← NEW: pass role to token
-        } as any;
+          role: tenantUser?.role ?? 'operator',
+        } as AuthUser;
       },
     }),
   ],
   callbacks: {
     ...authConfig.callbacks,
-    async jwt({ token, user }) {
+    async jwt({ token, user }): Promise<AuthToken> {
       if (user) {
         token.id = user.id;
-        token.tenantId = (user as any).tenantId;
-        token.role = (user as any).role;   // ← persist role in JWT
+        token.tenantId = (user as AuthUser).tenantId;
+        token.role = (user as AuthUser).role;
       }
       return token;
     },
-    async session({ session, token }) {
+    async session({ session, token }): Promise<Session> {
       if (token && session.user) {
-        (session.user as any).id = token.id || token.sub;
-        (session.user as any).tenantId = token.tenantId;
-        (session.user as any).role = token.role;  // ← expose role in session
+        const user = session.user as AuthSession['user'];
+        user.id = (token.id as string) || (token.sub as string);
+        user.tenantId = token.tenantId as string | null;
+        user.role = token.role as string;
       }
       return session;
     }

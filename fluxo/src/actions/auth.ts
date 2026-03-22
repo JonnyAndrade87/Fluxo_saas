@@ -58,7 +58,7 @@ export async function register(prevState: { error?: string, success?: boolean } 
     const hashedPassword = await bcrypt.hash(rawPassword, 10);
 
     // Create Tenant and User simultaneously as this is B2B
-    await prisma.$transaction(async (tx: any) => {
+    await prisma.$transaction(async (tx) => {
       const tenant = await tx.tenant.create({
         data: {
           name: companyName,

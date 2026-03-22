@@ -18,13 +18,23 @@ export default function GenericMappingPage() {
 
   useEffect(() => {
     // Hydrate state from previous step
-    const storedRaw = sessionStorage.getItem('fluxo_csv_raw');
-    const storedHeaders = sessionStorage.getItem('fluxo_csv_headers');
+    const hydrate = () => {
+      const storedRaw = sessionStorage.getItem('fluxo_csv_raw');
+      const storedHeaders = sessionStorage.getItem('fluxo_csv_headers');
+      
+      if (storedRaw && storedHeaders) {
+        try {
+          const parsedRaw = JSON.parse(storedRaw);
+          const parsedHeaders = JSON.parse(storedHeaders);
+          setRawData(parsedRaw);
+          setHeaders(parsedHeaders);
+        } catch {
+          // Ignore parsing errors
+        }
+      }
+    };
     
-    if (storedRaw && storedHeaders) {
-      setRawData(JSON.parse(storedRaw));
-      setHeaders(JSON.parse(storedHeaders));
-    }
+    hydrate();
   }, []);
 
   const handleMappingChange = (csvHeader: string, fluxoField: string) => {

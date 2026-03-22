@@ -12,8 +12,6 @@ import {
   Sparkles,
   CalendarDays,
   ShieldAlert,
-  MessageCircle,
-  Megaphone,
   CheckCircle2,
   TrendingUp,
   XCircle,

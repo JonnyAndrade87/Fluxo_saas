@@ -9,7 +9,7 @@ import {
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import {
-  TrendingUp, TrendingDown, AlertTriangle, BarChart3, CircleDollarSign,
+  TrendingUp, AlertTriangle, BarChart3, CircleDollarSign,
   Users, ArrowUpRight, ArrowDownRight, Loader2, ShieldAlert, CheckCircle2, Download
 } from 'lucide-react';
 

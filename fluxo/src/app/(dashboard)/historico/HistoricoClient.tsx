@@ -51,6 +51,9 @@ const CHANNEL_ICON = (channel?: string) => {
 // ─── Timeline Card Components ────────────────────────────────────────────────
 
 function TimelineItem({ event }: { event: TimelineEvent }) {
+  // Move all hooks to the top level, before any conditional returns
+  const [isPending, startTransition] = useTransition();
+
   if (event.type === 'communication') {
     // Full 5-state status badge
     const COMM_STATUS: Record<string, { label: string; cls: string; Icon: any }> = {
@@ -175,7 +178,7 @@ function TimelineItem({ event }: { event: TimelineEvent }) {
           <div className="p-3 bg-amber-50/60 border border-amber-100 rounded-xl text-[12.5px] text-amber-900 font-medium max-w-md space-y-1">
             <p>Fatura <span className="font-bold">#{event.invoiceNumber}</span> • Valor: <span className="font-bold">{fmt.format(event.promiseAmount ?? 0)}</span></p>
             <p className="flex items-center gap-1 text-[11px]"><Calendar className="w-3 h-3" /> Prometeu pagar em <span className="font-bold">{fmtDate(event.promisedDate!)}</span></p>
-            {event.promiseNotes && <p className="text-[11px] text-amber-700 italic">"{event.promiseNotes}"</p>}
+            {event.promiseNotes && <p className="text-[11px] text-amber-700 italic">&quot;{event.promiseNotes}&quot;</p>}
             {event.authorName && <p className="text-[11px] text-muted-foreground flex items-center gap-1"><User className="w-3 h-3" /> Registrado por {event.authorName}</p>}
           </div>
         </div>
@@ -185,7 +188,6 @@ function TimelineItem({ event }: { event: TimelineEvent }) {
 
   if (event.type === 'task') {
     const isCompleted = event.status === 'completed';
-    const [isPending, startTransition] = useTransition();
 
     const now = new Date();
     now.setHours(0, 0, 0, 0);
