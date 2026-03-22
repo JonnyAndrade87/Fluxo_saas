@@ -2,6 +2,7 @@
 
 import prisma from '@/lib/db';
 import { calculateRiskScore, RiskScoreResult } from '@/lib/risk-score';
+import { createRiskAlerts } from './risk-alerts';
 
 /**
  * Extrai dados de risco de um cliente e calcula seu score
@@ -85,7 +86,7 @@ export async function getRiskScoreForCustomer(
   // CALCULAR SCORE
   // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  return calculateRiskScore({
+  const riskScore = calculateRiskScore({
     delayCount,
     maxDelayDays,
     avgDelayDays,
@@ -93,6 +94,27 @@ export async function getRiskScoreForCustomer(
     promisesBrokenCount,
     totalInvoices
   });
+
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  // CRIAR ALERTAS AUTOMÁTICOS (se Crítico ou Alto)
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  if (riskScore.level === 'Crítico' || riskScore.level === 'Alto') {
+    // Fire-and-forget: criar alerta sem bloquear a resposta
+    // (não aguardamos para não deixar lento)
+    createRiskAlerts({
+      customerId,
+      tenantId,
+      riskScore: riskScore.score,
+      riskLevel: riskScore.level,
+      riskJustification: riskScore.justification
+    }).catch((err) => {
+      console.error('[RISK ALERT ERROR]', err);
+      // Não relançamos erro para não quebrar cálculo de score
+    });
+  }
+
+  return riskScore;
 }
 
 /**
