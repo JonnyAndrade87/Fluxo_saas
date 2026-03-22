@@ -290,10 +290,10 @@ export default async function Dashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-lg font-sans font-bold text-obsidian flex items-center gap-2">
-                  <ShieldAlert className="w-5 h-5 text-rose-500" /> Ranking de Risco
+                  <ShieldAlert className="w-5 h-5 text-rose-500" /> Ranking de Risco (0-100)
                 </CardTitle>
                 <CardDescription className="text-sm mt-1 font-medium">
-                  Maiores devedores em volume absoluto.
+                  Clientes classificados por score de risco.
                 </CardDescription>
               </div>
             </div>
@@ -302,22 +302,58 @@ export default async function Dashboard() {
                <div className="space-y-2">
                   {metrics.riskRanking.map((rank, idx) => (
                     <div key={rank.customerId} className="flex items-center justify-between p-3 rounded-2xl hover:bg-gray-50 border border-transparent hover:border-gray-100 transition-all cursor-pointer group/risk">
-                       <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-rose-50 text-rose-600 flex justify-center items-center text-xs font-bold font-mono border border-rose-100">
+                       <div className="flex items-center gap-3 flex-1">
+                          <div className="w-8 h-8 rounded-full flex justify-center items-center text-xs font-bold font-mono border flex-shrink-0" style={{
+                            backgroundColor: rank.level === 'Baixo' ? '#ecfdf5' :
+                                            rank.level === 'Médio' ? '#fef3c7' :
+                                            rank.level === 'Alto' ? '#ffedd5' :
+                                            '#fee2e2',
+                            color: rank.level === 'Baixo' ? '#059669' :
+                                   rank.level === 'Médio' ? '#d97706' :
+                                   rank.level === 'Alto' ? '#ea580c' :
+                                   '#dc2626',
+                            borderColor: rank.level === 'Baixo' ? '#a7f3d0' :
+                                        rank.level === 'Médio' ? '#fcd34d' :
+                                        rank.level === 'Alto' ? '#fed7aa' :
+                                        '#fecaca'
+                          }}>
                              {idx + 1}
                           </div>
-                          <div>
-                             <p className="text-sm font-semibold text-obsidian">{rank.customerName}</p>
+                          <div className="flex-1 min-w-0">
+                             <p className="text-sm font-semibold text-obsidian truncate">{rank.customerName}</p>
+                             <p className="text-xs text-muted-foreground mt-0.5 truncate" title={rank.justification}>{rank.justification}</p>
                           </div>
                        </div>
-                       <div className="text-right">
-                          <span className="font-mono text-sm font-bold text-rose-600">R$ {formatCurrency(rank.overdueAmount)}</span>
+                       <div className="text-right flex flex-col items-end gap-1 flex-shrink-0 ml-2">
+                          <div className="flex items-center gap-2">
+                            <div className="text-lg font-black" style={{
+                              color: rank.level === 'Baixo' ? '#059669' :
+                                     rank.level === 'Médio' ? '#d97706' :
+                                     rank.level === 'Alto' ? '#ea580c' :
+                                     '#dc2626'
+                            }}>
+                              {rank.score}
+                            </div>
+                            <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-md" style={{
+                              backgroundColor: rank.level === 'Baixo' ? '#d1fae5' :
+                                              rank.level === 'Médio' ? '#fed7aa' :
+                                              rank.level === 'Alto' ? '#fed7aa' :
+                                              '#fee2e2',
+                              color: rank.level === 'Baixo' ? '#047857' :
+                                     rank.level === 'Médio' ? '#92400e' :
+                                     rank.level === 'Alto' ? '#92400e' :
+                                     '#7f1d1d'
+                            }}>
+                              {rank.level}
+                            </span>
+                          </div>
+                          <span className="font-mono text-xs font-bold text-rose-600">R$ {formatCurrency(rank.overdueAmount)}</span>
                        </div>
                     </div>
                   ))}
                   {metrics.riskRanking.length === 0 && (
                      <div className="py-10 text-center">
-                        <p className="text-subtle text-sm font-medium">Sem devedores na base crítica. 🚀</p>
+                        <p className="text-subtle text-sm font-medium">Sem clientes na base. 🚀</p>
                      </div>
                   )}
                </div>

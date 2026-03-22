@@ -4,6 +4,7 @@ import prisma from '@/lib/db';
 import { auth } from '../../auth';
 import { revalidatePath } from 'next/cache';
 import { requireAuth, requireRole } from '@/lib/permissions';
+import { getRiskScoreForCustomer } from './risk-score';
 
 interface SessionUser {
   tenantId: string | null;
@@ -49,59 +50,63 @@ export async function getCustomersList(search?: string) {
     }
   });
 
-  const enhancedCustomers = customersRaw.map(customer => {
-    let totalLtv = 0;
-    let totalRisk = 0;
-    let overdueCount = 0;
-    let maxDelay = 0;
+  // ────────────────────────────────────────────────────────────────────────────
+  // Calcular score de risco para cada cliente usando o serviço centralizado
+  // ────────────────────────────────────────────────────────────────────────────
+  const enhancedCustomers = await Promise.all(
+    customersRaw.map(async (customer) => {
+      const riskScoreData = await getRiskScoreForCustomer(customer.id, tenantId);
+      const contact = customer.financialContacts[0] || null;
 
-    const today = new Date();
+      // Fallback para valores legados se score não puder ser calculado
+      let totalLtv = 0;
+      let totalRisk = 0;
+      let overdueCount = 0;
 
-    customer.invoices.forEach(inv => {
-      if (inv.status === 'paid') {
-        totalLtv += inv.amount;
-      }
-      if (inv.status === 'overdue') {
-        totalRisk += inv.balanceDue;
-        overdueCount++;
-        const diffTime = today.getTime() - inv.dueDate.getTime();
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        if (diffDays > maxDelay) {
-           maxDelay = diffDays;
+      customer.invoices.forEach(inv => {
+        if (inv.status === 'paid') {
+          totalLtv += inv.amount;
         }
-      }
-    });
+        if (inv.status === 'overdue') {
+          totalRisk += inv.balanceDue;
+          overdueCount++;
+        }
+      });
 
-    const contact = customer.financialContacts[0] || null;
-
-    let riskLevel: 'Crítico' | 'Alto' | 'Médio' | 'Baixo' = 'Baixo';
-    if (maxDelay > 60 || totalRisk > 25000) riskLevel = 'Crítico';
-    else if (maxDelay > 30 || totalRisk > 10000) riskLevel = 'Alto';
-    else if (maxDelay > 0) riskLevel = 'Médio';
-
-    return {
-      id: customer.id,
-      name: customer.name,
-      documentNumber: customer.documentNumber,
-      status: customer.status,
-      email: customer.email || contact?.email,
-      phone: customer.phone || contact?.phone,
-      // Contact display fields (used by table)
-      contactName: contact?.name || null,
-      contactEmail: contact?.email || customer.email || null,
-      contactPhone: contact?.phone || customer.phone || null,
-      tags: customer.tags ? customer.tags.split(',').map(t => t.trim()) : [],
-      assigneeName: customer.assignee?.fullName || 'Não atribuído',
-      latestDelay: maxDelay,
-      riskLevel,
-      metrics: {
-        totalLtv,
-        totalRisk,
-        overdueCount,
-        totalInvoices: customer.invoices.length
-      }
-    };
-  });
+      return {
+        id: customer.id,
+        name: customer.name,
+        documentNumber: customer.documentNumber,
+        status: customer.status,
+        email: customer.email || contact?.email,
+        phone: customer.phone || contact?.phone,
+        // Contact display fields (used by table)
+        contactName: contact?.name || null,
+        contactEmail: contact?.email || customer.email || null,
+        contactPhone: contact?.phone || customer.phone || null,
+        tags: customer.tags ? customer.tags.split(',').map(t => t.trim()) : [],
+        assigneeName: customer.assignee?.fullName || 'Não atribuído',
+        // Score numérico 0-100 e nível de risco (do novo serviço)
+        riskScore: riskScoreData?.score ?? 0,
+        riskLevel: riskScoreData?.level ?? 'Baixo',
+        riskJustification: riskScoreData?.justification ?? '',
+        riskRecommendation: riskScoreData?.recommendation ?? '',
+        // Compatibilidade com UI existente
+        latestDelay: riskScoreData?.metadata.maxDelayDays ?? 0,
+        metrics: {
+          totalLtv,
+          totalRisk,
+          overdueCount,
+          totalInvoices: customer.invoices.length,
+          // Novos dados de auditoria do score
+          ...(riskScoreData && {
+            riskComponents: riskScoreData.components,
+            riskMetadata: riskScoreData.metadata
+          })
+        }
+      };
+    })
+  );
 
   return enhancedCustomers;
 }

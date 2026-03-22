@@ -2,6 +2,7 @@
 
 import prisma from '@/lib/db';
 import { auth } from '../../auth';
+import { getRiskScoreForCustomer } from './risk-score';
 
 export async function getDashboardMetrics() {
   const session = await auth();
@@ -159,30 +160,35 @@ export async function getDashboardMetrics() {
     });
   });
 
-  // 5. Ranking de Risco
-  const riskRankingRaw = await prisma.invoice.groupBy({
-    by: ['customerId'],
-    where: { tenantId, status: 'overdue' },
-    _sum: { balanceDue: true },
-    orderBy: { _sum: { balanceDue: 'desc' } },
-    take: 10
+  // 5. Ranking de Risco (usando novo serviço centralizado)
+  const customersWithOverdue = await prisma.customer.findMany({
+    where: {
+      tenantId,
+      invoices: {
+        some: { status: 'overdue' }
+      }
+    },
+    select: { id: true, name: true }
   });
 
-  const riskRankingList = [];
-  for (const item of riskRankingRaw) {
-    // Validate customer belongs to tenant before showing data
-    const cust = await prisma.customer.findFirst({ 
-      where: { id: item.customerId, tenantId }, 
-      select: { name: true } 
-    });
-    if (cust) {
-      riskRankingList.push({
-        customerId: item.customerId,
-        customerName: cust.name,
-        overdueAmount: item._sum.balanceDue || 0
-      });
-    }
-  }
+  // Calcular score para cada cliente e ordenar por score decrescente
+  const riskScoresRaw = await Promise.all(
+    customersWithOverdue.map(async (c) => {
+      const riskScore = await getRiskScoreForCustomer(c.id, tenantId);
+      return {
+        customerId: c.id,
+        customerName: c.name,
+        score: riskScore?.score ?? 0,
+        level: riskScore?.level ?? 'Baixo',
+        overdueAmount: riskScore?.metadata.openAmount ?? 0,
+        justification: riskScore?.justification ?? ''
+      };
+    })
+  );
+
+  const riskRankingList = riskScoresRaw
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 10);
 
   // 6. Gráfico de Evolução (Recebimentos últimos 30 dias + Próximos 30)
   const thirtyDaysAgo = new Date();

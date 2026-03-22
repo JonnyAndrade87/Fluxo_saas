@@ -2,6 +2,7 @@
 
 import prisma from '@/lib/db';
 import { auth } from '../../auth';
+import { getRiskScoreForCustomer } from './risk-score';
 
 export type ReportMetrics = {
   // KPIs
@@ -182,15 +183,21 @@ export async function getReportMetrics(period: PeriodFilter = '6m'): Promise<Rep
     }
   });
 
-  const clientRanking = Object.values(clientMap)
-    .sort((a, b) => b.totalBilled - a.totalBilled)
-    .map(c => {
-      let riskLevel: 'Crítico' | 'Alto' | 'Médio' | 'Baixo' = 'Baixo';
-      if (c.totalOverdue > 25000) riskLevel = 'Crítico';
-      else if (c.totalOverdue > 10000) riskLevel = 'Alto';
-      else if (c.totalOverdue > 0) riskLevel = 'Médio';
-      return { ...c, riskLevel };
-    });
+  // ── Rank clients using centralized risk score service ─────────────────────
+  const clientRankingRaw = Object.values(clientMap)
+    .sort((a, b) => b.totalBilled - a.totalBilled);
+
+  const clientRanking = await Promise.all(
+    clientRankingRaw.map(async (c) => {
+      const riskScore = await getRiskScoreForCustomer(c.id, tenantId);
+      return {
+        ...c,
+        riskLevel: riskScore?.level ?? 'Baixo',
+        riskScore: riskScore?.score ?? 0,
+        riskJustification: riskScore?.justification ?? ''
+      };
+    })
+  );
 
   // ── Customer stats ───────────────────────────────────────────────────────
   const uniqueCustomers = new Set(invoices.map(i => i.customerId));

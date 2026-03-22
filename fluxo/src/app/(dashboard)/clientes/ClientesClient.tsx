@@ -122,7 +122,8 @@ export default function ClientesClient({ initialData }: { initialData: any[] }) 
                   <th className="px-6 py-4">Empresa (Sacado)</th>
                   <th className="px-6 py-4">Contato Primário</th>
                   <th className="px-6 py-4 text-right">LTV Histórico <span className="text-[10px] lowercase block font-normal">(total pago)</span></th>
-                  <th className="px-6 py-4 text-right">Risco / Exposição <span className="text-[10px] lowercase block font-normal text-rose-500">(atrasado)</span></th>
+                  <th className="px-6 py-4 text-center">Score de Risco <span className="text-[10px] lowercase block font-normal">(0-100)</span></th>
+                  <th className="px-6 py-4 text-right">Exposição <span className="text-[10px] lowercase block font-normal text-rose-500">(atrasado)</span></th>
                   <th className="px-6 py-4 text-center">Status</th>
                 </tr>
               </thead>
@@ -159,6 +160,29 @@ export default function ClientesClient({ initialData }: { initialData: any[] }) 
                       </div>
                       <p className="text-[10px] text-muted-foreground mt-0.5 uppercase tracking-widest">{customer.metrics.totalInvoices} emissões fluxadas</p>
                     </td>
+                    <td className="px-6 py-4 text-center">
+                      <div className="flex flex-col items-center gap-2">
+                        <div className="text-2xl font-black tracking-tight" style={{
+                          color: customer.riskScore <= 25 ? '#10b981' : 
+                                 customer.riskScore <= 50 ? '#f59e0b' : 
+                                 customer.riskScore <= 75 ? '#f97316' : 
+                                 '#ef4444'
+                        }}>
+                          {customer.riskScore}
+                        </div>
+                        <Badge 
+                          variant={
+                            customer.riskLevel === 'Baixo' ? 'success' :
+                            customer.riskLevel === 'Médio' ? 'warning' :
+                            customer.riskLevel === 'Alto' ? 'destructive' :
+                            'destructive'
+                          }
+                          className="px-2 py-0.5 text-[10px] whitespace-nowrap"
+                        >
+                          {customer.riskLevel}
+                        </Badge>
+                      </div>
+                    </td>
                     <td className="px-6 py-4 text-right">
                        {customer.metrics.totalRisk > 0 ? (
                          <div className="font-bold text-rose-600 tracking-tight flex items-center justify-end gap-1 px-2 py-0.5 rounded-md bg-rose-50 w-fit ml-auto">
@@ -168,7 +192,7 @@ export default function ClientesClient({ initialData }: { initialData: any[] }) 
                        ) : (
                          <div className="font-mono text-emerald-600 tracking-tight flex items-center justify-end gap-1 px-2 py-0.5 rounded-md bg-emerald-50 w-fit ml-auto text-xs">
                             <Activity className="w-3 h-3" />
-                            Limpo (Zero Risco)
+                            Limpo
                          </div>
                        )}
                     </td>
@@ -250,6 +274,70 @@ export default function ClientesClient({ initialData }: { initialData: any[] }) 
                                  {formatCurrency(drawerData.invoices.filter((i:any) => i.status === 'paid').reduce((acc: number, item: any) => acc + item.amount, 0))}
                               </p>
                            </div>
+                        </div>
+
+                        {/* Score de Risco */}
+                        <div className={`rounded-2xl border shadow-sm p-5 space-y-3 ${
+                          drawerData.riskLevel === 'Baixo' ? 'bg-emerald-50 border-emerald-200' :
+                          drawerData.riskLevel === 'Médio' ? 'bg-amber-50 border-amber-200' :
+                          drawerData.riskLevel === 'Alto' ? 'bg-orange-50 border-orange-200' :
+                          'bg-red-50 border-red-200'
+                        }`}>
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h4 className="font-bold text-sm uppercase tracking-wider mb-2 flex items-center gap-2" style={{
+                                color: drawerData.riskLevel === 'Baixo' ? '#059669' :
+                                       drawerData.riskLevel === 'Médio' ? '#d97706' :
+                                       drawerData.riskLevel === 'Alto' ? '#ea580c' :
+                                       '#dc2626'
+                              }}>
+                                📊 Score de Risco
+                              </h4>
+                              <p className="text-[13px] leading-relaxed" style={{
+                                color: drawerData.riskLevel === 'Baixo' ? '#047857' :
+                                       drawerData.riskLevel === 'Médio' ? '#92400e' :
+                                       drawerData.riskLevel === 'Alto' ? '#92400e' :
+                                       '#7f1d1d'
+                              }}>
+                                {drawerData.riskJustification || 'Calculando score...'}
+                              </p>
+                            </div>
+                            <div className="text-right flex flex-col items-center gap-2 ml-4">
+                              <div className="text-4xl font-black tracking-tight" style={{
+                                color: drawerData.riskLevel === 'Baixo' ? '#059669' :
+                                       drawerData.riskLevel === 'Médio' ? '#d97706' :
+                                       drawerData.riskLevel === 'Alto' ? '#ea580c' :
+                                       '#dc2626'
+                              }}>
+                                {drawerData.riskScore ?? 0}
+                              </div>
+                              <Badge className={`text-[11px] uppercase font-bold tracking-wider ${
+                                drawerData.riskLevel === 'Baixo' ? 'bg-emerald-200 text-emerald-900 border-emerald-300' :
+                                drawerData.riskLevel === 'Médio' ? 'bg-amber-200 text-amber-900 border-amber-300' :
+                                drawerData.riskLevel === 'Alto' ? 'bg-orange-200 text-orange-900 border-orange-300' :
+                                'bg-red-200 text-red-900 border-red-300'
+                              } border`}>
+                                {drawerData.riskLevel}
+                              </Badge>
+                            </div>
+                          </div>
+                          {drawerData.riskRecommendation && (
+                            <div className="pt-2 border-t" style={{
+                              borderColor: drawerData.riskLevel === 'Baixo' ? '#d1fae5' :
+                                          drawerData.riskLevel === 'Médio' ? '#fed7aa' :
+                                          drawerData.riskLevel === 'Alto' ? '#fed7aa' :
+                                          '#fee2e2'
+                            }}>
+                              <p className="text-[12px] font-semibold" style={{
+                                color: drawerData.riskLevel === 'Baixo' ? '#047857' :
+                                       drawerData.riskLevel === 'Médio' ? '#92400e' :
+                                       drawerData.riskLevel === 'Alto' ? '#92400e' :
+                                       '#7f1d1d'
+                              }}>
+                                💡 {drawerData.riskRecommendation}
+                              </p>
+                            </div>
+                          )}
                         </div>
 
                         {/* Contatos Rápidos Box */}
