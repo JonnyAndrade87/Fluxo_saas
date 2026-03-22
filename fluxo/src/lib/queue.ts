@@ -1,34 +1,74 @@
 /**
- * Message Queue Processor
+ * Message Queue Processor — HARDENED v2
  *
- * Central function that processes queued messages:
- * 1. Reads MessageQueue items with status 'queued'
- * 2. Sends via email.ts or whatsapp.ts
- * 3. Updates MessageQueue.status + Communication.status + externalId
- * 4. Retry logic: retryCount++, mark 'failed' if exhausted
+ * Improvements over v1:
+ *  1. Idempotency:        idempotencyKey prevents duplicate sends on cron re-runs
+ *  2. Stuck recovery:     resets 'sending' items older than STUCK_THRESHOLD_MIN back to 'queued'
+ *  3. Exponential backoff: nextRetryAt = now + 2^retryCount * 5min
+ *  4. Dead-letter queue:  isDlq=true + status='failed_permanent' after maxRetries
+ *  5. Channel fallback:   WhatsApp permanent fail → auto-enqueue email
+ *  6. Rate limiting:      checks per customer + per tenant before sending
+ *  7. Structured logs:    all logs include messageId, tenantId, channel
  */
 
+import { createHash } from 'crypto';
 import prisma from '@/lib/db';
 import { sendEmail, buildBillingEmailHtml } from './messaging/email';
 import { sendWhatsApp } from './messaging/whatsapp';
+import { checkRateLimit } from './rateLimiter';
 
 export interface ProcessQueueResult {
   processed: number;
   sent: number;
   failed: number;
+  skipped: number;   // rate-limited or idempotent skips
+  dlq: number;       // moved to dead-letter
+  fallbacks: number; // channel fallbacks triggered
+  stuckReset: number;
   errors: string[];
 }
 
+// Items stuck in 'sending' for longer than this are reset to 'queued'
+const STUCK_THRESHOLD_MS = parseInt(process.env.STUCK_THRESHOLD_MIN ?? '10', 10) * 60 * 1000;
+
+// Backoff: retryN → wait = 2^N * BASE_BACKOFF_MS
+const BASE_BACKOFF_MS = parseInt(process.env.BASE_BACKOFF_MIN ?? '5', 10) * 60 * 1000;
+
+// ─── Idempotency key ─────────────────────────────────────────────────────────
+
 /**
- * Enqueue a message and immediately try to send it.
- * Creates both a MessageQueue record and a Communication record.
+ * Deterministic key: same inputs → same key → cron re-run skips the send.
+ * Format: sha256(tenantId|invoiceId|channel|messageType|YYYY-MM-DD)
+ */
+export function buildIdempotencyKey(params: {
+  tenantId: string;
+  invoiceId?: string | null;
+  channel: string;
+  messageType: string;
+}): string {
+  const day = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  const raw = [
+    params.tenantId,
+    params.invoiceId ?? 'none',
+    params.channel,
+    params.messageType,
+    day,
+  ].join('|');
+  return createHash('sha256').update(raw).digest('hex');
+}
+
+// ─── enqueueAndSend ───────────────────────────────────────────────────────────
+
+/**
+ * Enqueue a message and immediately attempt to send it.
+ * Idempotent: same key → returns existing record without duplicate send.
  */
 export async function enqueueAndSend(params: {
   tenantId: string;
   customerId: string;
   invoiceId?: string;
   channel: 'email' | 'whatsapp';
-  to: string;                     // email or phone
+  to: string;
   subject?: string;
   body: string;
   messageType: string;
@@ -36,9 +76,45 @@ export async function enqueueAndSend(params: {
   invoiceNumber?: string;
   amount?: string;
   dueDate?: string;
-}): Promise<{ communicationId: string; sent: boolean; error?: string }> {
-  
-  // Create the Communication record with status 'queued'
+  _fallbackFrom?: string;  // internal: set when this call is a channel fallback
+  _fallbackEmail?: string; // internal: email to use if WA fails permanently
+}): Promise<{ communicationId: string; sent: boolean; error?: string; skipped?: boolean }> {
+
+  const idempotencyKey = buildIdempotencyKey({
+    tenantId: params.tenantId,
+    invoiceId: params.invoiceId,
+    channel: params.channel,
+    messageType: params.messageType,
+  });
+
+  // ── Check idempotency ──────────────────────────────────────────────────────
+  const existing = await prisma.messageQueue.findUnique({
+    where: { idempotencyKey },
+  });
+  if (existing && existing.status === 'sent') {
+    console.log(`[QUEUE] Idempotent skip — already sent: ${idempotencyKey}`);
+    const meta = existing.metadata ? JSON.parse(existing.metadata) : {};
+    return { communicationId: meta.communicationId ?? existing.id, sent: true, skipped: true };
+  }
+
+  // ── Rate limiting ──────────────────────────────────────────────────────────
+  const rateCheck = await checkRateLimit(params.tenantId, params.customerId);
+  if (!rateCheck.allowed) {
+    console.warn(`[QUEUE] Rate limited — tenant:${params.tenantId} customer:${params.customerId} — ${rateCheck.reason}`);
+    // Log throttling event as activity
+    await prisma.activityLog.create({
+      data: {
+        tenantId: params.tenantId,
+        action: 'MESSAGE_THROTTLED',
+        entityType: 'customer',
+        entityId: params.customerId,
+        metadata: JSON.stringify({ reason: rateCheck.reason, channel: params.channel }),
+      },
+    }).catch(() => {});
+    return { communicationId: '', sent: false, error: rateCheck.reason, skipped: true };
+  }
+
+  // ── Create Communication record ────────────────────────────────────────────
   const comm = await prisma.communication.create({
     data: {
       tenantId: params.tenantId,
@@ -49,12 +125,13 @@ export async function enqueueAndSend(params: {
       content: params.body,
       status: 'queued',
       retryCount: 0,
-    }
+    },
   });
 
-  // Create the MessageQueue record
-  const queueItem = await prisma.messageQueue.create({
-    data: {
+  // ── Create MessageQueue record (idempotent upsert) ─────────────────────────
+  const queueItem = await prisma.messageQueue.upsert({
+    where: { idempotencyKey },
+    create: {
       tenantId: params.tenantId,
       channel: params.channel,
       to: params.to,
@@ -65,12 +142,17 @@ export async function enqueueAndSend(params: {
         customerId: params.customerId,
         invoiceId: params.invoiceId,
         messageType: params.messageType,
+        invoiceNumber: params.invoiceNumber,
+        fallbackEmail: params.channel === 'whatsapp' ? params._fallbackEmail : undefined,
       }),
       status: 'queued',
-    }
+      idempotencyKey,
+      fallbackFrom: params._fallbackFrom ?? null,
+    },
+    update: {}, // if exists but not 'sent', we'll retry below
   });
 
-  // Immediately attempt to send
+  // ── Attempt send ───────────────────────────────────────────────────────────
   const result = await trySend({
     channel: params.channel,
     to: params.to,
@@ -82,41 +164,72 @@ export async function enqueueAndSend(params: {
     dueDate: params.dueDate,
   });
 
-  // Update records based on result
   if (result.success) {
-    await prisma.messageQueue.update({
-      where: { id: queueItem.id },
-      data: { status: 'sent', sentAt: new Date() }
-    });
-    await prisma.communication.update({
-      where: { id: comm.id },
-      data: { status: 'sent', externalId: result.messageId }
-    });
+    await Promise.all([
+      prisma.messageQueue.update({
+        where: { id: queueItem.id },
+        data: { status: 'sent', sentAt: new Date(), processingStartedAt: null },
+      }),
+      prisma.communication.update({
+        where: { id: comm.id },
+        data: { status: 'sent', externalId: result.messageId },
+      }),
+    ]);
+    console.log(`[QUEUE] Sent — channel:${params.channel} to:${params.to} messageId:${result.messageId} commId:${comm.id}`);
     return { communicationId: comm.id, sent: true };
   } else {
-    // Leave in queue for retry
-    await prisma.messageQueue.update({
-      where: { id: queueItem.id },
-      data: { retryCount: 1, errorLog: result.error }
-    });
-    await prisma.communication.update({
-      where: { id: comm.id },
-      data: { status: 'queued', errorMessage: result.error, retryCount: 1 }
-    });
+    await Promise.all([
+      prisma.messageQueue.update({
+        where: { id: queueItem.id },
+        data: { retryCount: 1, errorLog: result.error },
+      }),
+      prisma.communication.update({
+        where: { id: comm.id },
+        data: { status: 'queued', errorMessage: result.error, retryCount: 1 },
+      }),
+    ]);
+    console.error(`[QUEUE] Send failed — channel:${params.channel} to:${params.to} error:${result.error}`);
     return { communicationId: comm.id, sent: false, error: result.error };
   }
 }
 
+// ─── processQueue ─────────────────────────────────────────────────────────────
+
 /**
- * Process all queued messages (for retry endpoint).
+ * Process all eligible queued messages.
+ * Runs stuck recovery first, then processes up to maxItems.
  */
 export async function processQueue(maxItems = 50): Promise<ProcessQueueResult> {
-  const result: ProcessQueueResult = { processed: 0, sent: 0, failed: 0, errors: [] };
+  const result: ProcessQueueResult = {
+    processed: 0, sent: 0, failed: 0, skipped: 0,
+    dlq: 0, fallbacks: 0, stuckReset: 0, errors: [],
+  };
 
+  // ── Stuck recovery ─────────────────────────────────────────────────────────
+  const stuckCutoff = new Date(Date.now() - STUCK_THRESHOLD_MS);
+  const stuckFixed = await prisma.messageQueue.updateMany({
+    where: {
+      status: 'sending',
+      processingStartedAt: { lt: stuckCutoff },
+    },
+    data: { status: 'queued', processingStartedAt: null },
+  });
+  if (stuckFixed.count > 0) {
+    result.stuckReset = stuckFixed.count;
+    console.warn(`[QUEUE] Recovered ${stuckFixed.count} stuck message(s)`);
+  }
+
+  // ── Fetch eligible items ───────────────────────────────────────────────────
+  const now = new Date();
   const items = await prisma.messageQueue.findMany({
     where: {
       status: 'queued',
-      retryCount: { lt: 3 }, // maxRetries default = 3
+      isDlq: false,
+      retryCount: { lt: 3 },
+      OR: [
+        { nextRetryAt: null },
+        { nextRetryAt: { lte: now } },
+      ],
     },
     orderBy: { createdAt: 'asc' },
     take: maxItems,
@@ -124,15 +237,14 @@ export async function processQueue(maxItems = 50): Promise<ProcessQueueResult> {
 
   for (const item of items) {
     result.processed++;
-    
-    // Mark as 'sending' to prevent double-processing
+    const metadata = item.metadata ? JSON.parse(item.metadata) : {};
+
+    // Mark as 'sending' with timestamp (stuck detection)
     await prisma.messageQueue.update({
       where: { id: item.id },
-      data: { status: 'sending' }
+      data: { status: 'sending', processingStartedAt: new Date() },
     });
 
-    const metadata = item.metadata ? JSON.parse(item.metadata) : {};
-    
     const sendResult = await trySend({
       channel: item.channel as 'email' | 'whatsapp',
       to: item.to,
@@ -144,37 +256,84 @@ export async function processQueue(maxItems = 50): Promise<ProcessQueueResult> {
       result.sent++;
       await prisma.messageQueue.update({
         where: { id: item.id },
-        data: { status: 'sent', sentAt: new Date() }
+        data: { status: 'sent', sentAt: new Date(), processingStartedAt: null },
       });
       if (metadata.communicationId) {
         await prisma.communication.update({
           where: { id: metadata.communicationId },
-          data: { status: 'sent', externalId: sendResult.messageId }
-        }).catch(() => {}); // best-effort
+          data: { status: 'sent', externalId: sendResult.messageId },
+        }).catch(() => {});
       }
+      console.log(`[QUEUE] ✓ Sent — id:${item.id} channel:${item.channel} messageId:${sendResult.messageId}`);
     } else {
       result.failed++;
       result.errors.push(`[${item.id}] ${sendResult.error}`);
+
       const newRetryCount = item.retryCount + 1;
       const exhausted = newRetryCount >= item.maxRetries;
-      
-      await prisma.messageQueue.update({
-        where: { id: item.id },
-        data: {
-          status: exhausted ? 'failed' : 'queued',
-          retryCount: newRetryCount,
-          errorLog: sendResult.error,
-        }
-      });
-      if (metadata.communicationId) {
-        await prisma.communication.update({
-          where: { id: metadata.communicationId },
+
+      // Exponential backoff: 2^retryCount * BASE_BACKOFF_MS
+      const backoffMs = Math.pow(2, newRetryCount) * BASE_BACKOFF_MS;
+      const nextRetryAt = new Date(Date.now() + backoffMs);
+
+      if (exhausted) {
+        // ── Dead-letter queue ────────────────────────────────────────────────
+        result.dlq++;
+        await prisma.messageQueue.update({
+          where: { id: item.id },
           data: {
-            status: exhausted ? 'failed' : 'queued',
-            errorMessage: sendResult.error,
+            status: 'failed_permanent',
+            isDlq: true,
             retryCount: newRetryCount,
+            errorLog: sendResult.error,
+            processingStartedAt: null,
+          },
+        });
+        if (metadata.communicationId) {
+          await prisma.communication.update({
+            where: { id: metadata.communicationId },
+            data: { status: 'failed', errorMessage: sendResult.error, retryCount: newRetryCount },
+          }).catch(() => {});
+        }
+        console.error(`[QUEUE] ✗ DLQ — id:${item.id} channel:${item.channel} after ${newRetryCount} retries`);
+
+        // ── Channel fallback: WhatsApp → Email ────────────────────────────────
+        if (item.channel === 'whatsapp' && !item.fallbackFrom) {
+          const fallbackEmail = metadata.fallbackEmail as string | undefined;
+          if (fallbackEmail) {
+            result.fallbacks++;
+            console.log(`[QUEUE] Fallback WA→Email — original:${item.id} to:${fallbackEmail}`);
+            await enqueueAndSend({
+              tenantId: item.tenantId,
+              customerId: metadata.customerId,
+              invoiceId: metadata.invoiceId,
+              channel: 'email',
+              to: fallbackEmail,
+              subject: `Cobrança automática — Fatura #${metadata.invoiceNumber ?? ''}`,
+              body: item.body,
+              messageType: `FALLBACK:${metadata.messageType ?? 'unknown'}`,
+              _fallbackFrom: item.id,
+            }).catch(e => console.error('[QUEUE] Fallback enqueue error:', e));
           }
-        }).catch(() => {});
+        }
+      } else {
+        await prisma.messageQueue.update({
+          where: { id: item.id },
+          data: {
+            status: 'queued',
+            retryCount: newRetryCount,
+            errorLog: sendResult.error,
+            nextRetryAt,
+            processingStartedAt: null,
+          },
+        });
+        if (metadata.communicationId) {
+          await prisma.communication.update({
+            where: { id: metadata.communicationId },
+            data: { status: 'queued', errorMessage: sendResult.error, retryCount: newRetryCount },
+          }).catch(() => {});
+        }
+        console.warn(`[QUEUE] Retry #${newRetryCount} scheduled at ${nextRetryAt.toISOString()} — id:${item.id}`);
       }
     }
   }
@@ -182,7 +341,7 @@ export async function processQueue(maxItems = 50): Promise<ProcessQueueResult> {
   return result;
 }
 
-// ── Internal helpers ──────────────────────────────────────────────────────────
+// ─── Internal helpers ─────────────────────────────────────────────────────────
 
 async function trySend(params: {
   channel: 'email' | 'whatsapp';

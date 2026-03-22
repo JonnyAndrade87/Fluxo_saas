@@ -243,23 +243,32 @@ model Communication {
 }
 
 model MessageQueue {
-  id          String    @id @default(uuid())
-  tenantId    String    @map("tenant_id")
-  channel     String    // email | whatsapp
-  to          String    // email address or E.164 phone number
-  subject     String?   // email only
-  body        String
-  metadata    String?   // JSON: { invoiceId, customerId, messageType, communicationId }
-  status      String    @default("queued") // queued | sending | sent | failed
-  retryCount  Int       @default(0) @map("retry_count")
-  maxRetries  Int       @default(3) @map("max_retries")
-  errorLog    String?   @map("error_log")
-  scheduledAt DateTime  @default(now()) @map("scheduled_at")
-  sentAt      DateTime? @map("sent_at")
-  createdAt   DateTime  @default(now()) @map("created_at")
+  id                   String    @id @default(uuid())
+  tenantId             String    @map("tenant_id")
+  channel              String    // email | whatsapp
+  to                   String    // email address or E.164 phone number
+  subject              String?   // email only
+  body                 String
+  metadata             String?   // JSON: { invoiceId, customerId, messageType, communicationId }
+  status               String    @default("queued") // queued | sending | sent | failed | failed_permanent
+  retryCount           Int       @default(0) @map("retry_count")
+  maxRetries           Int       @default(3) @map("max_retries")
+  errorLog             String?   @map("error_log")
+  scheduledAt          DateTime  @default(now()) @map("scheduled_at")
+  sentAt               DateTime? @map("sent_at")
+  createdAt            DateTime  @default(now()) @map("created_at")
+
+  // ── Hardening fields ─────────────────────────────────────────────────────
+  idempotencyKey       String?   @unique @map("idempotency_key")  // sha256(tenantId:invoiceId:channel:messageType:day)
+  isDlq                Boolean   @default(false) @map("is_dlq")   // true after maxRetries exhausted
+  fallbackFrom         String?   @map("fallback_from")             // ID of original queue item (channel fallback)
+  nextRetryAt          DateTime? @map("next_retry_at")             // exponential backoff target
+  processingStartedAt  DateTime? @map("processing_started_at")     // detect stuck messages
 
   @@index([status, retryCount])
   @@index([tenantId])
+  @@index([idempotencyKey])
+  @@index([isDlq])
   @@map("message_queue")
 }
 

@@ -1,29 +1,25 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
+import { verifyResendSignature } from '@/lib/webhookVerify';
 
 export const dynamic = 'force-dynamic';
 
 /**
  * POST /api/webhooks/resend
  * Receives delivery status events from Resend.
- *
- * Events handled:
- *   email.sent       → status: sent
- *   email.delivered  → status: delivered + deliveredAt
- *   email.opened     → status: read + readAt
- *   email.bounced    → status: failed + errorMessage
- *   email.complained → status: failed + errorMessage
- *
- * Configure in Resend dashboard → Webhooks → add your endpoint:
- *   https://yourdomain.com/api/webhooks/resend
- * Add secret as WEBHOOK_SECRET_RESEND env var for signature verification (optional).
+ * Signature verified via svix (WEBHOOK_SECRET_RESEND env var).
  */
 export async function POST(request: Request) {
   try {
     const body = await request.text();
-    
-    // Optional signature verification (Resend signs with svix)
-    // For now we trust the payload — add svix verification for production
+
+    // ── Signature verification (hardening) ──────────────────────────────────
+    const verification = await verifyResendSignature(body, request.headers);
+    if (!verification.valid) {
+      console.warn('[WEBHOOK/RESEND] Invalid signature:', verification.error);
+      return NextResponse.json({ error: 'Unauthorized: invalid webhook signature' }, { status: 401 });
+    }
+
     let event: any;
     try {
       event = JSON.parse(body);
@@ -45,7 +41,6 @@ export async function POST(request: Request) {
     });
 
     if (!comm) {
-      // May not have been processed yet or is a test event
       console.log(`[WEBHOOK/RESEND] No Communication found for messageId: ${messageId}`);
       return NextResponse.json({ ok: true, skipped: 'communication not found' });
     }

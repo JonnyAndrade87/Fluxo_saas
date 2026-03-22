@@ -1,32 +1,25 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/db';
+import { verifyZapiSignature } from '@/lib/webhookVerify';
 
 export const dynamic = 'force-dynamic';
 
 /**
  * POST /api/webhooks/zapi
  * Receives delivery/read status events from Z-API.
- *
- * Z-API event types (relevant ones):
- *   DELIVERY_ACK   → delivered to device
- *   READ           → read by recipient
- *   MESSAGE_ERROR  → send failed
- *
- * Configure in Z-API dashboard → Webhooks.
- * Add ZAPI_WEBHOOK_TOKEN env var to verify requests.
+ * Signature verified via HMAC-SHA256 (ZAPI_WEBHOOK_SECRET or ZAPI_WEBHOOK_TOKEN).
  */
 export async function POST(request: Request) {
   try {
-    // Optional token verification
-    const zapiToken = process.env.ZAPI_WEBHOOK_TOKEN;
-    if (zapiToken) {
-      const token = request.headers.get('x-zapi-token') ?? request.headers.get('authorization');
-      if (token !== zapiToken && token !== `Bearer ${zapiToken}`) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-      }
+    const body = await request.text();
+
+    // ── Signature verification (hardening) ──────────────────────────────────
+    const verification = verifyZapiSignature(body, request.headers);
+    if (!verification.valid) {
+      console.warn('[WEBHOOK/ZAPI] Invalid signature:', verification.error);
+      return NextResponse.json({ error: 'Unauthorized: invalid webhook signature' }, { status: 401 });
     }
 
-    const body = await request.text();
     let event: any;
     try {
       event = JSON.parse(body);
@@ -54,7 +47,6 @@ export async function POST(request: Request) {
     const now = new Date();
     let updateData: any = {};
 
-    // Normalize event types from different Z-API versions
     const typeUpper = type.toUpperCase();
 
     if (typeUpper.includes('DELIVERY') || typeUpper === 'DELIVERY_ACK') {

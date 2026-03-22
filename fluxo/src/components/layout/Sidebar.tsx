@@ -13,7 +13,8 @@ import {
   Building2,
   LifeBuoy,
   CloudUpload,
-  Inbox
+  Inbox,
+  Layers
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -34,6 +35,7 @@ const navGroups = [
       { name: "Relatórios", href: "/relatorios", icon: BarChart3 },
       { name: "Conta & Saldo", href: "/conta", icon: Wallet },
       { name: "Empresas (Multi)", href: "/empresas", icon: Building2 },
+      { name: "Monitor de Fila", href: "/fila", icon: Layers },
     ]
   }
 ]
