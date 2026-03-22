@@ -90,7 +90,9 @@ export async function markInvoiceAsPaid(id: string) {
   });
   if (!inv) throw new Error("Invoice not found or access denied");
 
-  // Mark as paid
+  // Mark as paid (with explicit tenantId check)
+  if (inv.tenantId !== tenantId) throw new Error("Invoice not found or access denied");
+  
   const updated = await prisma.invoice.update({
     where: { id },
     data: { status: 'paid', balanceDue: 0 }
@@ -127,6 +129,7 @@ export async function pauseInvoice(id: string) {
 
   const inv = await prisma.invoice.findFirst({ where: { id, tenantId } });
   if (!inv) throw new Error("Invoice not found or access denied");
+  if (inv.tenantId !== tenantId) throw new Error("Invoice not found or access denied");
 
   const updated = await prisma.invoice.update({
     where: { id },
@@ -183,6 +186,7 @@ export async function deleteInvoice(id: string) {
 
   const inv = await prisma.invoice.findFirst({ where: { id, tenantId } });
   if (!inv) throw new Error("Invoice not found or access denied");
+  if (inv.tenantId !== tenantId) throw new Error("Invoice not found or access denied");
 
   await prisma.invoice.delete({ where: { id } });
   revalidatePath('/cobrancas');

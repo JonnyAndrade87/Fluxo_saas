@@ -36,9 +36,11 @@ export async function createTask(data: CreateTaskData) {
 export async function completeTask(taskId: string) {
   const ctx = await requireAuth();
 
-  // Ensure task belongs to tenant
-  const task = await prisma.task.findUnique({ where: { id: taskId } });
-  if (!task || task.tenantId !== ctx.tenantId) {
+  // Ensure task belongs to tenant - use findFirst with tenantId filter for better isolation
+  const task = await prisma.task.findFirst({ 
+    where: { id: taskId, tenantId: ctx.tenantId } 
+  });
+  if (!task) {
     throw new Error('Task not found or forbidden');
   }
 
@@ -57,8 +59,11 @@ export async function completeTask(taskId: string) {
 export async function cancelTask(taskId: string) {
   const ctx = await requireAuth();
 
-  const task = await prisma.task.findUnique({ where: { id: taskId } });
-  if (!task || task.tenantId !== ctx.tenantId) {
+  // Ensure task belongs to tenant - use findFirst with tenantId filter for better isolation
+  const task = await prisma.task.findFirst({ 
+    where: { id: taskId, tenantId: ctx.tenantId } 
+  });
+  if (!task) {
     throw new Error('Task not found or forbidden');
   }
 

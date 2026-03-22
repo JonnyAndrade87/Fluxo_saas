@@ -170,7 +170,11 @@ export async function getDashboardMetrics() {
 
   const riskRankingList = [];
   for (const item of riskRankingRaw) {
-    const cust = await prisma.customer.findUnique({ where: { id: item.customerId }, select: { name: true } });
+    // Validate customer belongs to tenant before showing data
+    const cust = await prisma.customer.findFirst({ 
+      where: { id: item.customerId, tenantId }, 
+      select: { name: true } 
+    });
     if (cust) {
       riskRankingList.push({
         customerId: item.customerId,

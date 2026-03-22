@@ -4,6 +4,26 @@ import { enqueueAndSend } from '@/lib/queue';
 
 export const dynamic = 'force-dynamic';
 
+// Simple in-memory rate limit store
+const cronRateLimitStore = new Map<string, { count: number; resetAt: number }>();
+
+function isCronRateLimited(key: string, limit: number = 10, windowMs: number = 3600000): boolean {
+  const now = Date.now();
+  const entry = cronRateLimitStore.get(key);
+
+  if (!entry || now > entry.resetAt) {
+    cronRateLimitStore.set(key, { count: 1, resetAt: now + windowMs });
+    return false;
+  }
+
+  if (entry.count < limit) {
+    entry.count++;
+    return false;
+  }
+
+  return true;
+}
+
 /**
  * Billing Engine Cron — runs once per day.
  * Supports both:
@@ -24,6 +44,16 @@ export async function GET(request: Request) {
         { status: 401 }
       );
     }
+  }
+
+  // ── Rate limiting (prevent abuse) ──────────────────────────────────────
+  const clientIp = request.headers.get('x-forwarded-for') || 'unknown';
+  if (isCronRateLimited(`cron:${clientIp}`, 10, 3600000)) { // Max 10 calls per hour
+    console.warn(`[CRON] Rate limit exceeded for IP: ${clientIp}`);
+    return NextResponse.json(
+      { success: false, error: 'Rate limit exceeded - cron can only run 10 times per hour' },
+      { status: 429, headers: { 'Retry-After': '3600' } }
+    );
   }
 
   try {
