@@ -36,9 +36,7 @@ export default async function RelatoriosPage() {
             Saúde do caixa, volume de faturamento, taxa de recuperação e ranking de clientes por risco.
           </p>
         </div>
-        <Button variant="outline" className="gap-2 shadow-sm h-9 text-[13px]" disabled>
-          <Download className="w-4 h-4 text-indigo-600" /> Exportar PDF
-        </Button>
+        <div className="h-9 w-32" /> {/* spacer */}
       </div>
 
       {/* Interactive Client Component */}

@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { getReportMetrics, ReportMetrics } from '@/actions/reports';
+import { generateReportPdf } from '@/lib/pdf/reportPdf';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   PieChart, Pie, Cell
@@ -9,7 +10,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import {
   TrendingUp, TrendingDown, AlertTriangle, BarChart3, CircleDollarSign,
-  Users, ArrowUpRight, ArrowDownRight, Loader2, ShieldAlert, CheckCircle2
+  Users, ArrowUpRight, ArrowDownRight, Loader2, ShieldAlert, CheckCircle2, Download
 } from 'lucide-react';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -90,6 +91,7 @@ export default function ReportsClient({ initialData }: { initialData: ReportMetr
   const [data, setData] = useState<ReportMetrics>(initialData);
   const [period, setPeriod] = useState<'1m' | '3m' | '6m' | '12m'>('6m');
   const [isPending, startTransition] = useTransition();
+  const [isExporting, setIsExporting] = useState(false);
 
   const changePeriod = (p: typeof period) => {
     setPeriod(p);
@@ -99,10 +101,21 @@ export default function ReportsClient({ initialData }: { initialData: ReportMetr
     });
   };
 
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      await generateReportPdf(data, 'Fluxo', period);
+    } catch (e) {
+      console.error('Erro ao gerar PDF:', e);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <div className={`space-y-7 transition-opacity duration-300 ${isPending ? 'opacity-60 pointer-events-none' : 'opacity-100'}`}>
 
-      {/* Period Selector */}
+      {/* Period Selector + Export */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5 bg-white border border-border/60 rounded-xl p-1 shadow-sm">
           {PERIODS.map(opt => (
@@ -119,9 +132,21 @@ export default function ReportsClient({ initialData }: { initialData: ReportMetr
             </button>
           ))}
         </div>
-        <div className="flex items-center gap-2 text-[12px] text-muted-foreground font-medium">
-          {isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-          <span>{data.periodLabel}</span>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 text-[12px] text-muted-foreground font-medium">
+            {isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+            <span>{data.periodLabel}</span>
+          </div>
+          <button
+            onClick={handleExport}
+            disabled={isExporting}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-border bg-white text-[13px] font-semibold text-obsidian hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-700 transition-all shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {isExporting
+              ? <><Loader2 className="w-4 h-4 animate-spin" /> Gerando PDF...</>
+              : <><Download className="w-4 h-4" /> Exportar PDF</>
+            }
+          </button>
         </div>
       </div>
 
