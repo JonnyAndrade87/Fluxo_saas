@@ -1,10 +1,11 @@
-import NextAuth from 'next-auth';
-import { authConfig } from './auth.config';
+import { NextRequest, NextResponse } from 'next/server';
 
-export default NextAuth(authConfig).auth;
+// Minimal middleware - does nothing, just passes through
+// Auth is handled client-side and in individual pages/API routes
+export function middleware(request: NextRequest) {
+  return NextResponse.next();
+}
 
 export const config = {
-  // Disable middleware - let pages handle auth
-  // Middleware was causing Unauthorized errors during render
   matcher: [],
 };
