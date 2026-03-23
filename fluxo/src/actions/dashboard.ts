@@ -5,19 +5,20 @@ import { auth } from '../../auth';
 import { getRiskScoreForCustomer } from './risk-score';
 
 export async function getDashboardMetrics() {
-  const session = await auth();
-  const tenantId = (session?.user as any)?.tenantId;
-  const userId = session?.user?.id;
+  try {
+    const session = await auth();
+    const tenantId = (session?.user as any)?.tenantId;
+    const userId = session?.user?.id;
 
-  if (!tenantId || !userId) {
-    throw new Error('Unauthorized');
-  }
+    if (!tenantId || !userId) {
+      throw new Error('Unauthorized');
+    }
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-  const endOfToday = new Date(today);
-  endOfToday.setHours(23, 59, 59, 999);
+    const endOfToday = new Date(today);
+    endOfToday.setHours(23, 59, 59, 999);
 
   const next7Days = new Date(today);
   next7Days.setDate(today.getDate() + 7);
@@ -241,4 +242,23 @@ export async function getDashboardMetrics() {
     riskRanking: riskRankingList,
     receiptsChart
   };
+  } catch (error) {
+    console.error('Error fetching dashboard metrics:', error);
+    // Return empty metrics instead of throwing
+    return {
+      kpis: {
+        totalPending: 0,
+        totalOverdue: 0,
+        dueNext7Days: 0,
+        paidThisMonth: 0,
+        defaultRate: 0,
+        criticalCustomersCount: 0
+      },
+      upcomingDues: [],
+      todaysTasks: [],
+      criticalAlerts: [],
+      riskRanking: [],
+      receiptsChart: []
+    };
+  }
 }
