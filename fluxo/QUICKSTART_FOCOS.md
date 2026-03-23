@@ -2,7 +2,7 @@
 
 ## 📌 Resumo Rápido
 
-Três módulos críticos foram implementados para operação completa de recebíveis:
+Quatro módulos críticos foram implementados para operação completa:
 
 ### ✅ FOCO 1: Score de Risco (Centralizado)
 - **Rota:** `/api/risk-score` | Server Action: `getRiskScoreForCustomer()`
@@ -20,6 +20,12 @@ Três módulos críticos foram implementados para operação completa de recebí
 - **Exportação:** CSV UTF-8 com BOM + Impressão
 - **Integrado em:** Score de Risco + Forecast
 
+### ✅ FOCO 4: Permissões Multiusuário
+- **Rota:** `/auditoria` | Lib: `src/lib/permissions.ts`
+- **Perfis:** Admin, Financeiro, Cobrança, Gestor
+- **Auditoria:** Ações críticas (deletar, modificar, exportar)
+- **Proteção:** Middleware centralizado + validação de permissão
+
 ---
 
 ## 🎯 Como Acessar
@@ -33,6 +39,7 @@ Três módulos críticos foram implementados para operação completa de recebí
 /relatorios/risco       → Ranking por risco
 /relatorios/executivo   → Resumo executivo
 /previsao               → Previsão de caixa
+/auditoria              → Trilha de auditoria (admin only)
 ```
 
 ### Via API REST
@@ -55,9 +62,11 @@ curl "https://app/api/reports?type=overdue&export=csv" > report.csv
 import { getOverdueReport, getPendingReport } from '@/actions/reports-extended';
 import { getReceivablesForecast } from '@/actions/forecast';
 import { getRiskScoreForCustomer } from '@/actions/risk-score';
+import { hasPermission, executeWithAudit } from '@/lib/permissions';
 
 // Risk Score
 const score = await getRiskScoreForCustomer(customerId, tenantId);
+````
 
 // Forecast
 const forecast = await getReceivablesForecast('weekly', 60);
@@ -77,11 +86,14 @@ src/
 │   ├── reports.ts              (Geração de dados relatórios)
 │   ├── forecast.ts             (Cálculo previsão)
 │   ├── risk-score.ts           (Score centralizado)
-│   └── export-utils.ts         (CSV + Print)
+│   ├── export-utils.ts         (CSV + Print)
+│   ├── permissions.ts          (Matriz + helpers FOCO 4)
+│   └── audit.ts                (Logging de ações FOCO 4)
 ├── actions/
 │   ├── reports-extended.ts     (Server Actions relatórios)
 │   ├── forecast.ts             (Server Actions previsão)
-│   └── risk-score.ts           (Server Actions score)
+│   ├── risk-score.ts           (Server Actions score)
+│   └── protected-actions.ts    (Middleware FOCO 4)
 ├── app/
 │   ├── api/
 │   │   ├── reports/route.ts
@@ -89,7 +101,8 @@ src/
 │   │   └── risk-score/route.ts
 │   └── (dashboard)/
 │       ├── relatorios/         (5 páginas + index)
-│       └── previsao/           (1 página)
+│       ├── previsao/           (1 página)
+│       └── auditoria/          (Página de auditoria FOCO 4)
 └── components/
     └── reports/                (Filtros, tabela, clientes)
 ```
