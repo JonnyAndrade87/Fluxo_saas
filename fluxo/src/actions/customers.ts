@@ -146,7 +146,7 @@ export async function getCustomerDetails(customerId: string) {
 
 export async function upsertCustomer(data: any) {
   const ctx = await requireAuth();
-  requireRole(['admin', 'operator'], ctx);
+  requireRole(['admin'], ctx);
   const { tenantId, userId } = ctx; // requireAuth() guarantees both are non-empty strings
 
   const { id, name, documentNumber, email, phone, status, tags, address, notes, assignedUserId } = data;
@@ -211,7 +211,7 @@ export async function addCustomerNote(customerId: string, content: string) {
 
 export async function upsertFinancialContact(data: any) {
   const ctx = await requireAuth();
-  requireRole(['admin', 'operator'], ctx);
+  requireRole(['admin'], ctx);
   const { tenantId } = ctx;
 
   const { id, customerId, name, email, phone, isPrimary } = data;
