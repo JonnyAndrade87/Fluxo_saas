@@ -1,0 +1,51 @@
+# Dependencies
+node_modules
+npm-cache
+
+# Development
+.env.local
+.env.*.local
+.next
+.vercel
+out
+
+# Git
+.git
+.gitignore
+
+# Documentation
+README.md
+CONTRIBUTING.md
+DEPLOYMENT.md
+
+# Tests
+__tests__
+.test
+.spec
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# CI/CD
+.github
+
+# Templates
+templates
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Misc
+.cache
+dist
+build

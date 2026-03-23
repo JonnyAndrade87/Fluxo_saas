@@ -1,0 +1,56 @@
+{
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "regions": ["iad1", "sfo1", "gru1"],
+  "functions": {
+    "api/**": {
+      "maxDuration": 60
+    }
+  },
+  "env": {
+    "DATABASE_URL": "@database_url",
+    "AUTH_SECRET": "@auth_secret",
+    "RESEND_API_KEY": "@resend_api_key",
+    "WEBHOOK_SECRET_RESEND": "@webhook_secret_resend",
+    "ZAPI_INSTANCE_ID": "@zapi_instance_id",
+    "ZAPI_API_TOKEN": "@zapi_api_token",
+    "NEXT_PUBLIC_APP_URL": "@next_public_app_url"
+  },
+  "redirects": [],
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "/:path*"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/webhooks/:path*",
+      "headers": [
+        {
+          "key": "X-Webhook-Verified",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        }
+      ]
+    }
+  ]
+}
