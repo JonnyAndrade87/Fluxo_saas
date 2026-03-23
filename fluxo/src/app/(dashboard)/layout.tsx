@@ -1,12 +1,16 @@
 import { Sidebar } from "@/components/layout/Sidebar"
 import { Topbar } from "@/components/layout/Topbar"
 import NewInvoiceModal from "@/components/finance/NewInvoiceModal"
+import { DashboardGuard } from "@/components/layout/DashboardGuard"
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  // Verify auth before rendering dashboard
+  await DashboardGuard();
+
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background">
       <Sidebar />

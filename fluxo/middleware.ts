@@ -3,18 +3,12 @@ import { authConfig } from './auth.config';
 
 export default NextAuth(authConfig).auth;
 
+/**
+ * Matcher disabled - using DashboardGuard component in layout instead
+ * This prevents middleware from throwing auth errors during page rendering
+ */
 export const config = {
   matcher: [
-    // Only protect dashboard routes
-    '/(dashboard)/:path*',
-    // Protect other authenticated routes
-    '/cobrancas/:path*',
-    '/relatorios/:path*',
-    '/previsao/:path*',
-    '/clientes/:path*',
-    '/fila/:path*',
-    '/historico/:path*',
-    '/auditoria/:path*',
-    '/configuracoes/:path*',
+    // Empty matcher - auth handled in layout components
   ],
 };
