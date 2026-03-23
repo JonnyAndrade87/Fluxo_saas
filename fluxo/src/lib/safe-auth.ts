@@ -8,6 +8,13 @@ import { auth as getAuth } from '../../auth';
 import { redirect } from 'next/navigation';
 
 export async function getSessionSafe() {
+  // If AUTH_SECRET is not set, Vercel deployment will fail
+  // In that case, redirect to login immediately
+  if (!process.env.AUTH_SECRET) {
+    console.warn('AUTH_SECRET is not set - redirecting to login');
+    redirect('/login');
+  }
+
   try {
     const session = await getAuth();
     return session;
