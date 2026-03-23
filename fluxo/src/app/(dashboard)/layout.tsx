@@ -1,7 +1,6 @@
 import { Sidebar } from "@/components/layout/Sidebar"
 import { Topbar } from "@/components/layout/Topbar"
 import NewInvoiceModal from "@/components/finance/NewInvoiceModal"
-import { DashboardGuard } from "@/components/layout/DashboardGuard"
 
 // Force dynamic rendering - cannot cache dashboard with user-specific data
 export const dynamic = 'force-dynamic';
@@ -11,9 +10,6 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
-  // Verify auth before rendering dashboard
-  await DashboardGuard();
-
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background">
       <Sidebar />

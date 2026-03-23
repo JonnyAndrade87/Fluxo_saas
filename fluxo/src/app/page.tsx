@@ -1,6 +1,16 @@
-import { redirect } from 'next/navigation';
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function Home() {
-  // Server-side redirect - no client hydration issues
-  redirect('/login');
+  const router = useRouter();
+
+  useEffect(() => {
+    // Redirect to login on client side
+    router.push('/login');
+  }, [router]);
+
+  return null;
 }
+
