@@ -3,6 +3,9 @@ import { Topbar } from "@/components/layout/Topbar"
 import NewInvoiceModal from "@/components/finance/NewInvoiceModal"
 import { DashboardGuard } from "@/components/layout/DashboardGuard"
 
+// Force dynamic rendering - cannot cache dashboard with user-specific data
+export const dynamic = 'force-dynamic';
+
 export default async function DashboardLayout({
   children,
 }: {
