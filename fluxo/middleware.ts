@@ -4,7 +4,10 @@ import { authConfig } from './auth.config';
 export default NextAuth(authConfig).auth;
  
 export const config = {
-  // https://nextjs.org/docs/app/building-your-application/routing/middleware#matcher
-  // Exclude public pages and root path from middleware
-  matcher: ['/((?!api|_next/static|_next/image|.*\\.png$|^/$|^/login$|^/register$).*)'],
+  matcher: [
+    // Protect all dashboard routes
+    '/(dashboard)/:path*',
+    // Protect all protected routes except auth
+    '/((?!api|_next/static|_next/image|.*\\.png$|login|register|onboarding|favicon.ico).*)',
+  ],
 };
