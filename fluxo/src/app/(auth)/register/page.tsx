@@ -6,19 +6,20 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 export default function RegisterPage() {
   const [state, dispatch, isPending] = useActionState(register, undefined);
+  const router = useRouter();
 
   useEffect(() => {
     if (state?.success) {
       const timer = setTimeout(() => {
-        redirect('/login');
+        router.push('/login');
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [state?.success]);
+  }, [router, state?.success]);
 
   if (state?.success) {
     return (
@@ -41,7 +42,7 @@ export default function RegisterPage() {
 
       <form action={dispatch} className="space-y-6 relative z-10">
       <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
               <label className="text-sm font-semibold text-obsidian select-none" htmlFor="name">Seu Nome</label>
               <Input
@@ -112,7 +113,7 @@ export default function RegisterPage() {
         <Button 
           variant="default" // Using solid obsidian for registration vs Beam for signin
           type="submit" 
-          className="w-full h-12 text-base font-bold tracking-wide" 
+          className="w-full h-12 text-base font-bold tracking-wide disabled:hover:translate-y-0 disabled:hover:shadow-none" 
           disabled={isPending}
         >
           {isPending ? (

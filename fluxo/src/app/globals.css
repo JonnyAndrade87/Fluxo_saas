@@ -32,6 +32,9 @@
   --color-brand: hsl(var(--brand));
   --color-success: hsl(var(--success));
   --color-warning: hsl(var(--warning));
+  --color-obsidian: hsl(var(--foreground));
+  --color-subtle: hsl(var(--muted-foreground));
+  --color-canvas: hsl(var(--background));
 
   --radius-xl: calc(var(--radius) + 4px);
   --radius-lg: var(--radius);
