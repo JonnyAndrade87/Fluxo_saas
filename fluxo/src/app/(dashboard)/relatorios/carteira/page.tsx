@@ -47,7 +47,7 @@ export default function PendingReportPage() {
           <p className="font-semibold mb-1">Carteira a Vencer</p>
           <p>
             Este relatório apresenta todos os títulos que vencem nos próximos 30 dias com status
-            "pendente" ou "em negociação". Planeje cobranças antecipadas para evitar atrasos.
+            {` "pendente" `}ou{` "em negociação"`}. Planeje cobranças antecipadas para evitar atrasos.
           </p>
         </div>
       </Card>

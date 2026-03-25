@@ -46,7 +46,7 @@ export default function OverdueReportPage() {
         <div className="text-sm text-red-800">
           <p className="font-semibold mb-1">Títulos Vencidos</p>
           <p>
-            Este relatório mostra todos os títulos com status "vencido" dentro do período selecionado.
+            Este relatório mostra todos os títulos com status{` "vencido"`} dentro do período selecionado.
             Utilize os filtros para focar em um cliente específico ou período diferente.
           </p>
         </div>

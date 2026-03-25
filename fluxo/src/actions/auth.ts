@@ -2,7 +2,7 @@
 
 import { signIn } from '../../auth';
 import { AuthError } from 'next-auth';
-import prisma from '@/lib/db';
+import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 
 export async function authenticate(
