@@ -1,0 +1,62 @@
+-- Create all tables for production PostgreSQL database
+-- Run this script directly in Railway PostgreSQL
+
+-- Users table
+CREATE TABLE IF NOT EXISTS "User" (
+  id TEXT NOT NULL PRIMARY KEY,
+  email TEXT NOT NULL UNIQUE,
+  name TEXT,
+  password TEXT,
+  createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tenants table
+CREATE TABLE IF NOT EXISTS "Tenant" (
+  id TEXT NOT NULL PRIMARY KEY,
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  cnpj TEXT UNIQUE,
+  createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- TenantUser table (many-to-many)
+CREATE TABLE IF NOT EXISTS "TenantUser" (
+  id TEXT NOT NULL PRIMARY KEY,
+  tenantId TEXT NOT NULL REFERENCES "Tenant"(id) ON DELETE CASCADE,
+  userId TEXT NOT NULL REFERENCES "User"(id) ON DELETE CASCADE,
+  role TEXT NOT NULL DEFAULT 'member',
+  createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Invoices table
+CREATE TABLE IF NOT EXISTS "Invoice" (
+  id TEXT NOT NULL PRIMARY KEY,
+  tenantId TEXT NOT NULL REFERENCES "Tenant"(id) ON DELETE CASCADE,
+  customerId TEXT,
+  amount DECIMAL(15,2) NOT NULL,
+  balanceDue DECIMAL(15,2) NOT NULL,
+  dueDate TIMESTAMP,
+  status TEXT NOT NULL DEFAULT 'pending',
+  createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Customers table
+CREATE TABLE IF NOT EXISTS "Customer" (
+  id TEXT NOT NULL PRIMARY KEY,
+  tenantId TEXT NOT NULL REFERENCES "Tenant"(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  email TEXT,
+  createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create indexes
+CREATE INDEX IF NOT EXISTS "User_email_idx" ON "User"(email);
+CREATE INDEX IF NOT EXISTS "TenantUser_tenantId_idx" ON "TenantUser"(tenantId);
+CREATE INDEX IF NOT EXISTS "TenantUser_userId_idx" ON "TenantUser"(userId);
+CREATE INDEX IF NOT EXISTS "Invoice_tenantId_idx" ON "Invoice"(tenantId);
+CREATE INDEX IF NOT EXISTS "Customer_tenantId_idx" ON "Customer"(tenantId);
