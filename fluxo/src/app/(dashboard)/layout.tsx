@@ -11,11 +11,11 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
-  await DashboardGuard();
+  const session = await DashboardGuard();
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background">
-      <Sidebar />
+      <Sidebar user={session?.user} />
       <div className="flex flex-col flex-1 overflow-hidden">
         <Topbar />
         <main className="flex-1 overflow-y-auto bg-muted/20 p-6 relative">
