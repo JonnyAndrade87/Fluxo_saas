@@ -13,19 +13,13 @@ const QUICK_LINKS = [
   { label: "Importar dados", href: "/importar", description: "Importar planilhas de clientes e faturas" },
 ];
 
-const MOCK_NOTIFICATIONS = [
-  { id: "1", type: "alert", title: "Promessa quebrada", description: "Gamma Indústrias não quitou R$ 32.000", time: "há 5 min", href: "/historico" },
-  { id: "2", type: "warning", title: "Fatura vence amanhã", description: "Fatura #1234 de Tech Corp – R$ 8.500", time: "há 1h", href: "/cobrancas" },
-  { id: "3", type: "success", title: "Pagamento recebido", description: "R$ 5.200 de Construtora Alpha", time: "há 3h", href: "/historico" },
-];
-
-export function Topbar() {
+export function Topbar({ tenantName = "Sua Empresa" }: { tenantName?: string }) {
   const router = useRouter();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [notifOpen, setNotifOpen] = useState(false);
-  const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
-  const [hasUnread, setHasUnread] = useState(true);
+  const [notifications, setNotifications] = useState<any[]>([]); // Real notifications go here
+  const [hasUnread, setHasUnread] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
 
@@ -75,7 +69,7 @@ export function Topbar() {
         <div className="hidden md:flex items-center gap-2">
           <div className="px-3 py-1.5 rounded-full border border-border bg-canvas text-xs font-semibold text-obsidian flex items-center gap-2 shadow-sm">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            Acme Corp (Produção)
+            {tenantName} (Produção)
           </div>
         </div>
 
@@ -114,13 +108,13 @@ export function Topbar() {
             <div className="absolute top-12 right-0 w-80 bg-white rounded-2xl shadow-2xl border border-border z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
               <div className="flex items-center justify-between px-5 py-4 border-b border-border">
                 <h3 className="text-sm font-bold text-obsidian">Notificações</h3>
-                <span className="text-[10px] bg-rose-100 text-rose-600 font-bold px-2 py-0.5 rounded-full uppercase tracking-widest">
+                <span className="text-[10px] bg-indigo-100 text-indigo-700 font-bold px-2 py-0.5 rounded-full uppercase tracking-widest">
                   {notifications.length} novas
                 </span>
               </div>
               <div className="divide-y divide-border">
                 {notifications.length === 0 && (
-                  <p className="text-center text-sm text-muted-foreground py-8">Nenhuma notificação. ✅</p>
+                  <p className="text-center text-sm text-muted-foreground py-8 border-b">Nenhuma notificação nova. ✅</p>
                 )}
                 {notifications.map(n => (
                   <button
@@ -143,10 +137,11 @@ export function Topbar() {
                   </button>
                 ))}
               </div>
-              <div className="px-5 py-3 border-t border-border">
+              <div className="px-5 py-3 border-t border-border bg-gray-50">
                 <button
                   onClick={() => { setNotifications([]); setHasUnread(false); setNotifOpen(false); }}
                   className="text-xs text-indigo-600 font-semibold hover:text-indigo-800 transition-colors w-full text-center"
+                  disabled={notifications.length === 0}
                 >
                   Marcar tudo como lido
                 </button>
