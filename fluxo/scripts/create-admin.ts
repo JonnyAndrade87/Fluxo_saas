@@ -4,8 +4,8 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
-  const email = 'admin@fluxo.com';
-  const password = 'password123';
+  const email = 'jonattan.passos@gmail.com';
+  const password = '@Joaquimlucca09';
   const hashedPassword = await bcrypt.hash(password, 10);
 
   let user = await prisma.user.findUnique({ where: { email } });
@@ -22,7 +22,7 @@ async function main() {
     user = await prisma.user.create({
       data: {
         email,
-        fullName: 'Administrador Fluxo',
+        fullName: 'Jonattan Andrade',
         password: hashedPassword,
       }
     });
@@ -34,23 +34,29 @@ async function main() {
         role: 'admin'
       }
     });
-    console.log(`✅ Default admin created successfully!\nEmail: ${email}\nPassword: ${password}`);
+    console.log(`✅ Admin criado!\nEmail: ${email}\nSenha: ${password}`);
   } else {
-    console.log('User already exists, updating password...');
-    // Update password
+    console.log('Usuário já existe, atualizando senha...');
     await prisma.user.update({
       where: { email },
       data: { password: hashedPassword }
     });
-    console.log(`✅ Admin password reset successfully!\nEmail: ${email}\nPassword: ${password}`);
+    // Ensure TenantUser exists
+    const existing = await prisma.tenantUser.findFirst({ where: { userId: user.id } });
+    if (!existing) {
+      const tenant = await prisma.tenant.create({
+        data: { name: 'Fluxo Admin', documentNumber: `ADMIN-${Date.now()}` }
+      });
+      await prisma.tenantUser.create({
+        data: { tenantId: tenant.id, userId: user.id, role: 'admin' }
+      });
+      console.log('Tenant criado e vinculado.');
+    }
+    console.log(`✅ Conta atualizada!\nEmail: ${email}\nSenha: ${password}`);
   }
 }
 
 main()
-  .catch(e => {
-    console.error('Error creating admin:', e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+  .catch(e => { console.error(e); process.exit(1); })
+  .finally(async () => await prisma.$disconnect());
+
