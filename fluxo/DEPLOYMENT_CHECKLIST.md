@@ -32,12 +32,15 @@ Acesse: [Vercel Dashboard - Environment Variables](https://vercel.com/jonattans-
   - Descrição: Secret para webhooks do Resend
   - Encontre em: Resend Dashboard > Webhooks
 
-- [ ] **ZAPI_INSTANCE_ID** (Opcional - só se usar WhatsApp)
-  - Descrição: Instance ID do ZAPI
-  - Link: https://zapi.net
+- [ ] **WHATSAPP_ACCESS_TOKEN** (Opcional - só se usar WhatsApp via Meta API)
+  - Descrição: Token de acesso permanente do Meta Business
+  - Link: https://business.facebook.com/
 
-- [ ] **ZAPI_API_TOKEN** (Opcional - só se usar WhatsApp)
-  - Descrição: API Token do ZAPI
+- [ ] **WHATSAPP_PHONE_NUMBER_ID** (Opcional - só se usar WhatsApp via Meta API)
+  - Descrição: ID do número de telefone (Phone Number ID) configurado na Meta
+
+- [ ] **WHATSAPP_BUSINESS_ACCOUNT_ID** (Opcional)
+  - Descrição: ID da conta de negócios (Business Account ID) da Meta
 
 - [ ] **NEXT_PUBLIC_APP_URL**
   - Descrição: URL pública do seu app

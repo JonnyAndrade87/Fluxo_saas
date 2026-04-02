@@ -192,7 +192,7 @@ export default async function Dashboard() {
           </CardHeader>
           <CardContent className="flex-1 p-4 pb-4 overflow-x-auto">
             <div className="space-y-2">
-              {metrics.upcomingDues.map((inv) => (
+              {metrics.upcomingDues.map((inv: any) => (
                 <div key={inv.id} className="flex items-center justify-between p-4 rounded-2xl hover:bg-gray-50 border border-transparent hover:border-gray-100 transition-all cursor-pointer group/row">
                     <div className="flex items-center gap-4">
                         <div className={`w-10 h-10 rounded-full flex justify-center items-center font-bold ${inv.isHighValue ? 'bg-amber-100 text-amber-600 border border-amber-200' : 'bg-indigo-50 text-indigo-600 border border-indigo-100'}`}>
