@@ -16,6 +16,8 @@ export type GetInvoicesParams = {
   status?: string;
   sortBy?: string; 
   dateRange?: string;
+  page?: number;     // Pagination
+  limit?: number;    // Pagination
 };
 
 export async function getFilteredInvoices(params: GetInvoicesParams = {}) {
@@ -71,14 +73,24 @@ export async function getFilteredInvoices(params: GetInvoicesParams = {}) {
     }
   }
 
-  return prisma.invoice.findMany({
+  const page = params.page || 1;
+  const limit = params.limit || 50;
+  const skip = (page - 1) * limit;
+
+  const totalCount = await prisma.invoice.count({ where: whereClause });
+  const totalPages = Math.ceil(totalCount / limit) || 1;
+
+  const invoices = await prisma.invoice.findMany({
     where: whereClause,
     include: {
       customer: { select: { name: true, documentNumber: true, email: true, phone: true } }
     },
     orderBy: orderByClause,
-    take: 100
+    take: limit,
+    skip
   });
+
+  return { invoices, totalPages, page, totalCount };
 }
 
 export async function getInvoices() {

@@ -19,8 +19,10 @@ import {
 } from "@/actions/invoices";
 import { getInvoiceVisualState, calculateInvoiceFinancials, VisualStatus } from "@/lib/invoice-utils";
 
-export default function ReceivablesClient({ initialData }: { initialData: any[] }) {
+export default function ReceivablesClient({ initialData, initialTotalPages = 1 }: { initialData: any[], initialTotalPages?: number }) {
   const [invoices, setInvoices] = useState(initialData);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(initialTotalPages);
   const [isPending, startTransition] = useTransition();
 
   // Filters State
@@ -35,9 +37,14 @@ export default function ReceivablesClient({ initialData }: { initialData: any[] 
 
   const fetchInvoices = useCallback(() => {
     startTransition(async () => {
-       const data = await getFilteredInvoices({ search, status, dateRange, sortBy });
-       setInvoices(data);
+       const data = await getFilteredInvoices({ search, status, dateRange, sortBy, page });
+       setInvoices(data.invoices || []);
+       setTotalPages(data.totalPages || 1);
     });
+  }, [search, status, dateRange, sortBy, page]);
+
+  useEffect(() => {
+    setPage(1);
   }, [search, status, dateRange, sortBy]);
 
   useEffect(() => {
@@ -55,10 +62,11 @@ export default function ReceivablesClient({ initialData }: { initialData: any[] 
        try {
          await actionFn(...args);
          // Re-fetch after mutation
-         const data = await getFilteredInvoices({ search, status, dateRange, sortBy });
-         setInvoices(data);
+         const data = await getFilteredInvoices({ search, status, dateRange, sortBy, page });
+         setInvoices(data.invoices || []);
+         setTotalPages(data.totalPages || 1);
          if (selectedInvoice && selectedInvoice.id === args[0]) {
-            setSelectedInvoice(data.find((i: any) => i.id === args[0]));
+            setSelectedInvoice(data.invoices?.find((i: any) => i.id === args[0]));
          }
        } catch(e: any) {
          alert(e.message || "Erro ao processar ação.");
@@ -313,6 +321,18 @@ export default function ReceivablesClient({ initialData }: { initialData: any[] 
                 )})}
               </tbody>
             </table>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+               <div className="flex items-center justify-between px-6 py-4 border-t border-border/60 bg-[#FAFAFB]">
+                  <span className="text-sm text-muted-foreground font-medium">Página {page} de {totalPages}</span>
+                  <div className="flex items-center gap-2">
+                     <Button variant="outline" size="sm" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="h-8 shadow-sm">Anterior</Button>
+                     <Button variant="outline" size="sm" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="h-8 shadow-sm">Próxima</Button>
+                  </div>
+               </div>
+            )}
+            
           </div>
           
         </CardContent>

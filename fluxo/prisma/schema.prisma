@@ -189,6 +189,8 @@ model Invoice {
 
   @@index([tenantId, status])
   @@index([tenantId, dueDate])
+  @@index([tenantId, status, dueDate]) // Acelera a fila do cron e agregadores do dashboard
+  @@index([tenantId, customerId, status]) // Acelera o histórico individual do cliente
   @@index([tenantId, customerId])
   @@map("invoices")
 }
