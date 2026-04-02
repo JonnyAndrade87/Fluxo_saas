@@ -10,7 +10,6 @@ export const authConfig = {
       const isPublicRoute = 
         nextUrl.pathname === '/login' || 
         nextUrl.pathname === '/register' || 
-        nextUrl.pathname === '/' ||
         nextUrl.pathname === '/onboarding' ||
         nextUrl.pathname.startsWith('/onboarding/');
       

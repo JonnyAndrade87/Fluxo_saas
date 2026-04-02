@@ -17,7 +17,7 @@ export type OverdueTitle = {
   customerId: string;
   dueDate: string;
   daysOverdue: number;
-  balanceDue: number;
+  updatedAmount: number;
   riskLevel: string;
 };
 
@@ -120,7 +120,7 @@ export function generateOverdueReport(
   customerRiskScores: Record<string, { level: string; score: number }>
 ): OverdueTitle[] {
   return invoices
-    .filter(inv => inv.status === 'overdue')
+    .filter(inv => (inv.status === 'OPEN' || inv.status === 'PROMISE_TO_PAY') && new Date(inv.dueDate) < new Date())
     .map(inv => {
       const daysOverdue = getDaysOverdue(inv.dueDate);
       return {
@@ -130,7 +130,7 @@ export function generateOverdueReport(
         customerId: inv.customerId,
         dueDate: formatDate(inv.dueDate),
         daysOverdue,
-        balanceDue: Math.round(inv.balanceDue * 100) / 100,
+        updatedAmount: Math.round(inv.updatedAmount * 100) / 100,
         riskLevel: customerRiskScores[inv.customerId]?.level ?? 'Baixo',
       };
     })
@@ -190,7 +190,7 @@ export function generateCustomerDelayReport(
   > = {};
 
   invoices
-    .filter(inv => inv.status === 'overdue')
+    .filter(inv => (inv.status === 'OPEN' || inv.status === 'PROMISE_TO_PAY') && new Date(inv.dueDate) < new Date())
     .forEach(inv => {
       const cid = inv.customerId;
       const daysOverdue = getDaysOverdue(inv.dueDate);
@@ -206,7 +206,7 @@ export function generateCustomerDelayReport(
       }
 
       customerMap[cid].overdueCount += 1;
-      customerMap[cid].overdueValue += inv.balanceDue;
+      customerMap[cid].overdueValue += inv.updatedAmount;
       customerMap[cid].maxDays = Math.max(customerMap[cid].maxDays, daysOverdue);
 
       if (new Date(inv.dueDate) < customerMap[cid].oldestDate) {
@@ -259,8 +259,8 @@ export function generateRiskRankingReport(
     }
 
     customerMap[cid].totalBilled += inv.amount;
-    if (inv.status === 'overdue') {
-      customerMap[cid].totalOverdue += inv.balanceDue;
+    if ((inv.status === 'OPEN' || inv.status === 'PROMISE_TO_PAY') && new Date(inv.dueDate) < new Date()) {
+      customerMap[cid].totalOverdue += inv.updatedAmount;
       customerMap[cid].overdueTitles += 1;
     }
   });
@@ -315,20 +315,20 @@ export function generateExecutiveSummary(
   invoices.forEach(inv => {
     customerSet.add(inv.customerId);
 
-    if (inv.status === 'paid') {
+    if (inv.status === 'PAID') {
       totalBilled += inv.amount;
       totalRecovered += inv.amount;
-    } else if (inv.status === 'overdue') {
+    } else if ((inv.status === 'OPEN' || inv.status === 'PROMISE_TO_PAY') && new Date(inv.dueDate) < new Date()) {
       totalBilled += inv.amount;
-      totalOverdue += inv.balanceDue;
+      totalOverdue += inv.updatedAmount;
       overdueCount += 1;
       daysOverdueSum += getDaysOverdue(inv.dueDate);
       overdueCustSet.add(inv.customerId);
       customerOverdueMap[inv.customerId] =
-        (customerOverdueMap[inv.customerId] ?? 0) + inv.balanceDue;
-    } else if (inv.status === 'pending' || inv.status === 'in_negotiation') {
+        (customerOverdueMap[inv.customerId] ?? 0) + inv.updatedAmount;
+    } else if (inv.status === 'OPEN' || inv.status === 'PROMISE_TO_PAY') {
       totalBilled += inv.amount;
-      totalPending += inv.balanceDue;
+      totalPending += inv.updatedAmount;
     } else {
       totalBilled += inv.amount;
     }

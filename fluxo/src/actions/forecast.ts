@@ -54,7 +54,7 @@ export async function getPaymentHistoryMetrics(
     totalInvoices += 1;
     totalValue += inv.amount || 0;
 
-    if (inv.status === 'paid') {
+    if (inv.status === 'PAID') {
       // Calcular delay baseado na dueDate vs updatedAt
       const delayDays = Math.max(
         0,
@@ -71,7 +71,7 @@ export async function getPaymentHistoryMetrics(
         totalDelayDays += delayDays;
         delayedInvoiceCount += 1;
       }
-    } else if (inv.status === 'overdue') {
+    } else if ((inv.status === 'OPEN' || inv.status === 'PROMISE_TO_PAY') && new Date(inv.dueDate) < new Date()) {
       // Ainda não pago
       const delayDays = Math.floor(
         (new Date().getTime() - inv.dueDate.getTime()) / (1000 * 60 * 60 * 24)
@@ -84,7 +84,7 @@ export async function getPaymentHistoryMetrics(
         totalDelayDays += delayDays;
         delayedInvoiceCount += 1;
       }
-    } else if (inv.status === 'in_negotiation') {
+    } else if (inv.status === 'PROMISE_TO_PAY') {
       // Contar como atraso
       const delayDays = Math.floor(
         (new Date().getTime() - inv.dueDate.getTime()) / (1000 * 60 * 60 * 24)
@@ -177,7 +177,7 @@ export async function getInvoicesForForecast(
       customerName: inv.customer.name,
       invoiceNumber: inv.invoiceNumber,
       amount: inv.amount,
-      balanceDue: inv.balanceDue,
+      updatedAmount: (inv as any).updatedAmount || inv.amount,
       dueDate: inv.dueDate,
       status: inv.status as any,
       riskScore: riskScore?.score,
@@ -264,7 +264,7 @@ export async function getCustomerForecastImpact() {
     }
 
     entry.itemCount += 1;
-    entry.nominal += inv.balanceDue || inv.amount;
+    entry.nominal += inv.updatedAmount || inv.amount;
 
     // Usar score para calcular ajustado
     const riskScore = inv.riskScore || 50;
@@ -272,9 +272,9 @@ export async function getCustomerForecastImpact() {
 
     // Simplificado: usar probabilidade de risco
     const probability = Math.max(0.1, 1 - riskScore / 100);
-    entry.realistic += (inv.balanceDue || inv.amount) * probability;
-    entry.optimistic += (inv.balanceDue || inv.amount) * probability * 1.2;
-    entry.conservative += (inv.balanceDue || inv.amount) * probability * 0.6;
+    entry.realistic += (inv.updatedAmount || inv.amount) * probability;
+    entry.optimistic += (inv.updatedAmount || inv.amount) * probability * 1.2;
+    entry.conservative += (inv.updatedAmount || inv.amount) * probability * 0.6;
   }
 
   // Calcular média de risco por cliente

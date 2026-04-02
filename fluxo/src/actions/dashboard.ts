@@ -32,35 +32,35 @@ export async function getDashboardMetrics() {
     dueNext7DaysRaw,
     paidThisMonthRaw
   ] = await Promise.all([
-    prisma.invoice.aggregate({
-      where: { tenantId, status: 'pending' },
-      _sum: { balanceDue: true }
+    (prisma.invoice.aggregate as any)({
+      where: { tenantId, status: { in: ['OPEN', 'PROMISE_TO_PAY'] }, dueDate: { gte: today } },
+      _sum: { updatedAmount: true }
     }),
-    prisma.invoice.aggregate({
-      where: { tenantId, status: 'overdue' },
-      _sum: { balanceDue: true }
+    (prisma.invoice.aggregate as any)({
+      where: { tenantId, status: { in: ['OPEN', 'PROMISE_TO_PAY'] }, dueDate: { lt: today } },
+      _sum: { updatedAmount: true }
     }),
-    prisma.invoice.aggregate({
+    (prisma.invoice.aggregate as any)({
       where: { 
         tenantId, 
-        status: 'pending',
+        status: { in: ['OPEN', 'PROMISE_TO_PAY'] },
         dueDate: { gte: today, lte: next7Days }
       },
-      _sum: { balanceDue: true }
+      _sum: { updatedAmount: true }
     }),
-    prisma.invoice.aggregate({
+    (prisma.invoice.aggregate as any)({
       where: {
         tenantId,
-        status: 'paid',
-        updatedAt: { gte: firstDayOfMonth } // assuming paid this month = updatedAt >= firstDayOfMonth
+        status: 'PAID',
+        updatedAt: { gte: firstDayOfMonth }
       },
-      _sum: { amount: true }
+      _sum: { paidAmount: true }
     })
   ]);
 
-  const totalPending = totalPendingRaw._sum.balanceDue || 0;
-  const totalOverdue = totalOverdueRaw._sum.balanceDue || 0;
-  const dueNext7Days = dueNext7DaysRaw._sum.balanceDue || 0;
+  const totalPending = totalPendingRaw._sum.updatedAmount || 0;
+  const totalOverdue = totalOverdueRaw._sum.updatedAmount || 0;
+  const dueNext7Days = dueNext7DaysRaw._sum.updatedAmount || 0;
   const paidThisMonth = paidThisMonthRaw._sum.amount || 0;
 
   const totalEmitted = totalPending + totalOverdue;
@@ -74,33 +74,33 @@ export async function getDashboardMetrics() {
     by: ['customerId'],
     where: {
       tenantId,
-      status: 'overdue',
+      status: { in: ['OPEN', 'PROMISE_TO_PAY'] },
       dueDate: { lt: criticalThresholdDate }
     }
   });
   const criticalCustomersCount = criticalCustomers.length;
 
   // 2. Próximos Vencimentos (Títulos a vencer, order by dueDate, highlight highs)
-  const upcomingInvoicesRaw = await prisma.invoice.findMany({
+  const upcomingInvoicesRaw = await (prisma.invoice.findMany as any)({
     where: {
       tenantId,
-      status: 'pending',
+      status: { in: ['OPEN', 'PROMISE_TO_PAY'] },
       dueDate: { gte: today, lte: next7Days }
     },
     orderBy: [
       { dueDate: 'asc' },
-      { balanceDue: 'desc' }
+      { amount: 'desc' }
     ],
     take: 10,
     include: { customer: { select: { name: true } } }
   });
 
-  const upcomingDues = upcomingInvoicesRaw.map(inv => ({
+  const upcomingDues = upcomingInvoicesRaw.map((inv: any) => ({
     id: inv.id,
-    customerName: inv.customer.name,
-    amount: inv.balanceDue,
+    customerName: inv.customer?.name || 'Cliente',
+    amount: inv.updatedAmount || inv.amount,
     dueDate: inv.dueDate,
-    isHighValue: inv.balanceDue > 5000 // Custom logic to highlight
+    isHighValue: (inv.updatedAmount || inv.amount) > 5000
   }));
 
   // 3. Tarefas do dia
@@ -166,7 +166,7 @@ export async function getDashboardMetrics() {
     where: {
       tenantId,
       invoices: {
-        some: { status: 'overdue' }
+        some: { status: { in: ['OPEN', 'PROMISE_TO_PAY'] }, dueDate: { lt: today } }
       }
     },
     select: { id: true, name: true }
@@ -200,7 +200,7 @@ export async function getDashboardMetrics() {
   const chartInvoices = await prisma.invoice.findMany({
     where: {
       tenantId,
-      status: { in: ['paid', 'pending', 'overdue'] },
+      status: { in: ['PAID', 'OPEN', 'PROMISE_TO_PAY'] },
       dueDate: { gte: thirtyDaysAgo, lte: thirtyDaysAhead }
     },
     orderBy: { dueDate: 'asc' },
@@ -210,7 +210,7 @@ export async function getDashboardMetrics() {
   const flowMap = new Map();
   chartInvoices.forEach(inv => {
     // Para recebidos, tentamos usar o updatedAt se pago, senao dueDate
-    const dateToUse = (inv.status === 'paid' && inv.updatedAt) ? inv.updatedAt : inv.dueDate;
+    const dateToUse = (inv.status === 'PAID' && inv.updatedAt) ? inv.updatedAt : inv.dueDate;
     const dateStr = dateToUse.toISOString().split('T')[0];
     
     if (!flowMap.has(dateStr)) {
@@ -218,7 +218,7 @@ export async function getDashboardMetrics() {
     }
     const dayData = flowMap.get(dateStr);
     
-    if (inv.status === 'paid') {
+    if (inv.status === 'PAID') {
       dayData.recebido += inv.amount;
     } else {
       dayData.a_receber += inv.amount;

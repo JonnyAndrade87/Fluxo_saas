@@ -39,7 +39,7 @@ export async function getCustomersList(search?: string) {
         take: 1
       },
       invoices: {
-        select: { status: true, amount: true, balanceDue: true, dueDate: true }
+        select: { status: true, amount: true, updatedAmount: true, dueDate: true }
       },
       assignee: {
         select: { fullName: true }
@@ -68,7 +68,7 @@ export async function getCustomersList(search?: string) {
           totalLtv += inv.amount;
         }
         if (inv.status === 'overdue') {
-          totalRisk += inv.balanceDue;
+          totalRisk += inv.updatedAmount;
           overdueCount++;
         }
       });

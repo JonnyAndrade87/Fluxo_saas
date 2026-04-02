@@ -26,7 +26,17 @@ export async function getFilteredInvoices(params: GetInvoicesParams = {}) {
   const { search, status, sortBy, dateRange } = params;
   const whereClause: Record<string, any> = { tenantId };
 
-  if (status && status !== 'all') whereClause.status = status;
+  if (status && status !== 'all') {
+    if (status === 'overdue') {
+      whereClause.status = 'OPEN';
+      whereClause.dueDate = { lt: new Date() };
+    } else if (status === 'pending') {
+      whereClause.status = 'OPEN';
+    } else {
+      // Maps exactly strictly: PAID, CANCELED, PROMISE_TO_PAY, etc
+      whereClause.status = status;
+    }
+  }
 
   if (search && search.trim() !== '') {
     whereClause.OR = [
@@ -53,8 +63,8 @@ export async function getFilteredInvoices(params: GetInvoicesParams = {}) {
   let orderByClause: any = { dueDate: 'asc' };
   if (sortBy) {
     switch (sortBy) {
-      case 'value_desc': orderByClause = { balanceDue: 'desc' }; break;
-      case 'value_asc':  orderByClause = { balanceDue: 'asc' };  break;
+      case 'value_desc': orderByClause = { amount: 'desc' }; break;
+      case 'value_asc':  orderByClause = { amount: 'asc' };  break;
       case 'date_desc':  orderByClause = { dueDate: 'desc' };    break;
       case 'date_asc':   orderByClause = { dueDate: 'asc' };     break;
       case 'risk_desc':  orderByClause = [{ status: 'asc' }, { dueDate: 'asc' }]; break;
@@ -78,27 +88,28 @@ export async function getInvoices() {
 // ── markInvoiceAsPaid ──────────────────────────────────────────────────────────
 // FIX: added tenant isolation + Communication event so payment appears in /historico
 
-export async function markInvoiceAsPaid(id: string) {
+export async function markInvoiceAsPaid(id: string, amountPaid?: number) {
   const session = await auth();
   const tenantId = (session?.user as SessionUser)?.tenantId;
   if (!tenantId) throw new Error("Unauthorized");
 
-  // Fetch the invoice first to build the communication message
   const inv = await prisma.invoice.findFirst({
-    where: { id, tenantId },          // tenant-isolated
+    where: { id, tenantId },
     include: { customer: true }
   });
   if (!inv) throw new Error("Invoice not found or access denied");
 
-  // Mark as paid (with explicit tenantId check)
-  if (inv.tenantId !== tenantId) throw new Error("Invoice not found or access denied");
-  
+  const finalPaidAmount = amountPaid || inv.amount;
+
   const updated = await prisma.invoice.update({
     where: { id },
-    data: { status: 'paid', balanceDue: 0 }
+    data: { 
+      status: 'PAID', 
+      paidAt: new Date(), 
+      paidAmount: finalPaidAmount 
+    } as any
   });
 
-  // Create a Communication event so the payment shows in /historico timeline
   const fmtBRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
   await prisma.communication.create({
     data: {
@@ -107,7 +118,7 @@ export async function markInvoiceAsPaid(id: string) {
       invoiceId: id,
       channel: 'system',
       messageType: 'payment_confirmed',
-      content: `✅ Pagamento confirmado manualmente.\nFatura #${inv.invoiceNumber} • ${fmtBRL.format(inv.amount)}\nBaixa realizada em ${new Date().toLocaleDateString('pt-BR')}.`,
+      content: `✅ Pagamento confirmado manualmente.\nFatura #${inv.invoiceNumber} • Valor Recebido: ${fmtBRL.format(finalPaidAmount)}\nBaixa realizada em ${new Date().toLocaleDateString('pt-BR')}.`,
       status: 'delivered',
     }
   });
@@ -120,23 +131,57 @@ export async function markInvoiceAsPaid(id: string) {
   return { success: true, invoice: updated };
 }
 
-// ── pauseInvoice ───────────────────────────────────────────────────────────────
+// ── cancelInvoice ───────────────────────────────────────────────────────────────
 
-export async function pauseInvoice(id: string) {
+export async function cancelInvoice(id: string, reason: string) {
   const session = await auth();
   const tenantId = (session?.user as SessionUser)?.tenantId;
   if (!tenantId) throw new Error("Unauthorized");
 
   const inv = await prisma.invoice.findFirst({ where: { id, tenantId } });
   if (!inv) throw new Error("Invoice not found or access denied");
-  if (inv.tenantId !== tenantId) throw new Error("Invoice not found or access denied");
+  
+  if (inv.status === 'PAID') throw new Error("Cannot cancel a paid invoice");
 
   const updated = await prisma.invoice.update({
     where: { id },
-    data: { status: 'paused' }
+    data: { 
+      status: 'CANCELED',
+      canceledAt: new Date(),
+      cancelReason: reason
+    } as any
   });
 
   revalidatePath('/cobrancas');
+  revalidatePath('/historico');
+  return { success: true, invoice: updated };
+}
+
+// ── reopenInvoice ───────────────────────────────────────────────────────────────
+
+export async function reopenInvoice(id: string) {
+  const session = await auth();
+  const tenantId = (session?.user as SessionUser)?.tenantId;
+  if (!tenantId) throw new Error("Unauthorized");
+
+  const inv = await prisma.invoice.findFirst({ where: { id, tenantId } });
+  if (!inv) throw new Error("Invoice not found or access denied");
+
+  const updated = await prisma.invoice.update({
+    where: { id },
+    data: { 
+      status: 'OPEN',
+      paidAt: null,
+      paidAmount: null,
+      canceledAt: null,
+      cancelReason: null,
+      promiseDate: null,
+      promiseNote: null
+    } as any
+  });
+
+  revalidatePath('/cobrancas');
+  revalidatePath('/historico');
   return { success: true, invoice: updated };
 }
 
@@ -159,14 +204,26 @@ export async function registerPromiseToPay(id: string, dateString: string) {
   const inv = await prisma.invoice.findFirst({ where: { id, tenantId } });
   if (!inv) throw new Error("Invoice not found or access denied");
 
+  const promDate = new Date(dateString);
+
+  // Update Invoice directly
+  await prisma.invoice.update({
+    where: { id },
+    data: {
+      status: 'PROMISE_TO_PAY',
+      promiseDate: promDate,
+      promiseNote: 'Promessa registrada via painel de cobranças.'
+    } as any
+  });
+
   // Create the PaymentPromise record (shows in /historico)
   await prisma.paymentPromise.create({
     data: {
       tenantId,
       invoiceId: id,
       userId: userId!,
-      amount: inv.balanceDue,
-      promisedDate: new Date(dateString),
+      amount: inv.amount,
+      promisedDate: promDate,
       notes: 'Promessa registrada via painel de cobranças.',
       status: 'pending',
     }
@@ -226,10 +283,9 @@ export async function createInvoice(data: {
       customerId: data.customerId,
       invoiceNumber,
       amount: data.amount,
-      balanceDue: data.amount,
       dueDate: new Date(data.dueDate),
-      status: 'pending',
-    }
+      status: 'OPEN',
+    } as any
   });
 
   revalidatePath('/cobrancas');
@@ -237,4 +293,34 @@ export async function createInvoice(data: {
   revalidatePath('/historico');
   revalidatePath('/');
   return { success: true, invoice: newInvoice };
+}
+
+export async function updateInvoice(id: string, data: {
+  amount: number;
+  dueDate: string;
+  description?: string;
+}) {
+  const session = await auth();
+  const tenantId = (session?.user as SessionUser)?.tenantId;
+  if (!tenantId) throw new Error("Unauthorized");
+
+  const inv = await prisma.invoice.findFirst({ where: { id, tenantId } });
+  if (!inv) throw new Error("Invoice not found or access denied");
+
+  // Allow only if not paid or canceled
+  if (inv.status === 'PAID' || inv.status === 'CANCELED') throw new Error("Cannot edit a paid or canceled invoice");
+
+  const updatedInvoice = await prisma.invoice.update({
+    where: { id },
+    data: {
+      amount: data.amount,
+      dueDate: new Date(data.dueDate),
+    } as any
+  });
+
+  revalidatePath('/cobrancas');
+  revalidatePath('/clientes');
+  revalidatePath('/historico');
+  revalidatePath('/');
+  return { success: true, invoice: updatedInvoice };
 }

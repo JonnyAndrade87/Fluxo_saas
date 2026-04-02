@@ -17,10 +17,12 @@ export async function getSessionSafe() {
       redirect('/login');
     }
 
-    // Try to get session from auth()
     const session = await getAuth();
     return session;
-  } catch (error) {
+  } catch (error: any) {
+    // If it's a redirect error from next/navigation, let it bubble up
+    if (error?.digest === 'NEXT_REDIRECT' || error?.digest?.startsWith?.('NEXT_REDIRECT')) throw error;
+    
     // Auth failed - redirect to login
     console.error('Auth error:', error);
     redirect('/login');

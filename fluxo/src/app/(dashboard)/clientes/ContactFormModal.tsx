@@ -13,6 +13,17 @@ interface Props {
   onSuccess: () => void;
 }
 
+const maskPhone = (val: string) => {
+  let v = val.replace(/\D/g, '');
+  if (v.length <= 10) {
+    // Landline: (11) 4000-1234
+    return v.replace(/(\d{2})(\d)/, '($1) $2').replace(/(\d{4})(\d)/, '$1-$2');
+  } else {
+    // Mobile: (11) 94000-1234
+    return v.replace(/(\d{2})(\d)/, '($1) $2').replace(/(\d{5})(\d{1,4})$/, '$1-$2').substring(0, 15);
+  }
+};
+
 export default function ContactFormModal({ customerId, initialData, onClose, onSuccess }: Props) {
   const [isSaving, setIsSaving] = useState(false);
   
@@ -26,7 +37,12 @@ export default function ContactFormModal({ customerId, initialData, onClose, onS
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-     const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+     let value: any = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+     
+     if (e.target.name === 'phone') {
+       value = maskPhone(value);
+     }
+
      setFormData({ ...formData, [e.target.name]: value });
   };
 

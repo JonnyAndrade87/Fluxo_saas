@@ -48,7 +48,7 @@ export function overdueTitlesCSV(
     customerName: string;
     dueDate: string;
     daysOverdue: number;
-    balanceDue: number;
+    updatedAmount: number;
     riskLevel: string;
   }>
 ): string {
@@ -58,7 +58,7 @@ export function overdueTitlesCSV(
     escapeCSV(item.customerName),
     escapeCSV(item.dueDate),
     escapeCSV(item.daysOverdue),
-    escapeCSV(formatCurrencyCSV(item.balanceDue)),
+    escapeCSV(formatCurrencyCSV(item.updatedAmount)),
     escapeCSV(item.riskLevel),
   ]);
 

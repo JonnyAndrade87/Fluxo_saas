@@ -12,6 +12,7 @@ import { getCustomersList, getCustomerDetails } from "@/actions/customers";
 import CustomerFormModal from "./CustomerFormModal";
 import CustomerTimeline from "./CustomerTimeline";
 import ContactFormModal from "./ContactFormModal";
+import { getInvoiceVisualState, calculateInvoiceFinancials } from "@/lib/invoice-utils";
 
 export default function ClientesClient({ initialData }: { initialData: any[] }) {
   const [customers, setCustomers] = useState(initialData);
@@ -255,7 +256,7 @@ export default function ClientesClient({ initialData }: { initialData: any[] }) 
                            <div className="bg-white border border-border/60 rounded-xl p-3 shadow-sm text-center">
                               <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider mb-1">A Receber</p>
                               <p className="text-sm font-bold text-obsidian">
-                                 {formatCurrency(drawerData.invoices.filter((i:any) => i.status === 'pending').reduce((acc: number, item: any) => acc + item.balanceDue, 0))}
+                                 {formatCurrency(drawerData.invoices.filter((i:any) => i.status === 'OPEN' || i.status === 'PROMISE_TO_PAY').reduce((acc: number, item: any) => acc + calculateInvoiceFinancials(item).updatedAmount, 0))}
                               </p>
                            </div>
                            <div className="bg-rose-50 border border-rose-100 rounded-xl p-3 shadow-sm text-center">
@@ -263,7 +264,10 @@ export default function ClientesClient({ initialData }: { initialData: any[] }) 
                                 <ArrowDownRight className="w-3 h-3" /> Em Atraso
                               </p>
                               <p className="text-sm font-bold text-rose-700">
-                                 {formatCurrency(drawerData.invoices.filter((i:any) => i.status === 'overdue').reduce((acc: number, item: any) => acc + item.balanceDue, 0))}
+                                 {formatCurrency(drawerData.invoices.filter((i:any) => {
+                                    const vState = getInvoiceVisualState(i);
+                                    return vState === 'Vencida' || vState === 'Vence hoje' || vState.includes('Promessa vencida');
+                                 }).reduce((acc: number, item: any) => acc + calculateInvoiceFinancials(item).updatedAmount, 0))}
                               </p>
                            </div>
                            <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3 shadow-sm text-center">
@@ -271,7 +275,7 @@ export default function ClientesClient({ initialData }: { initialData: any[] }) 
                                 <ArrowUpRight className="w-3 h-3" /> Recebido (LTV)
                               </p>
                               <p className="text-sm font-bold text-emerald-700">
-                                 {formatCurrency(drawerData.invoices.filter((i:any) => i.status === 'paid').reduce((acc: number, item: any) => acc + item.amount, 0))}
+                                 {formatCurrency(drawerData.invoices.filter((i:any) => i.status === 'PAID').reduce((acc: number, item: any) => acc + (item.paidAmount || item.amount), 0))}
                               </p>
                            </div>
                         </div>

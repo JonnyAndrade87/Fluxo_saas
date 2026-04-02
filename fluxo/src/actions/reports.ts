@@ -77,20 +77,19 @@ export async function getReportMetrics(period: PeriodFilter = '6m'): Promise<Rep
     select: {
       id: true,
       amount: true,
-      balanceDue: true,
       status: true,
       dueDate: true,
       issueDate: true,
       customerId: true,
       customer: { select: { id: true, name: true, documentNumber: true } }
-    },
+    } as any,
     orderBy: { issueDate: 'asc' }
   });
 
   // Also get ALL overdue invoices regardless of period (to show real exposure)
-  const allOverdue = await prisma.invoice.findMany({
-    where: { tenantId, status: 'overdue' },
-    select: { balanceDue: true, customerId: true }
+  const allOverdue = await (prisma.invoice.findMany as any)({
+    where: { tenantId, status: { in: ['OPEN', 'PROMISE_TO_PAY'] }, dueDate: { lt: new Date() } },
+    select: { updatedAmount: true, amount: true, customerId: true }
   });
 
   // ── KPI Aggregation ──────────────────────────────────────────────────────
@@ -102,17 +101,21 @@ export async function getReportMetrics(period: PeriodFilter = '6m'): Promise<Rep
   let overdueCount = 0;
   let canceledCount = 0;
 
-  invoices.forEach(inv => {
+  const invoiceList: any[] = invoices;
+  const overdueList: any[] = allOverdue;
+
+  invoiceList.forEach((inv: any) => {
     totalBilled += inv.amount;
-    if (inv.status === 'paid') totalPaid += inv.amount;
-    if (inv.status === 'pending') totalPending += inv.balanceDue;
-    if (inv.status === 'pending') pendingCount += inv.amount;
-    if (inv.status === 'paid') paidCount += inv.amount;
-    if (inv.status === 'overdue') overdueCount += inv.balanceDue;
-    if (inv.status === 'canceled') canceledCount += inv.amount;
+    if (inv.status === 'PAID') totalPaid += inv.paidAmount || inv.amount;
+    if (inv.status === 'OPEN' || inv.status === 'PROMISE_TO_PAY') totalPending += inv.updatedAmount || inv.amount;
+    if (inv.status === 'OPEN' || inv.status === 'PROMISE_TO_PAY') pendingCount += inv.amount;
+    if (inv.status === 'PAID') paidCount += inv.amount;
+    const isOverdue = (inv.status === 'OPEN' || inv.status === 'PROMISE_TO_PAY') && new Date(inv.dueDate) < new Date();
+    if (isOverdue) overdueCount += inv.updatedAmount || inv.amount;
+    if (inv.status === 'CANCELED') canceledCount += inv.amount;
   });
 
-  const totalOverdue = allOverdue.reduce((s, i) => s + i.balanceDue, 0);
+  const totalOverdue = overdueList.reduce((s: number, i: any) => s + (i.updatedAmount || i.amount), 0);
   const defaultRate = totalBilled > 0 ? (overdueCount / totalBilled) * 100 : 0;
   const recoveryRate = totalBilled > 0 ? (totalPaid / totalBilled) * 100 : 0;
   const avgTicket = invoices.length > 0 ? totalBilled / invoices.length : 0;
@@ -128,14 +131,15 @@ export async function getReportMetrics(period: PeriodFilter = '6m'): Promise<Rep
     monthlyMap[key] = { faturado: 0, recebido: 0, atrasado: 0 };
   }
 
-  invoices.forEach(inv => {
+  invoiceList.forEach((inv: any) => {
     const d = inv.issueDate ?? inv.dueDate;
     const key = new Date(d).toLocaleString('pt-BR', { month: 'short', year: '2-digit' })
       .replace('. de ', '/').replace('.', '').toUpperCase();
     if (monthlyMap[key]) {
       monthlyMap[key].faturado += inv.amount;
-      if (inv.status === 'paid') monthlyMap[key].recebido += inv.amount;
-      if (inv.status === 'overdue') monthlyMap[key].atrasado += inv.balanceDue;
+      if (inv.status === 'PAID') monthlyMap[key].recebido += inv.paidAmount || inv.amount;
+      const isOverdue = (inv.status === 'OPEN' || inv.status === 'PROMISE_TO_PAY') && new Date(inv.dueDate) < new Date();
+      if (isOverdue) monthlyMap[key].atrasado += inv.updatedAmount || inv.amount;
     }
   });
 
@@ -160,7 +164,7 @@ export async function getReportMetrics(period: PeriodFilter = '6m'): Promise<Rep
     totalBilled: number; totalPaid: number; totalOverdue: number; invoiceCount: number;
   }> = {};
 
-  invoices.forEach(inv => {
+  invoiceList.forEach((inv: any) => {
     const cid = inv.customerId;
     if (!clientMap[cid]) {
       clientMap[cid] = {
@@ -172,12 +176,13 @@ export async function getReportMetrics(period: PeriodFilter = '6m'): Promise<Rep
     }
     clientMap[cid].totalBilled += inv.amount;
     clientMap[cid].invoiceCount += 1;
-    if (inv.status === 'paid') clientMap[cid].totalPaid += inv.amount;
-    if (inv.status === 'overdue') clientMap[cid].totalOverdue += inv.balanceDue;
+    if (inv.status === 'PAID') clientMap[cid].totalPaid += inv.paidAmount || inv.amount;
+    const isOverdue = (inv.status === 'OPEN' || inv.status === 'PROMISE_TO_PAY') && new Date(inv.dueDate) < new Date();
+    if (isOverdue) clientMap[cid].totalOverdue += inv.updatedAmount || inv.amount;
   });
 
   // Also include overdue from outside period
-  allOverdue.forEach(inv => {
+  allOverdue.forEach((inv: any) => {
     if (clientMap[inv.customerId]) {
       // already counted in period, skip
     }
@@ -200,8 +205,8 @@ export async function getReportMetrics(period: PeriodFilter = '6m'): Promise<Rep
   );
 
   // ── Customer stats ───────────────────────────────────────────────────────
-  const uniqueCustomers = new Set(invoices.map(i => i.customerId));
-  const overdueCustomers = new Set(allOverdue.map(i => i.customerId));
+  const uniqueCustomers = new Set(invoiceList.map((i: any) => i.customerId));
+  const overdueCustomers = new Set(allOverdue.map((i: any) => i.customerId));
 
   return {
     totalBilled: Math.round(totalBilled),

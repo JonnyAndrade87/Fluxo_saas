@@ -12,6 +12,7 @@ import {
   CheckCheck, Send, Hourglass, WifiOff, CheckSquare, Square, Plus
 } from 'lucide-react';
 import { createTask, completeTask } from '@/actions/tasks';
+import { getInvoiceVisualState, calculateInvoiceFinancials } from '@/lib/invoice-utils';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -360,7 +361,7 @@ function CustomerListItem({ customer, isSelected, onClick }: {
           )}
           {hasOverdue && (
             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-rose-50 text-rose-600 text-[10px] font-bold border border-rose-100">
-              <AlertTriangle className="w-2.5 h-2.5" /> {customer.overdueInvoices} atrasada{customer.overdueInvoices > 1 ? 's' : ''}
+              <AlertTriangle className="w-2.5 h-2.5" /> {customer.overdueInvoices} em atraso
             </span>
           )}
         </div>
@@ -571,19 +572,19 @@ export default function HistoricoClient() {
               <div className="flex gap-3 shrink-0">
                 <div className="text-center">
                   <p className="text-[18px] font-extrabold text-rose-600">
-                    {detail.invoices.filter(i => i.status === 'overdue').length}
+                    {detail.invoices.filter(i => getInvoiceVisualState(i).includes('Vencida') || getInvoiceVisualState(i).includes('Vence hoje')).length}
                   </p>
                   <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Atrasadas</p>
                 </div>
                 <div className="text-center">
                   <p className="text-[18px] font-extrabold text-amber-600">
-                    {detail.invoices.filter(i => i.status === 'pending').length}
+                    {detail.invoices.filter(i => (i.status === 'OPEN' || i.status === 'PROMISE_TO_PAY') && getInvoiceVisualState(i).includes('Em dia')).length}
                   </p>
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Pendentes</p>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide">A Vencer</p>
                 </div>
                 <div className="text-center">
                   <p className="text-[18px] font-extrabold text-emerald-600">
-                    {detail.invoices.filter(i => i.status === 'paid').length}
+                    {detail.invoices.filter(i => i.status === 'PAID').length}
                   </p>
                   <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Pagas</p>
                 </div>
@@ -674,13 +675,19 @@ export default function HistoricoClient() {
                   )}
                   <div className="space-y-2.5 max-w-2xl">
                     {detail.invoices.map(inv => {
-                      const st = INVOICE_STATUS[inv.status] ?? { label: inv.status, cls: 'bg-slate-100 text-slate-500' };
+                      const vStatus = getInvoiceVisualState(inv);
+                      const fins = calculateInvoiceFinancials(inv);
                       return (
                         <div key={inv.id} className="flex items-center justify-between p-4 rounded-xl bg-white border border-border/60 shadow-sm hover:border-indigo-200 transition-colors">
                           <div className="space-y-0.5">
                             <div className="flex items-center gap-2">
                               <p className="font-bold text-obsidian text-[14px]">#{inv.invoiceNumber}</p>
-                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${st.cls}`}>{st.label}</span>
+                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                inv.status === 'PAID' ? 'bg-emerald-50 text-emerald-700' :
+                                vStatus.includes('Vencida') ? 'bg-rose-50 text-rose-700' :
+                                inv.status === 'CANCELED' ? 'bg-slate-100 text-slate-500' :
+                                'bg-amber-50 text-amber-700'
+                              }`}>{vStatus}</span>
                             </div>
                             <p className="text-xs text-muted-foreground flex items-center gap-1">
                               <Calendar className="w-3 h-3" /> Vence em {fmtDate(inv.dueDate)}
@@ -688,9 +695,9 @@ export default function HistoricoClient() {
                           </div>
                           <div className="flex items-center gap-4">
                             <div className="text-right">
-                              <p className="text-[16px] font-extrabold text-obsidian">{fmt.format(inv.amount)}</p>
-                              {inv.balanceDue < inv.amount && (
-                                <p className="text-[11px] text-emerald-600 font-semibold">Saldo: {fmt.format(inv.balanceDue)}</p>
+                              <p className="text-[16px] font-extrabold text-obsidian">{fmt.format(inv.status === 'PAID' ? ((inv as any).paidAmount || fins.updatedAmount) : fins.updatedAmount)}</p>
+                              {(inv.status !== 'PAID' && inv.status !== 'CANCELED' && (fins.fineAmount > 0 || fins.interestAmount > 0)) && (
+                                <p className="text-[11px] text-rose-600 font-semibold">+ Acréscimos</p>
                               )}
                             </div>
                             <button

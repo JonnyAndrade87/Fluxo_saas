@@ -12,6 +12,35 @@ interface Props {
   onSuccess: () => void;
 }
 
+// Helpers for masking
+const maskDocument = (val: string) => {
+  let v = val.replace(/\D/g, '');
+  if (v.length <= 11) {
+    // CPF Mask
+    return v.replace(/(\d{3})(\d)/, '$1.$2')
+            .replace(/(\d{3})(\d)/, '$1.$2')
+            .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+  } else {
+    // CNPJ Mask
+    return v.replace(/^(\d{2})(\d)/, '$1.$2')
+            .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+            .replace(/\.(\d{3})(\d)/, '.$1/$2')
+            .replace(/(\d{4})(\d)/, '$1-$2')
+            .replace(/(-\d{2})\d+?$/, '$1');
+  }
+};
+
+const maskPhone = (val: string) => {
+  let v = val.replace(/\D/g, '');
+  if (v.length <= 10) {
+    // Landline: (11) 4000-1234
+    return v.replace(/(\d{2})(\d)/, '($1) $2').replace(/(\d{4})(\d)/, '$1-$2');
+  } else {
+    // Mobile: (11) 94000-1234
+    return v.replace(/(\d{2})(\d)/, '($1) $2').replace(/(\d{5})(\d{1,4})$/, '$1-$2').substring(0, 15);
+  }
+};
+
 export default function CustomerFormModal({ initialData, onClose, onSuccess }: Props) {
   const [isSaving, setIsSaving] = useState(false);
   
@@ -28,7 +57,14 @@ export default function CustomerFormModal({ initialData, onClose, onSuccess }: P
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-     setFormData({ ...formData, [e.target.name]: e.target.value });
+     let value = e.target.value;
+     if (e.target.name === 'documentNumber') {
+       value = maskDocument(value);
+     }
+     if (e.target.name === 'phone') {
+       value = maskPhone(value);
+     }
+     setFormData({ ...formData, [e.target.name]: value });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

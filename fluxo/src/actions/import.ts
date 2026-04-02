@@ -86,11 +86,10 @@ export async function importReceivables(data: ParsedReceivable[]) {
               customerId: customer.id,
               invoiceNumber: invNumber,
               amount: row.amount,
-              balanceDue: row.amount, // Default to full amount
               dueDate: new Date(row.dueDate),
-              status: row.status || "pending",
+              status: row.status === 'paid' ? 'PAID' : row.status === 'canceled' ? 'CANCELED' : 'OPEN',
               externalReferenceId: row.description || "Importado via CSV"
-            }
+            } as any
           });
           importCount++;
         }

@@ -1,11 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import NextAuth from "next-auth";
+import { authConfig } from "./auth.config";
 
-// Minimal middleware - does nothing, just passes through
-// Auth is handled client-side and in individual pages/API routes
-export function middleware(request: NextRequest) {
-  return NextResponse.next();
-}
+export default NextAuth(authConfig).auth;
 
 export const config = {
-  matcher: [],
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
 };

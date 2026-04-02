@@ -62,7 +62,8 @@ export interface CollectionDetail {
     id: string;
     invoiceNumber: string;
     amount: number;
-    balanceDue: number;
+    updatedAmount: number;
+    paidAmount: number | null;
     dueDate: Date;
     status: string;
   }>;
@@ -95,7 +96,7 @@ export async function getCollectionCustomers(filters?: {
     where,
     include: {
       invoices: {
-        select: { id: true, status: true, balanceDue: true, amount: true, updatedAt: true }
+        select: { id: true, status: true, amount: true, updatedAt: true } as any
       },
       communications: {
         orderBy: { sentAt: 'desc' },
@@ -112,11 +113,12 @@ export async function getCollectionCustomers(filters?: {
   });
 
   return customers.map(c => {
-    const open = c.invoices.filter(i => i.status === 'pending' || i.status === 'overdue');
-    const overdue = c.invoices.filter(i => i.status === 'overdue');
-    const totalOverdue = overdue.reduce((s, i) => s + i.balanceDue, 0);
-    const lastComm = c.communications[0]?.sentAt ?? null;
-    const lastNote = c.customerNotes[0]?.createdAt ?? null;
+    const invoiceList: any[] = (c as any).invoices || [];
+    const open = invoiceList.filter((i: any) => i.status === 'OPEN' || i.status === 'PROMISE_TO_PAY');
+    const overdue = invoiceList.filter((i: any) => (i.status === 'OPEN' || i.status === 'PROMISE_TO_PAY') && new Date(i.dueDate) < new Date());
+    const totalOverdue = overdue.reduce((s: number, i: any) => s + (i.updatedAmount || i.amount), 0);
+    const lastComm = (c as any).communications?.[0]?.sentAt ?? null;
+    const lastNote = (c as any).customerNotes?.[0]?.createdAt ?? null;
     const lastEventAt = lastComm && lastNote
       ? lastComm > lastNote ? lastComm : lastNote
       : lastComm ?? lastNote;
@@ -146,7 +148,7 @@ export async function getCollectionDetail(customerId: string): Promise<Collectio
     include: {
       assignee: { select: { fullName: true } },
       invoices: {
-        select: { id: true, invoiceNumber: true, amount: true, balanceDue: true, dueDate: true, status: true },
+        select: { id: true, invoiceNumber: true, amount: true, dueDate: true, status: true } as any,
         orderBy: { dueDate: 'desc' }
       },
       communications: {
@@ -163,7 +165,7 @@ export async function getCollectionDetail(customerId: string): Promise<Collectio
   if (!customer) return null;
 
   // Get payment promises linked to customer invoices
-  const invoiceIds = customer.invoices.map(i => i.id);
+  const invoiceIds = ((customer as any).invoices as any[]).map((i: any) => i.id);
   const promises = await prisma.paymentPromise.findMany({
     where: { tenantId, invoiceId: { in: invoiceIds } },
     include: {
@@ -257,7 +259,7 @@ export async function getCollectionDetail(customerId: string): Promise<Collectio
       tags: customer.tags,
       assignee: customer.assignee,
     },
-    invoices: customer.invoices,
+    invoices: (customer as any).invoices,
     timeline,
   };
 }

@@ -150,11 +150,29 @@ model Invoice {
   tenantId            String   @map("tenant_id")
   customerId          String   @map("customer_id")
   invoiceNumber       String   @map("invoice_number")
-  amount              Float    // In real financial systems using Postgres, use Decimal datatype
-  balanceDue          Float    @map("balance_due")
-  dueDate             DateTime @map("due_date")
+  amount              Float    // Base amount (never updated with fines/interest)
+  balanceDue          Float    @map("balance_due") // Remaining amount to be paid
+  dueDate             DateTime @map("due_date") // Original due date
   issueDate           DateTime @default(now()) @map("issue_date")
-  status              String   @default("pending") // draft, pending, paid, overdue, canceled, in_negotiation
+  status              String   @default("OPEN") // OPEN, PAID, CANCELED, PROMISE_TO_PAY
+  
+  // Payment Details
+  paidAt              DateTime? @map("paid_at")
+  paidAmount          Float?    @map("paid_amount")
+  
+  // Cancellation Details
+  canceledAt          DateTime? @map("canceled_at")
+  cancelReason        String?   @map("cancel_reason")
+  
+  // Promise to Pay Details
+  promiseDate         DateTime? @map("promise_date")
+  promiseNote         String?   @map("promise_note")
+
+  // Computed/Expected Values (Can be persisted or recalculated)
+  fineAmount          Float    @default(0) @map("fine_amount")
+  interestAmount      Float    @default(0) @map("interest_amount")
+  updatedAmount       Float    @default(0) @map("updated_amount") // amount + fineAmount + interestAmount
+
   externalReferenceId String?  @map("external_reference_id")
   createdAt           DateTime @default(now()) @map("created_at")
   updatedAt           DateTime @updatedAt @map("updated_at")

@@ -31,9 +31,9 @@ export interface InvoiceForForecast {
   customerName: string;
   invoiceNumber: string;
   amount: number;
-  balanceDue: number;
+  updatedAmount: number;
   dueDate: Date;
-  status: 'pending' | 'paid' | 'overdue' | 'canceled' | 'in_negotiation';
+  status: string;
   riskScore?: number; // 0-100
   riskLevel?: 'Baixo' | 'Médio' | 'Alto' | 'Crítico';
   promiseDate?: Date;
@@ -249,12 +249,12 @@ export function calculateCashFlowForecast(
 
   for (const invoice of invoices) {
     // Ignorar títulos cancelados e já pagos
-    if (invoice.status === 'canceled' || invoice.status === 'paid') {
+    if (invoice.status === 'CANCELED' || invoice.status === 'PAID') {
       continue;
     }
 
     // Ignorar títulos muito antigos (> 90 dias vencidos)
-    if (invoice.status === 'overdue' && invoice.daysOverdue && invoice.daysOverdue > 90) {
+    if ((invoice.status === 'OPEN' || invoice.status === 'PROMISE_TO_PAY') && new Date(invoice.dueDate) < new Date() && invoice.daysOverdue && invoice.daysOverdue > 90) {
       continue; // Análise é futura, não passada
     }
 
@@ -298,7 +298,7 @@ export function calculateCashFlowForecast(
     // Calcular probabilidades
     let baseProbability = 0.8; // Default
 
-    if (invoice.status === 'overdue') {
+    if ((invoice.status === 'OPEN' || invoice.status === 'PROMISE_TO_PAY') && new Date(invoice.dueDate) < new Date()) {
       // Para vencidos: usar taxa de recuperação do cenário
       baseProbability = scenarios.realista.recoveryRate;
     } else {
@@ -313,11 +313,11 @@ export function calculateCashFlowForecast(
     );
 
     // Calcular valores por cenário
-    const nominalValue = invoice.balanceDue || invoice.amount;
+    const nominalValue = invoice.updatedAmount || invoice.amount;
     const optimisticValue =
       nominalValue *
       scenarios.otimista[
-        invoice.status === 'overdue' ? 'recoveryRate' : 'onTimeRate'
+        (invoice.status === 'OPEN' || invoice.status === 'PROMISE_TO_PAY') && new Date(invoice.dueDate) < new Date() ? 'recoveryRate' : 'onTimeRate'
       ] *
       (invoice.riskLevel === 'Crítico' ? 0.2 : 1);
 
@@ -326,7 +326,7 @@ export function calculateCashFlowForecast(
     const conservativeValue =
       nominalValue *
       scenarios.conservador[
-        invoice.status === 'overdue' ? 'recoveryRate' : 'onTimeRate'
+        (invoice.status === 'OPEN' || invoice.status === 'PROMISE_TO_PAY') && new Date(invoice.dueDate) < new Date() ? 'recoveryRate' : 'onTimeRate'
       ] *
       (invoice.riskLevel === 'Crítico'
         ? 0.1
