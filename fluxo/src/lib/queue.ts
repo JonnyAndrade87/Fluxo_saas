@@ -14,7 +14,7 @@
 import { createHash } from 'crypto';
 import prisma from '@/lib/db';
 import { sendEmail, buildBillingEmailHtml } from './messaging/email';
-import { sendWhatsApp } from './messaging/whatsapp';
+import { sendWhatsApp, sendWhatsAppTemplate } from './messaging/whatsapp';
 import { checkRateLimit } from './rateLimiter';
 
 export interface ProcessQueueResult {
@@ -76,6 +76,12 @@ export async function enqueueAndSend(params: {
   invoiceNumber?: string;
   amount?: string;
   dueDate?: string;
+  /** WhatsApp Business API: template name to use (must be Meta-approved). If omitted, free-text is used. */
+  templateName?: string;
+  /** WhatsApp template language code. Defaults to 'pt_BR'. */
+  templateLanguageCode?: string;
+  /** WhatsApp template components (variable substitutions). */
+  templateComponents?: object[];
   _fallbackFrom?: string;  // internal: set when this call is a channel fallback
   _fallbackEmail?: string; // internal: email to use if WA fails permanently
 }): Promise<{ communicationId: string; sent: boolean; error?: string; skipped?: boolean }> {
@@ -144,6 +150,10 @@ export async function enqueueAndSend(params: {
         messageType: params.messageType,
         invoiceNumber: params.invoiceNumber,
         fallbackEmail: params.channel === 'whatsapp' ? params._fallbackEmail : undefined,
+        // WhatsApp template fields
+        templateName: params.templateName,
+        templateLanguageCode: params.templateLanguageCode,
+        templateComponents: params.templateComponents,
       }),
       status: 'queued',
       idempotencyKey,
@@ -162,6 +172,9 @@ export async function enqueueAndSend(params: {
     invoiceNumber: params.invoiceNumber,
     amount: params.amount,
     dueDate: params.dueDate,
+    templateName: params.templateName,
+    templateLanguageCode: params.templateLanguageCode,
+    templateComponents: params.templateComponents,
   });
 
   if (result.success) {
@@ -352,6 +365,9 @@ async function trySend(params: {
   invoiceNumber?: string;
   amount?: string;
   dueDate?: string;
+  templateName?: string;
+  templateLanguageCode?: string;
+  templateComponents?: object[];
 }): Promise<{ success: boolean; messageId?: string; error?: string }> {
   if (params.channel === 'email') {
     const html = (params.customerName && params.invoiceNumber)
@@ -371,6 +387,16 @@ async function trySend(params: {
       text: params.body,
     });
   } else {
+    // Use approved Meta template when templateName is provided (business-initiated)
+    if (params.templateName) {
+      return sendWhatsAppTemplate({
+        to: params.to,
+        templateName: params.templateName,
+        languageCode: params.templateLanguageCode ?? 'pt_BR',
+        components: params.templateComponents,
+      });
+    }
+    // Fallback: free-text message (works inside 24h customer-initiated session)
     return sendWhatsApp({ to: params.to, message: params.body });
   }
 }
