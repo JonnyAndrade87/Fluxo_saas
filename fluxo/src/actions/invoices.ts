@@ -119,7 +119,7 @@ export async function markInvoiceAsPaid(id: string, amountPaid?: number) {
       status: 'PAID', 
       paidAt: new Date(), 
       paidAmount: finalPaidAmount 
-    } as any
+    }
   });
 
   const fmtBRL = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -161,7 +161,7 @@ export async function cancelInvoice(id: string, reason: string) {
       status: 'CANCELED',
       canceledAt: new Date(),
       cancelReason: reason
-    } as any
+    }
   });
 
   revalidatePath('/cobrancas');
@@ -189,7 +189,7 @@ export async function reopenInvoice(id: string) {
       cancelReason: null,
       promiseDate: null,
       promiseNote: null
-    } as any
+    }
   });
 
   revalidatePath('/cobrancas');
@@ -225,7 +225,7 @@ export async function registerPromiseToPay(id: string, dateString: string) {
       status: 'PROMISE_TO_PAY',
       promiseDate: promDate,
       promiseNote: 'Promessa registrada via painel de cobranças.'
-    } as any
+    }
   });
 
   // Create the PaymentPromise record (shows in /historico)
@@ -295,9 +295,10 @@ export async function createInvoice(data: {
       customerId: data.customerId,
       invoiceNumber,
       amount: data.amount,
+      balanceDue: data.amount,
       dueDate: new Date(data.dueDate),
       status: 'OPEN',
-    } as any
+    }
   });
 
   revalidatePath('/cobrancas');
@@ -327,7 +328,7 @@ export async function updateInvoice(id: string, data: {
     data: {
       amount: data.amount,
       dueDate: new Date(data.dueDate),
-    } as any
+    }
   });
 
   revalidatePath('/cobrancas');

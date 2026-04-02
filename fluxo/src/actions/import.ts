@@ -17,7 +17,7 @@ export type ParsedReceivable = {
 
 export async function importReceivables(data: ParsedReceivable[]) {
   const session = await auth();
-  const tenantId = (session?.user as any)?.tenantId;
+  const tenantId = session?.user?.tenantId;
 
   if (!tenantId) {
     return { success: false, error: "Unauthorized Access: No active B2B Tenant found." };
@@ -86,10 +86,11 @@ export async function importReceivables(data: ParsedReceivable[]) {
               customerId: customer.id,
               invoiceNumber: invNumber,
               amount: row.amount,
+              balanceDue: row.amount,
               dueDate: new Date(row.dueDate),
               status: row.status === 'paid' ? 'PAID' : row.status === 'canceled' ? 'CANCELED' : 'OPEN',
               externalReferenceId: row.description || "Importado via CSV"
-            } as any
+            }
           });
           importCount++;
         }

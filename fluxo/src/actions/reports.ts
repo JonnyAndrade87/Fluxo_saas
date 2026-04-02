@@ -51,7 +51,7 @@ type PeriodFilter = '1m' | '3m' | '6m' | '12m';
 
 export async function getReportMetrics(period: PeriodFilter = '6m'): Promise<ReportMetrics | null> {
   const session = await auth();
-  const tenantId = (session?.user as any)?.tenantId;
+  const tenantId = session?.user?.tenantId;
   if (!tenantId) return null;
 
   // Compute start date based on period
@@ -82,12 +82,12 @@ export async function getReportMetrics(period: PeriodFilter = '6m'): Promise<Rep
       issueDate: true,
       customerId: true,
       customer: { select: { id: true, name: true, documentNumber: true } }
-    } as any,
+    },
     orderBy: { issueDate: 'asc' }
   });
 
   // Also get ALL overdue invoices regardless of period (to show real exposure)
-  const allOverdue = await (prisma.invoice.findMany as any)({
+  const allOverdue = await prisma.invoice.findMany({
     where: { tenantId, status: { in: ['OPEN', 'PROMISE_TO_PAY'] }, dueDate: { lt: new Date() } },
     select: { updatedAmount: true, amount: true, customerId: true }
   });

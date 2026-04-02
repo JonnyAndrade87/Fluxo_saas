@@ -100,7 +100,7 @@ export async function getOverdueReport(
   customerId?: string
 ): Promise<OverdueTitle[]> {
   const session = await auth();
-  const tenantId = (session?.user as any)?.tenantId;
+  const tenantId = session?.user?.tenantId;
   if (!tenantId) throw new Error('Unauthorized');
 
   const daysBack = PERIOD_MAP[period];
@@ -128,7 +128,7 @@ export async function getPendingReport(
   customerId?: string
 ): Promise<PendingTitle[]> {
   const session = await auth();
-  const tenantId = (session?.user as any)?.tenantId;
+  const tenantId = session?.user?.tenantId;
   if (!tenantId) throw new Error('Unauthorized');
 
   const now = new Date();
@@ -164,7 +164,7 @@ export async function getCustomerDelayReport(
   customerId?: string
 ): Promise<CustomerDelay[]> {
   const session = await auth();
-  const tenantId = (session?.user as any)?.tenantId;
+  const tenantId = session?.user?.tenantId;
   if (!tenantId) throw new Error('Unauthorized');
 
   const daysBack = PERIOD_MAP[period];
@@ -193,7 +193,7 @@ export async function getRiskRankingReport(
   customerId?: string
 ): Promise<RiskRanking[]> {
   const session = await auth();
-  const tenantId = (session?.user as any)?.tenantId;
+  const tenantId = session?.user?.tenantId;
   if (!tenantId) throw new Error('Unauthorized');
 
   const daysBack = PERIOD_MAP[period];
@@ -221,7 +221,7 @@ export async function getExecutiveReport(
   period: PeriodType = '90d'
 ): Promise<ExecutiveSummary> {
   const session = await auth();
-  const tenantId = (session?.user as any)?.tenantId;
+  const tenantId = session?.user?.tenantId;
   if (!tenantId) throw new Error('Unauthorized');
 
   const daysBack = PERIOD_MAP[period];
@@ -281,7 +281,7 @@ export async function getCustomersForFilter(): Promise<
   Array<{ id: string; name: string }>
 > {
   const session = await auth();
-  const tenantId = (session?.user as any)?.tenantId;
+  const tenantId = session?.user?.tenantId;
   if (!tenantId) throw new Error('Unauthorized');
 
   const customers = await prisma.customer.findMany({

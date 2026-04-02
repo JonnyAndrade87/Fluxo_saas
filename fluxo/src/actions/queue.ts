@@ -39,7 +39,7 @@ const STUCK_THRESHOLD_MS = 10 * 60 * 1000; // 10 minutes
  */
 export async function getQueueStats(): Promise<{ stats: QueueStats; dlqItems: DlqItem[] } | null> {
   const session = await auth();
-  const tenantId = (session?.user as any)?.tenantId;
+  const tenantId = session?.user?.tenantId;
   if (!tenantId) return null;
 
   const stuckCutoff = new Date(Date.now() - STUCK_THRESHOLD_MS);
@@ -70,7 +70,7 @@ export async function getQueueStats(): Promise<{ stats: QueueStats; dlqItems: Dl
  */
 export async function requeueDead(itemId: string): Promise<{ success: boolean; error?: string }> {
   const session = await auth();
-  const tenantId = (session?.user as any)?.tenantId;
+  const tenantId = session?.user?.tenantId;
   if (!tenantId) return { success: false, error: 'Unauthorized' };
 
   try {

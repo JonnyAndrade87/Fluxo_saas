@@ -7,7 +7,7 @@ import { getRiskScoreForCustomer } from './risk-score';
 export async function getDashboardMetrics() {
   try {
     const session = await auth();
-    const tenantId = (session?.user as any)?.tenantId;
+    const tenantId = session?.user?.tenantId;
     const userId = session?.user?.id;
 
     if (!tenantId || !userId) {
@@ -32,11 +32,11 @@ export async function getDashboardMetrics() {
     dueNext7DaysRaw,
     paidThisMonthRaw
   ] = await Promise.all([
-    (prisma.invoice.aggregate as any)({
+    prisma.invoice.aggregate({
       where: { tenantId, status: { in: ['OPEN', 'PROMISE_TO_PAY'] }, dueDate: { gte: today } },
       _sum: { updatedAmount: true }
     }),
-    (prisma.invoice.aggregate as any)({
+    prisma.invoice.aggregate({
       where: { tenantId, status: { in: ['OPEN', 'PROMISE_TO_PAY'] }, dueDate: { lt: today } },
       _sum: { updatedAmount: true }
     }),
@@ -81,7 +81,7 @@ export async function getDashboardMetrics() {
   const criticalCustomersCount = criticalCustomers.length;
 
   // 2. Próximos Vencimentos (Títulos a vencer, order by dueDate, highlight highs)
-  const upcomingInvoicesRaw = await (prisma.invoice.findMany as any)({
+  const upcomingInvoicesRaw = await prisma.invoice.findMany({
     where: {
       tenantId,
       status: { in: ['OPEN', 'PROMISE_TO_PAY'] },

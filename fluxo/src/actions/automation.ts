@@ -76,7 +76,7 @@ const DEFAULT_FLOW_CONFIG = {
 
 export async function saveBillingFlow(rulesData: any) {
   const session = await auth();
-  const tenantId = (session?.user as any)?.tenantId;
+  const tenantId = session?.user?.tenantId;
 
   if (!tenantId) {
     throw new Error('Unauthorized');
@@ -105,7 +105,7 @@ export async function saveBillingFlow(rulesData: any) {
 
 export async function getBillingFlow() {
   const session = await auth();
-  const tenantId = (session?.user as any)?.tenantId;
+  const tenantId = session?.user?.tenantId;
 
   if (!tenantId) {
     throw new Error('Unauthorized');
