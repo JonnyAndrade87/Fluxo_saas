@@ -10,38 +10,60 @@ export const { auth, signIn, signOut, handlers: { GET, POST } } = NextAuth({
   providers: [
     Credentials({
       async authorize(credentials) {
-        const parsedCredentials = z
-          .object({ email: z.string().email(), password: z.string().min(6) })
-          .safeParse(credentials);
+        try {
+          const parsedCredentials = z
+            .object({ email: z.string().email(), password: z.string().min(6) })
+            .safeParse(credentials);
 
-        if (!parsedCredentials.success) return null;
-
-        const { email, password } = parsedCredentials.data;
-
-        const user = await prisma.user.findUnique({
-          where: { email },
-          include: {
-            tenants: {
-              take: 1,
-              select: { tenantId: true, role: true }
-            }
+          if (!parsedCredentials.success) {
+            throw new Error(`Invalid inputs: ${JSON.stringify(parsedCredentials.error)}`);
           }
-        });
 
-        if (!user || !user.password) return null;
+          const { email, password } = parsedCredentials.data;
 
-        const passwordsMatch = await bcrypt.compare(password, user.password);
-        if (!passwordsMatch) return null;
+          let user;
+          try {
+            user = await prisma.user.findUnique({
+              where: { email },
+              include: {
+                tenants: {
+                  take: 1,
+                  select: { tenantId: true, role: true }
+                }
+              }
+            });
+          } catch (dbErr: any) {
+            throw new Error(`Prisma Crash: ${dbErr?.message}`);
+          }
 
-        const tenantUser = user.tenants[0];
+          if (!user || !user.password) {
+            throw new Error('User not found or missing password hash.');
+          }
 
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.fullName,
-          tenantId: tenantUser?.tenantId ?? null,
-          role: tenantUser?.role ?? 'operator',
-        };
+          let passwordsMatch = false;
+          try {
+            passwordsMatch = await bcrypt.compare(password, user.password);
+          } catch (bcryptErr: any) {
+            throw new Error(`Bcrypt Crash: ${bcryptErr?.message}`);
+          }
+
+          if (!passwordsMatch) {
+            throw new Error('Password mismatch.');
+          }
+
+          const tenantUser = user.tenants[0];
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.fullName,
+            tenantId: tenantUser?.tenantId ?? null,
+            role: tenantUser?.role ?? 'operator',
+          };
+        } catch (error: any) {
+          console.error('AUTHORIZE CRASH:', error.message);
+          throw new Error(`[AUTHORIZE_FATAL] ${error.message}`);
+        }
       },
     }),
   ],
