@@ -24,7 +24,9 @@ import {
   FileText,
 } from "lucide-react"
 import { getDashboardMetrics } from "@/actions/dashboard"
+import { getOnboardingStatus } from "@/actions/onboarding"
 import DashboardChart from "./DashboardChart"
+import OnboardingChecklist from "@/components/onboarding/OnboardingChecklist"
 
 const fmt = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const formatCurrency = (val: number) => fmt.format(val).replace('R$\u00a0', '').replace('R$ ', '').trim();
@@ -55,12 +57,20 @@ const AGING_COLORS = [
 ];
 
 export default async function Dashboard() {
-  const metrics = await getDashboardMetrics();
+  const [metrics, onboardingStatus] = await Promise.all([
+    getDashboardMetrics(),
+    getOnboardingStatus(),
+  ]);
 
   const totalAgingAmount = metrics.agingDistribution.reduce((s, b) => s + b.amount, 0);
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12">
+
+      {/* ── Onboarding Checklist (hidden once complete or dismissed) ──── */}
+      {!onboardingStatus.isComplete && (
+        <OnboardingChecklist status={onboardingStatus} />
+      )}
 
       {/* Critical Alerts Banner */}
       {metrics.criticalAlerts.length > 0 && (
