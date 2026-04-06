@@ -34,6 +34,7 @@ export interface GetLogsFilters {
   status?: string;
   ruleType?: string;
   customerId?: string;
+  search?: string;
   dateFrom?: Date;
   dateTo?: Date;
 }
@@ -97,6 +98,15 @@ export async function getCommunicationLogs(
   if (filters.status) where.status = filters.status;
   if (filters.ruleType) where.ruleType = filters.ruleType;
   if (filters.customerId) where.customerId = filters.customerId;
+  if (filters.search) {
+    // we use prisma's OR to search by customer name or invoice number
+    Object.assign(where, {
+      OR: [
+        { customer: { name: { contains: filters.search, mode: 'insensitive' } } },
+        { invoice: { invoiceNumber: { contains: filters.search, mode: 'insensitive' } } }
+      ]
+    });
+  }
   if (filters.dateFrom || filters.dateTo) {
     where.scheduledFor = {};
     if (filters.dateFrom) where.scheduledFor.gte = filters.dateFrom;
