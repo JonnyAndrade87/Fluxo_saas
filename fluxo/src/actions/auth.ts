@@ -21,7 +21,8 @@ export async function authenticate(
         case 'CredentialsSignin':
           return 'Invalid credentials.';
         default:
-          return `Auth Error Type: ${error.type} | Msg: ${error.message}`;
+          const causeMsg = error.cause ? (typeof error.cause === 'object' && 'err' in error.cause ? (error.cause as any).err.message : String(error.cause)) : 'No cause provided';
+          return `Auth Error Type: ${error.type} | Msg: ${error.message} | Real Cause: ${causeMsg}`;
       }
     }
     
