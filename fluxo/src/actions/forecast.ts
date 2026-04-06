@@ -292,3 +292,110 @@ export async function getCustomerForecastImpact() {
 
   return results;
 }
+
+// ─── NOVO MÓDULO: PROBABILITY-ADJUSTED CASH FORECAST (7/30 DAYS) ────────────
+
+export interface ForecastData {
+  next7DaysNominal: number;
+  next7DaysExpected: number;
+  next30DaysNominal: number;
+  next30DaysExpected: number;
+  riskBreakdown: {
+    level: string;
+    nominal: number;
+    expected: number;
+    probability: number;
+  }[];
+}
+
+const RISK_PROBABILITIES: Record<string, number> = {
+  'Crítico': 0.10, // 10%
+  'Alto':    0.30, // 30%
+  'Médio':   0.70, // 70%
+  'Baixo':   0.95, // 95%
+};
+const DEFAULT_PROBABILITY = 0.80; // sem score = 80%
+
+export async function getProbabilityAdjustedForecast(): Promise<ForecastData> {
+  const session = await auth();
+  const tenantId = (session?.user as SessionUser)?.tenantId;
+  if (!tenantId) throw new Error('Unauthorized');
+
+  // Buscar todos os recebíveis faturados nos próximos 30 dias
+  const invoices = await getInvoicesForForecast(tenantId);
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const next7Days = new Date(today);
+  next7Days.setDate(today.getDate() + 7);
+
+  const next30Days = new Date(today);
+  next30Days.setDate(today.getDate() + 30);
+
+  let next7DaysNominal = 0;
+  let next7DaysExpected = 0;
+  let next30DaysNominal = 0;
+  let next30DaysExpected = 0;
+
+  const breakdownMap: Record<string, { nominal: number; expected: number; probability: number }> = {
+    'Baixo':   { nominal: 0, expected: 0, probability: 0.95 },
+    'Médio':   { nominal: 0, expected: 0, probability: 0.70 },
+    'Alto':    { nominal: 0, expected: 0, probability: 0.30 },
+    'Crítico': { nominal: 0, expected: 0, probability: 0.10 },
+    'Sem Score': { nominal: 0, expected: 0, probability: 0.80 },
+  };
+
+  for (const inv of invoices) {
+    const invDate = new Date(inv.dueDate);
+    invDate.setHours(0, 0, 0, 0);
+
+    // Consideramos apenas o que está "após" hoje e até 30 dias (ou atrasadas para 7 e 30 d)
+    // Para simplificar: tudo retornado por getInvoicesForForecast (que inclui atrasados) 
+    // ou que vence até daqui 30 dias.
+    if (invDate > next30Days) continue;
+
+    const isNext7 = invDate <= next7Days;
+
+    const riskLevel = inv.riskLevel;
+    const labelKey = riskLevel && RISK_PROBABILITIES[riskLevel] ? riskLevel : 'Sem Score';
+    const probability = RISK_PROBABILITIES[labelKey] ?? DEFAULT_PROBABILITY;
+    
+    // Atualiza base map
+    breakdownMap[labelKey].probability = probability; // Em caso de Sem Score
+
+    const amount = inv.updatedAmount;
+    const expected = amount * probability;
+
+    // Adiciona no Breakdown
+    breakdownMap[labelKey].nominal += amount;
+    breakdownMap[labelKey].expected += expected;
+
+    // Pondera em 30d
+    next30DaysNominal += amount;
+    next30DaysExpected += expected;
+
+    // Pondera em 7d
+    if (isNext7) {
+      next7DaysNominal += amount;
+      next7DaysExpected += expected;
+    }
+  }
+
+  const riskBreakdown = Object.entries(breakdownMap)
+    .filter(([_, data]) => data.nominal > 0)
+    .map(([level, data]) => ({
+      level,
+      nominal: data.nominal,
+      expected: data.expected,
+      probability: data.probability
+    }));
+
+  return {
+    next7DaysNominal,
+    next7DaysExpected,
+    next30DaysNominal,
+    next30DaysExpected,
+    riskBreakdown
+  };
+}

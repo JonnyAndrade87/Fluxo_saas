@@ -27,6 +27,7 @@ import { getDashboardMetrics } from "@/actions/dashboard"
 import { getOnboardingStatus } from "@/actions/onboarding"
 import DashboardChart from "./DashboardChart"
 import OnboardingChecklist from "@/components/onboarding/OnboardingChecklist"
+import { CashForecast } from "@/components/dashboard/CashForecast"
 
 const fmt = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const formatCurrency = (val: number) => fmt.format(val).replace('R$\u00a0', '').replace('R$ ', '').trim();
@@ -244,6 +245,11 @@ export default async function Dashboard() {
           </CardContent>
         </Card>
 
+      </div>
+
+      {/* ── Linha Principal: Projeção de Caixa Ponderada ───────────────────── */}
+      <div className="w-full">
+        <CashForecast />
       </div>
 
       {/* ── Row 2: Próximos Vencimentos + Tarefas do Dia ─────────────────── */}
