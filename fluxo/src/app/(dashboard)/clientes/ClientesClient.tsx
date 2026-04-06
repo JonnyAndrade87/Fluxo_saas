@@ -284,7 +284,7 @@ export default function ClientesClient({ initialData }: { initialData: any[] }) 
                       <div className="p-6 space-y-6">
                         
                         {/* Status Financeiro Cards */}
-                        <div className="grid grid-cols-3 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                            <div className="bg-white border border-border/60 rounded-xl p-3 shadow-sm text-center">
                               <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider mb-1">A Receber</p>
                               <p className="text-sm font-bold text-obsidian">

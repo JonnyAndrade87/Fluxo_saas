@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
 import { auth, signOut } from "../../../auth";
-import { ShieldAlert, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 export default async function SuperAdminLayout({
   children,
@@ -21,8 +22,14 @@ export default async function SuperAdminLayout({
       <header className="bg-obsidian border-b border-white/10 text-white sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="bg-rose-500 text-white p-1.5 rounded-lg">
-              <ShieldAlert className="w-5 h-5" />
+            <div className="bg-white/5 p-1.5 rounded-lg flex items-center justify-center border border-white/10">
+              <Image 
+                src="/logo_fluxeer_icone.png" 
+                alt="Fluxo Logo" 
+                width={32} 
+                height={32} 
+                className="w-6 h-6 object-contain"
+              />
             </div>
             <div>
               <h1 className="font-heading font-black text-lg tracking-tight">Fluxo</h1>
