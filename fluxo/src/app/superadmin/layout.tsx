@@ -36,9 +36,9 @@ export default async function SuperAdminLayout({
              <span className="text-slate-400 font-mono text-xs hidden sm:inline-block">
                {session.user.email}
              </span>
-             <a href="/" className="text-slate-300 hover:text-white transition-colors">
+             <Link href="/" className="text-slate-300 hover:text-white transition-colors">
                Ir para Tenant Normal
-             </a>
+             </Link>
              {/* Using a form for server action signOut since we are in a server component layout */}
              <form action={async () => {
                "use server";
