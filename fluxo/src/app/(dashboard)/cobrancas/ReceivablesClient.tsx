@@ -17,7 +17,10 @@ import {
   registerPromiseToPay, 
   deleteInvoice 
 } from "@/actions/invoices";
+import { getInvoiceTimeline } from "@/actions/timeline";
+import type { TimelineEvent } from "@/types/timeline.types";
 import { getInvoiceVisualState, calculateInvoiceFinancials, VisualStatus } from "@/lib/invoice-utils";
+import BillingTimeline from "@/components/timeline/BillingTimeline";
 
 export default function ReceivablesClient({ initialData, initialTotalPages = 1 }: { initialData: any[], initialTotalPages?: number }) {
   const [invoices, setInvoices] = useState(initialData);
@@ -34,6 +37,7 @@ export default function ReceivablesClient({ initialData, initialTotalPages = 1 }
   // UI State
   const [selectedInvoice, setSelectedInvoice] = useState<any | null>(null);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [invoiceTimeline, setInvoiceTimeline] = useState<TimelineEvent[]>([]);
 
   const fetchInvoices = useCallback(() => {
     startTransition(async () => {
@@ -72,6 +76,17 @@ export default function ReceivablesClient({ initialData, initialTotalPages = 1 }
          alert(e.message || "Erro ao processar ação.");
        }
      });
+  };
+
+  const handleSelectInvoice = async (invoice: any) => {
+    setSelectedInvoice(invoice);
+    setInvoiceTimeline([]);
+    try {
+      const events = await getInvoiceTimeline(invoice.id);
+      setInvoiceTimeline(events);
+    } catch (e) {
+      console.error('Failed to load invoice timeline:', e);
+    }
   };
 
   const handlePromessa = (id: string, currentAmount: number) => {
@@ -243,7 +258,7 @@ export default function ReceivablesClient({ initialData, initialTotalPages = 1 }
                   <tr key={item.id} className="hover:bg-indigo-50/20 transition-colors group relative cursor-pointer" onClick={(e) => {
                      // Prevent triggering drawer if clicking action button
                      if ((e.target as any).closest('.action-btn')) return;
-                     setSelectedInvoice(item);
+                     handleSelectInvoice(item);
                   }}>
                     <td className="px-6 py-4">
                       <div className="font-semibold font-mono tracking-tight text-indigo-700">{item.invoiceNumber || item.id.split('-')[0].toUpperCase()}</div>
@@ -465,8 +480,21 @@ export default function ReceivablesClient({ initialData, initialTotalPages = 1 }
                            )}
                         </div>
                      </div>
-                  </div>
-               </div>
+                   </div>
+
+                   <hr className="border-border/50" />
+
+                   {/* Invoice Timeline */}
+                   <div>
+                     <h4 className="font-semibold text-sm flex items-center gap-2 text-obsidian mb-4">
+                       <Clock className="w-4 h-4 text-indigo-500" /> Timeline da Fatura
+                     </h4>
+                     <BillingTimeline
+                       events={invoiceTimeline}
+                       emptyMessage="Nenhum evento encontrado para esta fatura."
+                     />
+                   </div>
+                </div>
                
                {/* Drawer Footer Actions */}
                <div className="p-6 bg-white border-t border-border/50 shadow-[0_-10px_40px_rgba(0,0,0,0.03)] flex flex-col gap-3">

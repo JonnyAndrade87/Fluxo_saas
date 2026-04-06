@@ -9,6 +9,8 @@ import {
   Search, Filter, Plus, Users, User, Building2, Mail, Phone, X, CreditCard, Activity, ArrowUpRight, ArrowDownRight, CircleDollarSign, Clock, FileText
 } from "lucide-react";
 import { getCustomersList, getCustomerDetails } from "@/actions/customers";
+import { getCustomerTimeline } from "@/actions/timeline";
+import type { TimelineEvent } from "@/types/timeline.types";
 import CustomerFormModal from "./CustomerFormModal";
 import CustomerTimeline from "./CustomerTimeline";
 import ContactFormModal from "./ContactFormModal";
@@ -26,6 +28,7 @@ export default function ClientesClient({ initialData }: { initialData: any[] }) 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [drawerData, setDrawerData] = useState<any | null>(null);
   const [isDrawerLoading, setIsDrawerLoading] = useState(false);
+  const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[]>([]);
 
   // Modal State
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
@@ -53,10 +56,15 @@ export default function ClientesClient({ initialData }: { initialData: any[] }) 
 
   const openCustomerDrawer = async (customerId: string) => {
     setIsDrawerLoading(true);
-    setDrawerData(null); // Just opens an empty shell temporarily
+    setDrawerData(null);
+    setTimelineEvents([]);
     try {
-      const fullData = await getCustomerDetails(customerId);
+      const [fullData, events] = await Promise.all([
+        getCustomerDetails(customerId),
+        getCustomerTimeline(customerId),
+      ]);
       setDrawerData(fullData);
+      setTimelineEvents(events);
     } catch (e) {
       console.error(e);
     } finally {
@@ -464,11 +472,10 @@ export default function ClientesClient({ initialData }: { initialData: any[] }) 
                            )}
                         </div>
 
-                        {/* Notas e Timeline Component */}
+                        {/* Timeline de Cobrança */}
                         <CustomerTimeline 
                            customerId={drawerData.id}
-                           notes={drawerData.customerNotes}
-                           communications={drawerData.communications}
+                           timelineEvents={timelineEvents}
                            onNoteAdded={() => openCustomerDrawer(drawerData.id)}
                         />
 
