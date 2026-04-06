@@ -13,7 +13,8 @@ import {
   LifeBuoy,
   CloudUpload,
   Inbox,
-  Layers
+  Layers,
+  MessageCircle
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -25,6 +26,7 @@ const navGroups = [
       { name: "Cobranças", href: "/cobrancas", icon: Receipt },
       { name: "Clientes", href: "/clientes", icon: Users },
       { name: "Histórico", href: "/historico", icon: Inbox },
+      { name: "Comunicações", href: "/comunicacoes", icon: MessageCircle },
       { name: "Importar Lote", href: "/importar", icon: CloudUpload },
     ]
   },

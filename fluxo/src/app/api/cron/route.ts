@@ -60,6 +60,9 @@ export async function GET(request: Request) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    const mode = process.env.COMMUNICATION_MODE ?? 'manual';
+    console.log(`[CRON] Starting execution. Mode: ${mode}`);
+
     const activeFlows = await prisma.billingFlow.findMany({
       where: { isActive: true }
     });
@@ -124,62 +127,74 @@ export async function GET(request: Request) {
             if (stage.channels?.whatsapp?.active && contactPhone) {
               const template = stage.channels.whatsapp.template ?? '';
               const body = populateTemplate(template, inv, 'whatsapp');
-              const r = await enqueueAndSend({
-                tenantId: flow.tenantId,
-                customerId: inv.customerId,
-                invoiceId: inv.id,
-                channel: 'whatsapp',
-                to: contactPhone,
-                body,
-                messageType: stageLabel,
-                customerName: customer.name,
-                invoiceNumber: inv.invoiceNumber,
-                amount: amountStr,
-                dueDate: dueDateStr,
-              });
-              r.sent ? sentMessages++ : queuedMessages++;
+              if (mode !== 'manual') {
+                const r = await enqueueAndSend({
+                  tenantId: flow.tenantId,
+                  customerId: inv.customerId,
+                  invoiceId: inv.id,
+                  channel: 'whatsapp',
+                  to: contactPhone,
+                  body,
+                  messageType: stageLabel,
+                  customerName: customer.name,
+                  invoiceNumber: inv.invoiceNumber,
+                  amount: amountStr,
+                  dueDate: dueDateStr,
+                });
+                r.sent ? sentMessages++ : queuedMessages++;
+              } else {
+                queuedMessages++; // Simula processamento em manual mode
+              }
               fired = true;
             }
 
             if (stage.channels?.email?.active && contactEmail) {
               const template = stage.channels.email.template ?? '';
               const body = populateTemplate(template, inv, 'email');
-              const r = await enqueueAndSend({
-                tenantId: flow.tenantId,
-                customerId: inv.customerId,
-                invoiceId: inv.id,
-                channel: 'email',
-                to: contactEmail,
-                subject: `Cobrança: Fatura #${inv.invoiceNumber} — ${amountStr}`,
-                body,
-                messageType: stageLabel,
-                customerName: customer.name,
-                invoiceNumber: inv.invoiceNumber,
-                amount: amountStr,
-                dueDate: dueDateStr,
-              });
-              r.sent ? sentMessages++ : queuedMessages++;
+              if (mode !== 'manual') {
+                const r = await enqueueAndSend({
+                  tenantId: flow.tenantId,
+                  customerId: inv.customerId,
+                  invoiceId: inv.id,
+                  channel: 'email',
+                  to: contactEmail,
+                  subject: `Cobrança: Fatura #${inv.invoiceNumber} — ${amountStr}`,
+                  body,
+                  messageType: stageLabel,
+                  customerName: customer.name,
+                  invoiceNumber: inv.invoiceNumber,
+                  amount: amountStr,
+                  dueDate: dueDateStr,
+                });
+                r.sent ? sentMessages++ : queuedMessages++;
+              } else {
+                queuedMessages++;
+              }
               fired = true;
             }
 
             // If stage is active but no explicit channel config, send email by default
             if (!fired && contactEmail) {
               const body = `Lembrete automático: fatura #${inv.invoiceNumber} — ${amountStr}`;
-              const r = await enqueueAndSend({
-                tenantId: flow.tenantId,
-                customerId: inv.customerId,
-                invoiceId: inv.id,
-                channel: 'email',
-                to: contactEmail,
-                subject: `Cobrança: Fatura #${inv.invoiceNumber}`,
-                body,
-                messageType: stageLabel,
-                customerName: customer.name,
-                invoiceNumber: inv.invoiceNumber,
-                amount: amountStr,
-                dueDate: dueDateStr,
-              });
-              r.sent ? sentMessages++ : queuedMessages++;
+              if (mode !== 'manual') {
+                const r = await enqueueAndSend({
+                  tenantId: flow.tenantId,
+                  customerId: inv.customerId,
+                  invoiceId: inv.id,
+                  channel: 'email',
+                  to: contactEmail,
+                  subject: `Cobrança: Fatura #${inv.invoiceNumber}`,
+                  body,
+                  messageType: stageLabel,
+                  customerName: customer.name,
+                  invoiceNumber: inv.invoiceNumber,
+                  amount: amountStr,
+                  dueDate: dueDateStr,
+                });
+                r.sent ? sentMessages++ : queuedMessages++;
+              } else {
+                queuedMessages++;
+              }
             }
           }
         } else {
@@ -197,21 +212,25 @@ export async function GET(request: Request) {
           }
 
           if (messageType && contactEmail) {
-            const r = await enqueueAndSend({
-              tenantId: flow.tenantId,
-              customerId: inv.customerId,
-              invoiceId: inv.id,
-              channel: 'email',
-              to: contactEmail,
-              subject: `Cobrança: Fatura #${inv.invoiceNumber}`,
-              body: content,
-              messageType,
-              customerName: customer.name,
-              invoiceNumber: inv.invoiceNumber,
-              amount: amountStr,
-              dueDate: dueDateStr,
-            });
-            r.sent ? sentMessages++ : queuedMessages++;
+            if (mode !== 'manual') {
+              const r = await enqueueAndSend({
+                tenantId: flow.tenantId,
+                customerId: inv.customerId,
+                invoiceId: inv.id,
+                channel: 'email',
+                to: contactEmail,
+                subject: `Cobrança: Fatura #${inv.invoiceNumber}`,
+                body: content,
+                messageType,
+                customerName: customer.name,
+                invoiceNumber: inv.invoiceNumber,
+                amount: amountStr,
+                dueDate: dueDateStr,
+              });
+              r.sent ? sentMessages++ : queuedMessages++;
+            } else {
+              queuedMessages++;
+            }
           }
         }
       }
