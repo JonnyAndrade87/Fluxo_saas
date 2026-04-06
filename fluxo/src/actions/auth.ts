@@ -15,18 +15,26 @@ export async function authenticate(
       ...data,
       redirectTo: '/cobrancas',
     });
-  } catch (error) {
+  } catch (error: any) {
     if (error instanceof AuthError) {
       switch (error.type) {
         case 'CredentialsSignin':
           return 'Invalid credentials.';
         default:
-          return 'Credenciais inválidas ou erro genérico.';
+          return `Auth Error Type: ${error.type} | Msg: ${error.message}`;
       }
     }
     
     // Auth.js redirects by throwing NEXT_REDIRECT! We MUST re-throw.
-    throw error;
+    if (error && typeof error === 'object' && 'message' in error && (error as any).message === 'NEXT_REDIRECT') {
+      throw error;
+    }
+    
+    if (error && typeof error === 'object' && 'digest' in error) {
+      throw error; // Next.js redirect digest
+    }
+    
+    return `Server Error: ${error?.message || 'Generic fault'}. ${error?.cause ? 'Cause: ' + String(error.cause) : ''}`;
   }
 }
 
