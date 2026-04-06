@@ -1,38 +1,24 @@
-import prisma from '@/lib/prisma';
-import bcrypt from 'bcryptjs';
+import { PrismaClient } from '@prisma/client';
+const prisma = new PrismaClient();
 
 async function main() {
-  const email = 'jonattan.passos@gmail.com';
-  const password = '@Joaquimlucca09';
-
   const user = await prisma.user.findUnique({
-    where: { email },
+    where: { email: 'jonattan.passos@gmail.com' },
     include: {
-      tenants: {
-        take: 1,
-        select: { tenantId: true, role: true }
-      }
+      tenants: true
     }
   });
 
-  if (!user) {
-    console.log('❌ Usuário NÃO encontrado no banco!');
-    return;
+  if (user) {
+    console.log('USER EXISTS!');
+    console.log('ID:', user.id);
+    console.log('Email:', user.email);
+    console.log('Name:', user.fullName);
+    console.log('Password Hash Length:', user.password?.length);
+    console.log('Tenants associated:', user.tenants.length);
+  } else {
+    console.log('USER DOES NOT EXIST IN DATABASE!');
   }
-  console.log('✅ Usuário encontrado:', user.email, '| Nome:', user.fullName);
-  
-  if (!user.password) {
-    console.log('❌ Usuário não tem senha definida!');
-    return;
-  }
-  
-  const match = await bcrypt.compare(password, user.password);
-  console.log('🔑 Senha correta?', match ? '✅ SIM' : '❌ NÃO — hash não bate');
-  
-  const tenantUser = user.tenants[0];
-  console.log('🏢 Tenant?', tenantUser ? `✅ ${tenantUser.tenantId} | role: ${tenantUser.role}` : '❌ SEM TENANT — isso causaria redirect para onboarding');
 }
 
-main()
-  .catch(e => { console.error(e); process.exit(1); })
-  .finally(async () => await prisma.$disconnect());
+main().finally(() => prisma.$disconnect());
