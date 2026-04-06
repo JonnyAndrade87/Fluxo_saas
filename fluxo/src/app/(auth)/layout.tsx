@@ -1,6 +1,6 @@
 import { BarChart3 } from "lucide-react";
 import Image from "next/image";
-import logoLogin from "../../../public/logo_fluxeer_login.png";
+import logoLogin from "../../assets/logo_fluxeer_login.png";
 
 export default function AuthLayout({
   children,

@@ -5,6 +5,9 @@ import '@/lib/deployment-debug';
 export const metadata: Metadata = {
   title: "Fluxeer – Inteligência Financeira",
   description: "Plataforma avançada de pagamentos, cobranças e visão de futuro.",
+  icons: {
+    icon: '/favicon.png',
+  },
 };
 
 export default function RootLayout({
