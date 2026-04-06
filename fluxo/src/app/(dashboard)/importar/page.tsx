@@ -99,7 +99,7 @@ export default function GenericImportPage() {
           isHovering ? 'border-indigo-500 bg-indigo-50/50 scale-[1.01]' : 'border-indigo-200 hover:border-indigo-400 hover:bg-indigo-50/30'
         }`}
       >
-        <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-6 transition-transform duration-300 ${isHovering ? 'bg-indigo-600 text-white scale-110' : 'bg-indigo-50 text-indigo-500 group-hover:scale-110'}`}>
+        <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-6 transition-transform duration-300 ${isHovering ? 'bg-fluxeer-blue text-white scale-110' : 'bg-indigo-50 text-indigo-500 group-hover:scale-110'}`}>
           {fileName ? <FileSpreadsheet className="w-8 h-8" /> : <CloudUpload className="w-8 h-8" />}
         </div>
         

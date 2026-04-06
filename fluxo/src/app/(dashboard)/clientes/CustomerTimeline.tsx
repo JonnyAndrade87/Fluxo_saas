@@ -69,7 +69,7 @@ export default function CustomerTimeline({ customerId, notes, communications, on
            />
            <div className="flex items-center justify-end gap-2 mt-2 pt-2 border-t border-border/40">
              <Button variant="ghost" size="sm" onClick={() => setIsAddingMode(false)} className="h-7 text-xs text-slate-500">Cancelar</Button>
-             <Button size="sm" onClick={handleAddNote} disabled={isSaving || !newNote.trim()} className="h-7 text-xs bg-indigo-600 hover:bg-indigo-700">
+             <Button size="sm" onClick={handleAddNote} disabled={isSaving || !newNote.trim()} className="h-7 text-xs bg-fluxeer-blue hover:bg-fluxeer-blue-hover">
                {isSaving ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Send className="w-3 h-3 mr-1" />}
                Salvar
              </Button>

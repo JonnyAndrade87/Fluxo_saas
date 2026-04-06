@@ -1,4 +1,5 @@
 import { BarChart3 } from "lucide-react";
+import Image from "next/image";
 
 export default function AuthLayout({
   children,
@@ -18,18 +19,13 @@ export default function AuthLayout({
       
       <div className="relative z-10 w-full max-w-md px-6">
         <div className="flex justify-center mb-8">
-          <div className="flex items-center gap-2 group cursor-pointer">
-            <div className="w-10 h-10 rounded-xl bg-obsidian flex items-center justify-center text-white shadow-md transform group-hover:scale-105 transition-all">
-              <BarChart3 className="w-5 h-5 text-indigo-400" />
-            </div>
-            <span className="text-xl font-heading font-extrabold tracking-tight text-obsidian uppercase">FLUXO<span className="text-indigo-600">.</span></span>
-          </div>
+          <Image src="/logo_fluxeer_login.png" alt="Fluxeer" width={180} height={50} className="object-contain" />
         </div>
 
         {children}
         
         <p className="mt-8 text-center text-xs text-muted-foreground font-medium">
-          Fluxo B2B Financial Platform © {new Date().getFullYear()}
+          Fluxeer B2B Financial Platform - Versão Beta © {new Date().getFullYear()}
         </p>
       </div>
     </div>

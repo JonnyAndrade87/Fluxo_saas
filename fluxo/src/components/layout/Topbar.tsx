@@ -97,10 +97,10 @@ export function Topbar({ tenantName = "Sua Empresa" }: { tenantName?: string }) 
         <div className="flex items-center gap-4 relative" ref={notifRef}>
           <button
             onClick={() => setNotifOpen(v => !v)}
-            className="relative w-10 h-10 rounded-full bg-[#111111] flex items-center justify-center text-white/80 hover:text-white transition-colors group shadow-md"
+            className="relative w-10 h-10 rounded-full bg-fluxeer-blue flex items-center justify-center text-white/80 hover:text-white transition-colors group shadow-md"
           >
             <Bell className="w-5 h-5 group-hover:scale-110 transition-transform" />
-            {hasUnread && <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 border-2 border-[#111111]"></span>}
+            {hasUnread && <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 border-2 border-fluxeer-blue"></span>}
           </button>
 
           {/* Notifications panel */}

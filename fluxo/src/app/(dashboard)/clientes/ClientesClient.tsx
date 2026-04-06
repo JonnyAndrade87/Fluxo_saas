@@ -20,6 +20,7 @@ export default function ClientesClient({ initialData }: { initialData: any[] }) 
 
   // Filters State
   const [search, setSearch] = useState('');
+  const [riskFilter, setRiskFilter] = useState('Todos');
   
   // UI State
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -37,10 +38,10 @@ export default function ClientesClient({ initialData }: { initialData: any[] }) 
 
   const fetchCustomers = useCallback(() => {
     startTransition(async () => {
-       const data = await getCustomersList(search);
+       const data = await getCustomersList(search, riskFilter);
        setCustomers(data);
     });
-  }, [search, startTransition]);
+  }, [search, riskFilter, startTransition]);
 
   useEffect(() => {
     // Debounce search
@@ -81,8 +82,10 @@ export default function ClientesClient({ initialData }: { initialData: any[] }) 
             Diretório unificado de contatos financeiros, histórico de Lifetime Value (LTV) e exposição de risco.
           </p>
         </div>
-        <Button variant="beam" onClick={() => { setEditingCustomer(null); setIsCustomerModalOpen(true); }} className="gap-2 shadow-sm rounded-full px-6">
-          <Plus className="w-4 h-4" /> Novo Cliente
+        <Button className="btn-beam shadow-lg rounded-lg overflow-hidden relative group border-none bg-fluxeer-blue text-white hover:bg-fluxeer-blue-hover px-6" onClick={() => { setEditingCustomer(null); setIsCustomerModalOpen(true); }}>
+          <span className="relative z-10 flex items-center gap-2 font-semibold">
+            <Plus className="w-4 h-4" /> Novo Cliente
+          </span>
         </Button>
       </div>
 
@@ -109,9 +112,25 @@ export default function ClientesClient({ initialData }: { initialData: any[] }) 
                  onChange={e => setSearch(e.target.value)}
               />
             </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" className="gap-2 h-9">
-                <Filter className="w-4 h-4" /> Filtros
+            <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+              <div className="relative">
+                <select 
+                  className="h-9 w-full sm:w-36 rounded-md border border-border bg-white text-xs font-medium px-3 text-obsidian shadow-sm focus:ring-1 focus:ring-indigo-500 appearance-none cursor-pointer"
+                  value={riskFilter}
+                  onChange={(e) => setRiskFilter(e.target.value)}
+                >
+                  <option value="Todos">Todos os Riscos</option>
+                  <option value="Baixo">🟢 Baixo Risco</option>
+                  <option value="Médio">🟡 Médio Risco</option>
+                  <option value="Alto">🟠 Alto Risco</option>
+                  <option value="Crítico">🔴 Risco Crítico</option>
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-muted-foreground">
+                  <Filter className="h-3 w-3" />
+                </div>
+              </div>
+              <Button variant="outline" size="sm" className="gap-2 h-9 w-full sm:w-auto">
+                <Filter className="w-4 h-4" /> Mais Filtros
               </Button>
             </div>
           </div>
@@ -182,6 +201,11 @@ export default function ClientesClient({ initialData }: { initialData: any[] }) 
                         >
                           {customer.riskLevel}
                         </Badge>
+                        {customer.riskJustification && (
+                          <p className="text-[9px] text-muted-foreground max-w-[140px] truncate mx-auto mt-1" title={customer.riskJustification}>
+                            {customer.riskJustification}
+                          </p>
+                        )}
                       </div>
                     </td>
                     <td className="px-6 py-4 text-right">
@@ -428,7 +452,7 @@ export default function ClientesClient({ initialData }: { initialData: any[] }) 
 
                    {/* Footer Actions */}
                    <div className="p-4 bg-white border-t border-border/50 shadow-[0_-10px_40px_rgba(0,0,0,0.03)] shrink-0 flex gap-3">
-                      <Button onClick={() => window.dispatchEvent(new CustomEvent('open-new-invoice-modal', { detail: { customerId: drawerData.id } }))} className="flex-1 font-semibold text-[13px] bg-indigo-600 hover:bg-indigo-700 border border-transparent text-white transition-colors h-10 shadow-lg">
+                      <Button onClick={() => window.dispatchEvent(new CustomEvent('open-new-invoice-modal', { detail: { customerId: drawerData.id } }))} className="flex-1 font-semibold text-[13px] bg-fluxeer-blue hover:bg-fluxeer-blue-hover border border-transparent text-white transition-colors h-10 shadow-lg">
                         <Plus className="w-4 h-4 mr-1.5" /> Nova Fatura Manual
                       </Button>
                       <Button variant="outline" onClick={() => { setEditingCustomer(drawerData); setIsCustomerModalOpen(true); }} className="flex-1 font-semibold text-[13px] h-10 border-border text-obsidian hover:bg-slate-50">

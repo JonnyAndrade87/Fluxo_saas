@@ -144,7 +144,7 @@ export default function CustomerFormModal({ initialData, onClose, onSuccess }: P
 
            <div className="pt-4 flex items-center justify-end gap-3 border-t border-border/50">
               <Button type="button" variant="ghost" onClick={onClose} className="font-semibold text-slate-600">Cancelar</Button>
-              <Button type="submit" disabled={isSaving} className="font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-500/20 px-8">
+              <Button type="submit" disabled={isSaving} className="font-semibold bg-fluxeer-blue hover:bg-fluxeer-blue-hover text-white shadow-md shadow-fluxeer-blue/20 px-8">
                  {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Check className="w-4 h-4 mr-2" />}
                  {isSaving ? 'Salvando...' : 'Salvar Dossiê'}
               </Button>

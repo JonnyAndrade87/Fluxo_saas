@@ -114,7 +114,7 @@ export default function ContactFormModal({ customerId, initialData, onClose, onS
 
            <div className="pt-4 flex items-center justify-end gap-2 border-t border-border/50">
               <Button type="button" variant="ghost" size="sm" onClick={onClose} className="font-semibold text-slate-600">Cancelar</Button>
-              <Button type="submit" size="sm" disabled={isSaving} className="font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm shadow-indigo-500/20 px-6">
+              <Button type="submit" size="sm" disabled={isSaving} className="font-semibold bg-fluxeer-blue hover:bg-fluxeer-blue-hover text-white shadow-sm shadow-fluxeer-blue/20 px-6">
                  {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <Check className="w-3.5 h-3.5 mr-1.5" />}
                  {isSaving ? 'Salvando...' : 'Salvar'}
               </Button>

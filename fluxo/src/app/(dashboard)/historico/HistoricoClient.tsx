@@ -475,7 +475,7 @@ export default function HistoricoClient() {
                 onClick={() => setStatusFilter(opt.v)}
                 className={`px-2.5 py-1 rounded-full text-[11px] font-bold shrink-0 transition-all ${
                   statusFilter === opt.v
-                    ? 'bg-indigo-600 text-white'
+                    ? 'bg-fluxeer-blue text-white'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
@@ -602,7 +602,7 @@ export default function HistoricoClient() {
                     key={tab.v}
                     onClick={() => setActiveTab(tab.v as any)}
                     className={`px-4 py-1.5 rounded-md text-[13px] font-semibold transition-colors ${
-                      activeTab === tab.v ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:bg-slate-100'
+                      activeTab === tab.v ? 'bg-fluxeer-blue text-white' : 'text-slate-500 hover:bg-slate-100'
                     }`}
                   >
                     {tab.l}

@@ -181,7 +181,7 @@ export async function getDashboardMetrics() {
         customerName: c.name,
         score: riskScore?.score ?? 0,
         level: riskScore?.level ?? 'Baixo',
-        overdueAmount: riskScore?.metadata.openAmount ?? 0,
+        overdueAmount: riskScore?.metadata?.openAmount ?? 0,
         justification: riskScore?.justification ?? ''
       };
     })

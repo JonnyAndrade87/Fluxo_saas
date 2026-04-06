@@ -34,7 +34,9 @@
   --color-warning: hsl(var(--warning));
   --color-obsidian: hsl(var(--foreground));
   --color-subtle: hsl(var(--muted-foreground));
-  --color-canvas: hsl(var(--background));
+   --color-canvas: hsl(var(--background));
+  --color-fluxeer-blue: #243b5c;
+  --color-fluxeer-blue-hover: #1c2e48;
 
   --radius-xl: calc(var(--radius) + 4px);
   --radius-lg: var(--radius);
@@ -171,14 +173,32 @@
     content: '';
     position: absolute;
     inset: 1px;
-    background: hsl(var(--foreground));
+    background: var(--color-fluxeer-blue);
     border-radius: inherit;
     @apply -z-10 transition-colors duration-300;
   }
-  .btn-beam:hover::after { background: #000000; }
+  .btn-beam:hover::after { background: var(--color-fluxeer-blue-hover); }
 
   .shimmer-layer { transform: translateX(-100%); }
   .group:hover .shimmer-layer { @apply animate-shimmer; }
+
+  .animate-glow-in {
+    opacity: 0;
+    animation: fadeInGlow-custom 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+}
+
+@keyframes fadeInGlow-custom {
+  0% { 
+    opacity: 0; 
+    transform: translateY(15px) scale(0.98); 
+    filter: blur(8px) brightness(1.5); 
+  }
+  100% { 
+    opacity: 1; 
+    transform: translateY(0) scale(1); 
+    filter: blur(0px) brightness(1); 
+  }
 }
 
 @keyframes shimmer {
@@ -193,6 +213,11 @@
 @keyframes fadeIn {
   0% { opacity: 0; }
   100% { opacity: 1; }
+}
+
+@keyframes slideBlur {
+  0% { opacity: 0; transform: translateY(30px); filter: blur(10px); }
+  100% { opacity: 1; transform: translateY(0); filter: blur(0px); }
 }
 
 @keyframes pulse-glow {

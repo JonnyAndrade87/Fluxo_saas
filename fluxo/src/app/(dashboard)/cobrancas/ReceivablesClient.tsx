@@ -146,8 +146,10 @@ export default function ReceivablesClient({ initialData, initialTotalPages = 1 }
             Gestão unificada de faturas. Analise o status, filtre por risco e engatilhe ações rápidas.
           </p>
         </div>
-        <Button variant="beam" onClick={() => window.dispatchEvent(new CustomEvent('open-new-invoice-modal'))} className="gap-2 shadow-sm rounded-full px-6">
-          <Plus className="w-4 h-4" /> Nova Cobrança
+        <Button className="btn-beam shadow-lg rounded-lg overflow-hidden relative group border-none bg-fluxeer-blue text-white hover:bg-fluxeer-blue-hover px-6" onClick={() => window.dispatchEvent(new CustomEvent('open-new-invoice-modal'))}>
+          <span className="relative z-10 flex items-center gap-2 font-semibold">
+            <Plus className="w-4 h-4" /> Nova Cobrança
+          </span>
         </Button>
       </div>
 
@@ -487,7 +489,7 @@ export default function ReceivablesClient({ initialData, initialTotalPages = 1 }
                     </>
                   )}
                   {selectedInvoice.status === 'CANCELED' && (
-                    <Button onClick={() => handleReopen(selectedInvoice.id)} className="w-full h-12 text-base font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xl shadow-indigo-600/20">
+                    <Button onClick={() => handleReopen(selectedInvoice.id)} className="w-full h-12 text-base font-semibold bg-fluxeer-blue hover:bg-fluxeer-blue-hover text-white shadow-xl shadow-fluxeer-blue/20">
                       <RefreshCcw className="w-4 h-4 mr-2" /> Reabrir Fatura Cancelada
                     </Button>
                   )}

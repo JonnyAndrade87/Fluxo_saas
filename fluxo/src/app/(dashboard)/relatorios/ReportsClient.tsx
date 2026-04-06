@@ -124,7 +124,7 @@ export default function ReportsClient({ initialData }: { initialData: ReportMetr
               onClick={() => changePeriod(opt.v)}
               className={`px-4 py-1.5 rounded-lg text-[13px] font-bold transition-all duration-150 ${
                 period === opt.v
-                  ? 'bg-indigo-600 text-white shadow-sm'
+                  ? 'bg-fluxeer-blue text-white shadow-sm'
                   : 'text-slate-500 hover:text-obsidian hover:bg-slate-50'
               }`}
             >

@@ -71,7 +71,7 @@ export default async function Dashboard() {
              <Button variant="outline" className="shadow-sm font-semibold rounded-lg bg-white border-border text-obsidian hover:bg-gray-50">Exportar Relatório</Button>
            </Link>
            <Link href="/cobrancas">
-             <Button className="btn-beam shadow-lg rounded-lg overflow-hidden relative group border-none bg-obsidian text-white hover:bg-black">
+             <Button className="btn-beam shadow-lg rounded-lg overflow-hidden relative group border-none bg-fluxeer-blue text-white hover:bg-fluxeer-blue-hover">
                 <span className="relative z-10 flex items-center gap-2 font-semibold">
                   <DollarSign className="w-4 h-4" /> Nova Fatura
                 </span>

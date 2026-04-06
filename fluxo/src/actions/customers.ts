@@ -13,7 +13,7 @@ interface SessionUser {
   role: string;
 }
 
-export async function getCustomersList(search?: string) {
+export async function getCustomersList(search?: string, riskFilter?: string) {
   const session = await auth();
   const tenantId = (session?.user as SessionUser)?.tenantId;
 
@@ -108,6 +108,10 @@ export async function getCustomersList(search?: string) {
     })
   );
 
+  if (riskFilter && riskFilter !== 'Todos' && riskFilter !== 'all') {
+    return enhancedCustomers.filter((c) => c.riskLevel.toLowerCase() === riskFilter.toLowerCase());
+  }
+
   return enhancedCustomers;
 }
 
@@ -141,7 +145,18 @@ export async function getCustomerDetails(customerId: string) {
     }
   });
 
-  return customer;
+  if (!customer) return null;
+
+  const riskScoreData = await getRiskScoreForCustomer(customer.id, tenantId);
+
+  return {
+    ...customer,
+    riskScore: riskScoreData?.score ?? 0,
+    riskLevel: riskScoreData?.level ?? 'Baixo',
+    riskJustification: riskScoreData?.justification ?? '',
+    riskRecommendation: riskScoreData?.recommendation ?? '',
+    riskMetadata: riskScoreData?.metadata ?? null,
+  };
 }
 
 export async function upsertCustomer(data: any) {

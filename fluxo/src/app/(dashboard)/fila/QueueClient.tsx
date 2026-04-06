@@ -146,7 +146,7 @@ export default function QueueClient({ initialStats, initialDlqItems }: Props) {
                       <button
                         onClick={() => handleRequeue(item.id)}
                         disabled={requeueingId === item.id}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-bold rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-bold rounded-lg bg-fluxeer-blue text-white hover:bg-fluxeer-blue-hover transition-colors disabled:opacity-50"
                       >
                         {requeueingId === item.id
                           ? <Loader2 className="w-3 h-3 animate-spin" />

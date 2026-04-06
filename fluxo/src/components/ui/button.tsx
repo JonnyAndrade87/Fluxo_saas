@@ -8,13 +8,13 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-obsidian text-white hover:bg-obsidian/90 hover:shadow-md hover:-translate-y-[1px]",
+        default: "bg-fluxeer-blue text-white hover:bg-fluxeer-blue-hover hover:shadow-md hover:-translate-y-[1px]",
         destructive: "bg-rose-500 text-white hover:bg-rose-600 shadow-sm",
         outline: "border border-border/80 bg-white hover:bg-muted/50 hover:text-foreground hover:border-border shadow-sm",
         secondary: "bg-indigo-50 text-indigo-700 hover:bg-indigo-100",
         ghost: "hover:bg-muted/50 hover:text-foreground",
         link: "text-indigo-600 underline-offset-4 hover:underline",
-        beam: "btn-beam bg-obsidian text-white group",
+        beam: "btn-beam bg-fluxeer-blue text-white group",
       },
       size: {
         default: "h-10 px-5 py-2",

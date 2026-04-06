@@ -21,7 +21,7 @@ const CustomToggle = ({ checked, onChange, label }: { checked: boolean, onChange
          checked={checked} 
          onChange={(e) => onChange(e.target.checked)} 
       />
-      <div className={`block w-10 h-6 rounded-full transition-colors duration-300 ${checked ? 'bg-indigo-600' : 'bg-slate-200 border border-slate-300'}`}></div>
+      <div className={`block w-10 h-6 rounded-full transition-colors duration-300 ${checked ? 'bg-fluxeer-blue' : 'bg-slate-200 border border-slate-300'}`}></div>
       <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-300 shadow-sm ${checked ? 'translate-x-4' : 'translate-x-0'}`}></div>
     </div>
     {label && (
@@ -166,7 +166,7 @@ export default function ReguaClient() {
             variant={saved ? "default" : "beam"}
             onClick={handleSave} 
             disabled={isSaving} 
-            className={`h-10 px-6 rounded-full font-semibold shadow-sm shadow-indigo-500/20 transition-all duration-300 ${saved ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/30 scale-105 animate-in zoom-in-95' : 'active:scale-95'}`}
+            className={`h-10 px-6 rounded-full font-semibold shadow-sm shadow-fluxeer-blue/20 transition-all duration-300 ${saved ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/30 scale-105 animate-in zoom-in-95' : 'active:scale-95'}`}
           >
             {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : saved ? <CheckCircle className="w-4 h-4 text-white mr-2" /> : <UploadCloud className="w-4 h-4 mr-2" />}
             {isSaving ? 'Aplicando...' : saved ? 'Publicado com Sucesso!' : 'Salvar & Publicar'}
@@ -279,7 +279,7 @@ export default function ReguaClient() {
                       key={`btn-${stage.id}`}
                       onClick={() => setActiveTemplateStage(stage.id)}
                       className={`px-4 py-2 shrink-0 rounded-full text-xs font-bold border transition-all ${
-                        activeTemplateStage === stage.id ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-600/20' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                        activeTemplateStage === stage.id ? 'bg-fluxeer-blue text-white border-fluxeer-blue shadow-md shadow-fluxeer-blue/20' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
                       }`}
                     >
                       {stage.name}

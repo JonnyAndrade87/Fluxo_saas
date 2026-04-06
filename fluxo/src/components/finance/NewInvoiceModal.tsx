@@ -115,7 +115,7 @@ export default function NewInvoiceModal() {
        <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 relative border border-border/60">
           
           {/* Header */}
-          <div className="bg-[#050B14] text-white p-6 pb-8 relative overflow-hidden">
+          <div className="bg-fluxeer-blue text-white p-6 pb-8 relative overflow-hidden">
              <div className="absolute right-0 top-0 bottom-0 w-1/2 bg-gradient-to-l from-indigo-500/20 to-transparent"></div>
              <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)} className="absolute top-4 right-4 rounded-full text-white/50 hover:bg-white/10 hover:text-white z-10 transition-colors">
                 <X className="w-5 h-5" />
@@ -209,7 +209,7 @@ export default function NewInvoiceModal() {
               {/* Footer Buttons */}
               <div className="pt-4 flex items-center gap-3 border-t border-border/50">
                  <Button type="button" variant="ghost" onClick={() => setIsOpen(false)} className="flex-1 font-semibold text-muted-foreground">Cancelar</Button>
-                 <Button type="submit" disabled={isPending || !customerId || !amount || !dueDate} className="flex-1 h-11 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl shadow-lg shadow-indigo-600/20">
+                 <Button type="submit" disabled={isPending || !customerId || !amount || !dueDate} className="flex-1 h-11 bg-fluxeer-blue hover:bg-fluxeer-blue-hover text-white font-semibold rounded-xl shadow-lg shadow-fluxeer-blue/20">
                     {isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : (invoiceId ? 'Salvar Edição' : 'Emitir Título')}
                  </Button>
               </div>

@@ -58,7 +58,7 @@ export default function ResetPasswordClient() {
           </p>
         </div>
         <div className="mt-8 relative z-20 flex justify-center">
-            <Button className="w-full h-12 bg-indigo-600 hover:bg-indigo-700" onClick={() => router.push('/login')}>
+            <Button className="w-full h-12 bg-fluxeer-blue hover:bg-fluxeer-blue-hover" onClick={() => router.push('/login')}>
                Acessar o Painel Agora
             </Button>
         </div>
