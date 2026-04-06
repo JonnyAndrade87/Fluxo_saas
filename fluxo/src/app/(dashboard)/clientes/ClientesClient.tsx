@@ -366,6 +366,31 @@ export default function ClientesClient({ initialData }: { initialData: any[] }) 
                               </p>
                             </div>
                           )}
+                          {/* Risk Component Breakdown */}
+                          {drawerData.riskMetadata && (
+                            <div className="pt-3 border-t" style={{
+                              borderColor: drawerData.riskLevel === 'Baixo' ? '#d1fae5' :
+                                          drawerData.riskLevel === 'Médio' ? '#fed7aa' :
+                                          drawerData.riskLevel === 'Alto' ? '#fed7aa' :
+                                          '#fee2e2'
+                            }}>
+                              <p className="text-[10px] font-bold uppercase tracking-widest mb-2.5 opacity-60">Fatores de Composição</p>
+                              <div className="space-y-1.5">
+                                {[
+                                  { label: 'Nº de Atrasos', value: `${drawerData.riskMetadata.delayCount} ocorrências` },
+                                  { label: 'Atraso Máximo', value: `${drawerData.riskMetadata.maxDelayDays} dias` },
+                                  { label: 'Atraso Médio', value: `${drawerData.riskMetadata.avgDelayDays} dias` },
+                                  { label: 'Valor em Aberto', value: formatCurrency(drawerData.riskMetadata.openAmount) },
+                                  { label: 'Promessas Quebradas', value: `${drawerData.riskMetadata.promisesBrokenCount}` },
+                                ].map(item => (
+                                  <div key={item.label} className="flex justify-between items-center text-[11px]">
+                                    <span className="opacity-70">{item.label}</span>
+                                    <span className="font-bold">{item.value}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
 
                         {/* Contatos Rápidos Box */}
