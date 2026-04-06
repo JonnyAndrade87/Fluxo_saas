@@ -53,12 +53,19 @@ export const { auth, signIn, signOut, handlers: { GET, POST } } = NextAuth({
 
           const tenantUser = user.tenants[0];
 
+          const isSuperAdmin = !!process.env.SUPER_ADMIN_EMAILS && 
+            process.env.SUPER_ADMIN_EMAILS
+              .split(',')
+              .map(e => e.trim().toLowerCase())
+              .includes(user.email.toLowerCase());
+
           return {
             id: user.id,
             email: user.email,
             name: user.fullName,
             tenantId: tenantUser?.tenantId ?? null,
             role: tenantUser?.role ?? 'operator',
+            isSuperAdmin,
           };
         } catch (error: any) {
           console.error('AUTHORIZE CRASH:', error.message);
@@ -74,6 +81,7 @@ export const { auth, signIn, signOut, handlers: { GET, POST } } = NextAuth({
         token.id = user.id;
         token.tenantId = user.tenantId;
         token.role = user.role;
+        token.isSuperAdmin = user.isSuperAdmin;
       }
       return token;
     },
@@ -82,6 +90,7 @@ export const { auth, signIn, signOut, handlers: { GET, POST } } = NextAuth({
         session.user.id = (token.id as string) || (token.sub as string);
         session.user.tenantId = token.tenantId as string | null;
         session.user.role = token.role as string;
+        session.user.isSuperAdmin = !!token.isSuperAdmin;
       }
       return session;
     }
