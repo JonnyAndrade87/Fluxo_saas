@@ -19,7 +19,7 @@ export default function AuthLayout({
       
       <div className="relative z-10 w-full max-w-md px-6">
         <div className="flex justify-center mb-8">
-          <Image src="/logo_fluxeer_login.png" alt="Fluxeer" width={180} height={50} className="object-contain" />
+          <img src="/logo_fluxeer_login.png" alt="Fluxeer" className="object-contain h-[50px] w-auto max-w-[180px]" />
         </div>
 
         {children}
