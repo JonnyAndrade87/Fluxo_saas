@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useEffect } from 'react';
+import { useActionState, useEffect, useState } from 'react';
 import { register } from '@/actions/auth';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,27 @@ import { useRouter } from 'next/navigation';
 
 export default function RegisterPage() {
   const [state, dispatch, isPending] = useActionState(register, undefined);
+  const [cnpj, setCnpj] = useState('');
   const router = useRouter();
+
+  const handleCnpjChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/\D/g, ''); // Remove no-digits
+    if (value.length > 14) value = value.slice(0, 14);
+
+    if (value.length <= 11) {
+      // mask CPF
+      value = value.replace(/(\d{3})(\d)/, '$1.$2');
+      value = value.replace(/(\d{3})(\d)/, '$1.$2');
+      value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    } else {
+      // mask CNPJ
+      value = value.replace(/^(\d{2})(\d)/, '$1.$2');
+      value = value.replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3');
+      value = value.replace(/\.(\d{3})(\d)/, '.$1/$2');
+      value = value.replace(/(\d{4})(\d)/, '$1-$2');
+    }
+    setCnpj(value);
+  };
 
   useEffect(() => {
     if (state?.success) {
@@ -74,6 +94,8 @@ export default function RegisterPage() {
               name="cnpj"
               placeholder="00.000.000/0001-00"
               required
+              value={cnpj}
+              onChange={handleCnpjChange}
               className="h-11 font-mono text-sm tracking-wider"
             />
           </div>
