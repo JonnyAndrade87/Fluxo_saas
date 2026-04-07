@@ -1,5 +1,6 @@
 import NextAuth from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
+import Google from 'next-auth/providers/google';
 import { authConfig } from './auth.config';
 import { z } from 'zod';
 import prisma from '@/lib/db';
@@ -8,6 +9,10 @@ import bcrypt from 'bcryptjs';
 export const { auth, signIn, signOut, handlers: { GET, POST } } = NextAuth({
   ...authConfig,
   providers: [
+    Google({
+      clientId: process.env.AUTH_GOOGLE_ID,
+      clientSecret: process.env.AUTH_GOOGLE_SECRET,
+    }),
     Credentials({
       async authorize(credentials) {
         try {
@@ -76,8 +81,85 @@ export const { auth, signIn, signOut, handlers: { GET, POST } } = NextAuth({
   ],
   callbacks: {
     ...authConfig.callbacks,
-    async jwt({ token, user }) {
-      if (user) {
+    async signIn({ user, account, profile }) {
+      if (account?.provider === 'google') {
+        if (!profile?.email_verified) {
+           throw new Error("Apenas e-mails verificados pelo Google são permitidos.");
+        }
+
+        const email = user.email!;
+        
+        let dbUser = await prisma.user.findUnique({
+          where: { email }
+        });
+
+        if (dbUser) {
+          // Linked account: update googleId if not present
+          if (!dbUser.googleId) {
+            await prisma.user.update({
+              where: { id: dbUser.id },
+              data: { googleId: account.providerAccountId }
+            });
+          }
+          return true;
+        }
+
+        // New Account -> Register with minimum required data
+        await prisma.$transaction(async (tx) => {
+          const companyName = user.name ? `${user.name} Workspace` : `Minha Empresa`;
+          const tenant = await tx.tenant.create({
+            data: {
+              name: companyName,
+              documentNumber: `TMP-GGL-${Date.now()}`,
+            }
+          });
+
+          const createdUser = await tx.user.create({
+            data: {
+              email,
+              fullName: user.name || "Google User",
+              googleId: account.providerAccountId,
+            }
+          });
+
+          await tx.tenantUser.create({
+            data: {
+              tenantId: tenant.id,
+              userId: createdUser.id,
+              role: 'admin'
+            }
+          });
+        });
+
+        return true;
+      }
+
+      return true; // Credentials fallback allows sign-in naturally
+    },
+    async jwt({ token, user, account }) {
+      // Setup payload based on the Provider logic
+      if (account?.provider === 'google' && user?.email) {
+        // Needs to fetch DB user manually because Oauth lacks custom authorization returns
+        const dbUser = await prisma.user.findUnique({
+          where: { email: user.email },
+          include: { tenants: { take: 1, select: { tenantId: true, role: true } } }
+        });
+
+        if (dbUser) {
+          token.id = dbUser.id;
+          token.tenantId = dbUser.tenants[0]?.tenantId ?? null;
+          token.role = dbUser.tenants[0]?.role ?? 'operator';
+
+          const isSuperAdmin = !!process.env.SUPER_ADMIN_EMAILS && 
+            process.env.SUPER_ADMIN_EMAILS
+              .split(',')
+              .map(e => e.trim().toLowerCase())
+              .includes(dbUser.email.toLowerCase());
+              
+          token.isSuperAdmin = isSuperAdmin;
+        }
+      } else if (user) {
+        // Credentials provider injects values directly from authorize() step
         token.id = user.id;
         token.tenantId = user.tenantId;
         token.role = user.role;
