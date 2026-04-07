@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
 import {
   ArrowRight,
   Building2,
@@ -126,14 +125,12 @@ export default function OnboardingFlow() {
     <StepWrapper stepKey={1}>
       <div className="flex flex-col items-center text-center gap-8">
         {/* Official Fluxeer Logo */}
-        <div className="flex flex-col items-center gap-5">
-          <Image
+        <div className="flex flex-col items-center">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             src="/logo_fluxeer.png"
             alt="Fluxeer"
-            width={200}
-            height={56}
-            className="h-12 w-auto object-contain"
-            priority
+            style={{ height: '48px', width: 'auto', objectFit: 'contain' }}
           />
         </div>
 
