@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { Prisma } from '@prisma/client'
 import prisma from '@/lib/prisma'
+import { sendEmail, buildWelcomeEmailHtml } from '@/lib/messaging/email'
 
 type RegisterBody = {
   name?: string
@@ -78,6 +79,17 @@ export async function POST(request: Request) {
 
       return { tenantId: tenant.id, userId: user.id }
     })
+
+    // Disparar E-mail de Boas-Vindas de forma assíncrona (fire and forget)
+    void sendEmail({
+      to: email,
+      subject: 'Bem-vindo ao Fluxo',
+      html: buildWelcomeEmailHtml({
+        name: name || 'Usuário',
+        companyName: company || 'Sua Empresa',
+        email,
+      }),
+    }).catch(err => console.error("Erro ao disparar welcome email (Credentials):", err));
 
     return NextResponse.json({ success: true, tenantId, userId }, { status: 201 })
   } catch (error) {

@@ -5,6 +5,7 @@ import { authConfig } from './auth.config';
 import { z } from 'zod';
 import prisma from '@/lib/db';
 import bcrypt from 'bcryptjs';
+import { sendEmail, buildWelcomeEmailHtml } from '@/lib/messaging/email';
 
 export const { auth, signIn, signOut, handlers: { GET, POST } } = NextAuth({
   ...authConfig,
@@ -130,6 +131,21 @@ export const { auth, signIn, signOut, handlers: { GET, POST } } = NextAuth({
             }
           });
         });
+
+        // Enviar E-mail de Boas Vindas para o usuário recém-criado
+        // Fire and forget (assíncrono) para não travar a autorização
+        const fallbackName = user.name || "Usuário";
+        const fallbackCompany = user.name ? `${user.name} Workspace` : `Sua Empresa`;
+        
+        void sendEmail({
+          to: email,
+          subject: 'Bem-vindo ao Fluxo',
+          html: buildWelcomeEmailHtml({
+            name: fallbackName,
+            companyName: fallbackCompany,
+            email,
+          }),
+        }).catch(err => console.error("Erro ao disparar welcome email (Google Oauth):", err));
 
         return true;
       }
