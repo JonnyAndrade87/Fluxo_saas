@@ -141,4 +141,156 @@ export function buildBillingEmailHtml({
 </body>
 </html>
   `.trim();
+}/**
+ * Shared header/footer helpers for Fluxeer branded emails
+ */
+function emailHeader(title: string, subtitle?: string): string {
+  return `
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:linear-gradient(135deg,#4F46E5 0%,#6D28D9 100%);padding:32px 40px;">
+      <tr>
+        <td>
+          <table cellpadding="0" cellspacing="0">
+            <tr>
+              <td style="padding-right:14px;vertical-align:middle;">
+                <div style="width:36px;height:36px;background:rgba(255,255,255,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;">
+                  <span style="color:#fff;font-size:20px;font-weight:900;font-family:sans-serif;">F</span>
+                </div>
+              </td>
+              <td style="vertical-align:middle;">
+                <span style="color:#ffffff;font-size:20px;font-weight:800;font-family:sans-serif;letter-spacing:-0.5px;">Fluxo</span>
+                <br/>
+                <span style="color:rgba(255,255,255,0.7);font-size:11px;font-family:sans-serif;text-transform:uppercase;letter-spacing:1px;">by Fluxeer</span>
+              </td>
+            </tr>
+          </table>
+          <h1 style="margin:20px 0 0;color:#ffffff;font-size:22px;font-weight:700;font-family:sans-serif;letter-spacing:-0.5px;">${title}</h1>
+          ${subtitle ? `<p style="margin:6px 0 0;color:rgba(255,255,255,0.75);font-size:13px;font-family:sans-serif;">${subtitle}</p>` : ''}
+        </td>
+      </tr>
+    </table>
+  `;
+}
+
+function emailFooter(): string {
+  const year = new Date().getFullYear();
+  return `
+    <tr>
+      <td style="background:#F8FAFC;padding:24px 40px;border-top:1px solid #E2E8F0;">
+        <p style="margin:0;color:#94A3B8;font-size:12px;text-align:center;font-family:sans-serif;line-height:1.6;">
+          Fluxeer &copy; ${year} &nbsp;&bull;&nbsp; Plataforma de Cobran&ccedil;a Inteligente<br/>
+          Voc&ecirc; est&aacute; recebendo este e-mail pois tem uma conta ativa no Fluxo.<br/>
+          N&atilde;o responda a este e-mail.
+        </p>
+      </td>
+    </tr>
+  `;
+}
+
+function wrapEmailLayout(bodyRows: string): string {
+  return `
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fluxo</title>
+</head>
+<body style="margin:0;padding:0;background-color:#F1F5F9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#F1F5F9;padding:40px 16px;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 2px 16px rgba(0,0,0,0.08);">
+        ${bodyRows}
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>
+  `.trim();
+}
+
+/**
+ * Build Fluxeer branded welcome email after tenant registration.
+ */
+export function buildWelcomeEmailHtml({
+  name,
+  companyName,
+  email,
+  loginUrl = 'https://fluxo-psi-sepia.vercel.app/login',
+}: {
+  name: string;
+  companyName: string;
+  email: string;
+  loginUrl?: string;
+}): string {
+  const firstName = name.split(' ')[0];
+  const body = `
+    <tr><td>${emailHeader('Bem-vindo ao Fluxo!', 'Sua plataforma de cobran\u00e7a inteligente est\u00e1 pronta.')}</td></tr>
+    <tr>
+      <td style="padding:40px;">
+        <p style="margin:0 0 20px;color:#1E293B;font-size:16px;font-weight:600;">Ol\u00e1, ${firstName}! 👋</p>
+        <p style="margin:0 0 16px;color:#475569;font-size:15px;line-height:1.7;">
+          O ambiente corporativo para <strong style="color:#1E293B;">${companyName}</strong> foi implantado com sucesso.
+          Agora voc\u00ea tem acesso completo ao seu cockpit financeiro.
+        </p>
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:12px;margin:24px 0;">
+          <tr><td style="padding:20px 24px;">
+            <p style="margin:0 0 8px;color:#64748B;font-size:12px;text-transform:uppercase;letter-spacing:1px;font-weight:600;">O que voc\u00ea pode fazer agora</p>
+            <ul style="margin:0;padding-left:20px;color:#475569;font-size:14px;line-height:2;">
+              <li>Cadastrar clientes e emitir faturas</li>
+              <li>Monitorar o score de risco da sua carteira</li>
+              <li>Disparar cobran\u00e7as inteligentes com r\u00e9gua autom\u00e1tica</li>
+              <li>Acompanhar KPIs financeiros no Cockpit Executivo</li>
+            </ul>
+          </td></tr>
+        </table>
+        <p style="margin:0 0 8px;color:#94A3B8;font-size:13px;">Seu acesso:</p>
+        <p style="margin:0 0 32px;color:#1E293B;font-size:14px;font-weight:600;font-family:monospace;background:#F1F5F9;padding:10px 16px;border-radius:8px;display:inline-block;">${email}</p>
+        <div style="text-align:center;">
+          <a href="${loginUrl}" style="background:linear-gradient(135deg,#4F46E5,#6D28D9);color:#ffffff;padding:14px 32px;text-decoration:none;border-radius:10px;font-weight:700;font-size:15px;display:inline-block;letter-spacing:-0.2px;">Acessar Minha Plataforma &rarr;</a>
+        </div>
+      </td>
+    </tr>
+    ${emailFooter()}
+  `;
+  return wrapEmailLayout(body);
+}
+
+/**
+ * Build Fluxeer branded password reset email.
+ */
+export function buildPasswordResetEmailHtml({
+  name,
+  resetUrl,
+}: {
+  name: string;
+  resetUrl: string;
+}): string {
+  const firstName = name.split(' ')[0];
+  const body = `
+    <tr><td>${emailHeader('Redefini\u00e7\u00e3o de Senha', 'Link seguro com validade de 2 horas.')}</td></tr>
+    <tr>
+      <td style="padding:40px;">
+        <p style="margin:0 0 20px;color:#1E293B;font-size:16px;font-weight:600;">Ol\u00e1, ${firstName}!</p>
+        <p style="margin:0 0 16px;color:#475569;font-size:15px;line-height:1.7;">
+          Recebemos uma solicita\u00e7\u00e3o para redefinir a senha da sua conta no <strong style="color:#4F46E5;">Fluxo</strong>.
+          Se foi voc\u00ea, clique no bot\u00e3o abaixo para criar uma nova senha em segura.
+        </p>
+        <div style="text-align:center;margin:36px 0;">
+          <a href="${resetUrl}" style="background:linear-gradient(135deg,#4F46E5,#6D28D9);color:#ffffff;padding:14px 32px;text-decoration:none;border-radius:10px;font-weight:700;font-size:15px;display:inline-block;">Redefinir Minha Senha &rarr;</a>
+        </div>
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:10px;margin-bottom:24px;">
+          <tr><td style="padding:16px 20px;">
+            <p style="margin:0;color:#92400E;font-size:13px;line-height:1.6;">
+              &#9888;&#65039; Este link expira automaticamente em <strong>2 horas</strong>.<br/>
+              Se n\u00e3o foi voc\u00ea, basta ignorar este e-mail. Sua conta continua 100% protegida.
+            </p>
+          </td></tr>
+        </table>
+        <p style="margin:0;color:#94A3B8;font-size:12px;text-align:center;">Se o bot\u00e3o n\u00e3o funcionar, copie e cole o link abaixo no navegador:</p>
+        <p style="margin:8px 0 0;color:#64748B;font-size:11px;text-align:center;word-break:break-all;">${resetUrl}</p>
+      </td>
+    </tr>
+    ${emailFooter()}
+  `;
+  return wrapEmailLayout(body);
 }

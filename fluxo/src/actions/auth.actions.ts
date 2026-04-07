@@ -1,7 +1,7 @@
 'use server';
 
 import prisma from '@/lib/db';
-import { sendEmail } from '@/lib/messaging/email';
+import { sendEmail, buildPasswordResetEmailHtml } from '@/lib/messaging/email';
 import { randomUUID } from 'crypto';
 import bcrypt from 'bcryptjs';
 
@@ -38,29 +38,13 @@ export async function requestPasswordReset(email: string) {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://fluxo-psi-sepia.vercel.app';
     const resetUrl = `${baseUrl}/reset-password?token=${token}`;
 
-    const emailHtml = `
-      <div style="font-family: sans-serif; max-w: 600px; margin: 0 auto; color: #1a1a2e; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-        <div style="background-color: #4f46e5; padding: 24px; text-align: center;">
-          <h2 style="color: white; margin: 0;">Fluxo SaaS</h2>
-        </div>
-        <div style="padding: 32px; background-color: #ffffff;">
-          <h3 style="margin-top: 0;">Recuperação de Senha Segura</h3>
-          <p>Olá ${user.fullName.split(' ')[0]},</p>
-          <p>Recebemos uma solicitação para redefinir a sua senha no Fluxo. Se foi você, basta clicar no botão abaixo para escolher sua nova credencial em segurança.</p>
-          
-          <div style="text-align: center; margin: 32px 0;">
-            <a href="${resetUrl}" style="background-color: #1a1a2e; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Redefinir Minha Senha</a>
-          </div>
-
-          <p style="font-size: 13px; color: #64748b; margin-bottom: 0;">Este link criptografado expira automaticamente em 2 horas.<br/>Se não recém-solicitou uma nova senha, basta ignorar este email. Sua conta continua 100% protegida.</p>
-        </div>
-      </div>
-    `;
-
     await sendEmail({
       to: email,
-      subject: 'Redefinição de Senha - Fluxo',
-      html: emailHtml,
+      subject: 'Redefinição de Senha — Fluxo',
+      html: buildPasswordResetEmailHtml({
+        name: user.fullName,
+        resetUrl,
+      }),
       text: `Link de redefinição: ${resetUrl}`
     });
 
