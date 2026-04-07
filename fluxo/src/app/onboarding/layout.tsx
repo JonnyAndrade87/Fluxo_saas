@@ -6,11 +6,14 @@ export default function OnboardingLayout({
   return (
     <div className="min-h-screen bg-[#F5F7FA] flex flex-col font-sans selection:bg-[#1A3A5F]/10 selection:text-[#1A3A5F]">
 
-      {/* Minimal Topbar — sem logo para evitar duplicidade com o card */}
-      <header className="h-14 flex items-center justify-center bg-white/80 backdrop-blur-md border-b border-[#E4E9F0] sticky top-0 z-50">
-        <span className="text-[#1A3A5F] font-extrabold text-lg tracking-tight">
-          Fluxeer<span className="text-[#00D2C8]">.</span>
-        </span>
+      {/* Header com logo oficial */}
+      <header className="h-16 flex items-center justify-center bg-white/80 backdrop-blur-md border-b border-[#E4E9F0] sticky top-0 z-50">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/logo_fluxeer.png"
+          alt="Fluxeer"
+          style={{ height: '36px', width: 'auto', objectFit: 'contain' }}
+        />
       </header>
 
       {/* Main Content */}

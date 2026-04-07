@@ -124,15 +124,7 @@ export default function OnboardingFlow() {
   const StepWelcome = (
     <StepWrapper stepKey={1}>
       <div className="flex flex-col items-center text-center gap-8">
-        {/* Official Fluxeer Logo */}
-        <div className="flex flex-col items-center">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/logo_fluxeer.png"
-            alt="Fluxeer"
-            style={{ height: '48px', width: 'auto', objectFit: 'contain' }}
-          />
-        </div>
+        {/* Logo removido do card — fica apenas no header */}
 
         <div className="space-y-4 max-w-sm">
           <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-[#1A3A5F] leading-tight">
