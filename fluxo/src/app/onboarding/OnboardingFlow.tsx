@@ -125,17 +125,22 @@ export default function OnboardingFlow() {
   const StepWelcome = (
     <StepWrapper stepKey={1}>
       <div className="flex flex-col items-center text-center gap-8">
-        {/* Logo mark */}
-        <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#1A3A5F] to-[#00D2C8] flex items-center justify-center shadow-2xl shadow-[#1A3A5F]/30">
-          <span className="text-white font-black text-4xl leading-none tracking-tighter">F</span>
+        {/* Official Fluxeer Logo */}
+        <div className="flex flex-col items-center gap-5">
+          <Image
+            src="/logo_fluxeer.png"
+            alt="Fluxeer"
+            width={200}
+            height={56}
+            className="h-12 w-auto object-contain"
+            priority
+          />
         </div>
 
         <div className="space-y-4 max-w-sm">
-          <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-[#0F1C2E] leading-tight">
+          <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-[#1A3A5F] leading-tight">
             Bem-vindo ao<br />
-            <span className="bg-gradient-to-r from-[#1A3A5F] to-[#00D2C8] bg-clip-text text-transparent">
-              Fluxeer
-            </span>
+            <span className="text-[#00D2C8]">Fluxeer.</span>
           </h1>
           <p className="text-[#64748B] text-base leading-relaxed">
             Vamos configurar seu espaço financeiro em menos de 1 minuto.
@@ -145,7 +150,7 @@ export default function OnboardingFlow() {
         <div className="flex flex-col items-center gap-3 w-full max-w-xs">
           <button
             onClick={next}
-            className="w-full h-14 rounded-2xl bg-gradient-to-r from-[#1A3A5F] to-[#0A5F8A] text-white font-bold text-base flex items-center justify-center gap-2 shadow-xl shadow-[#1A3A5F]/25 hover:shadow-2xl hover:shadow-[#1A3A5F]/35 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
+            className="w-full h-14 rounded-2xl bg-[#1A3A5F] text-white font-bold text-base flex items-center justify-center gap-2 shadow-xl shadow-[#1A3A5F]/25 hover:bg-[#1A3A5F]/90 hover:shadow-2xl hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
           >
             Iniciar configuração
             <ArrowRight className="w-5 h-5" />
@@ -166,7 +171,7 @@ export default function OnboardingFlow() {
     <StepWrapper stepKey={2}>
       <div className="space-y-8">
         <div className="space-y-2">
-          <h2 className="text-3xl font-extrabold tracking-tight text-[#0F1C2E]">
+          <h2 className="text-3xl font-extrabold tracking-tight text-[#1A3A5F]">
             Sua empresa
           </h2>
           <p className="text-[#64748B] text-sm">
@@ -266,7 +271,7 @@ export default function OnboardingFlow() {
     <StepWrapper stepKey={3}>
       <div className="space-y-8">
         <div className="space-y-2">
-          <h2 className="text-3xl font-extrabold tracking-tight text-[#0F1C2E]">
+          <h2 className="text-3xl font-extrabold tracking-tight text-[#1A3A5F]">
             Como você cobra?
           </h2>
           <p className="text-[#64748B] text-sm">
@@ -319,7 +324,7 @@ export default function OnboardingFlow() {
           <button
             onClick={next}
             disabled={!form.billingModel}
-            className="flex-1 h-14 rounded-xl bg-gradient-to-r from-[#1A3A5F] to-[#0A5F8A] text-white font-bold flex items-center justify-center gap-2 shadow-lg shadow-[#1A3A5F]/20 hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:shadow-none transition-all duration-200"
+            className="flex-1 h-14 rounded-xl bg-[#1A3A5F] text-white font-bold flex items-center justify-center gap-2 shadow-lg shadow-[#1A3A5F]/20 hover:bg-[#1A3A5F]/90 hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:shadow-none transition-all duration-200"
           >
             Continuar
             <ArrowRight className="w-5 h-5" />
@@ -352,7 +357,7 @@ export default function OnboardingFlow() {
     <StepWrapper stepKey={4}>
       <div className="space-y-8">
         <div className="space-y-2">
-          <h2 className="text-3xl font-extrabold tracking-tight text-[#0F1C2E]">
+          <h2 className="text-3xl font-extrabold tracking-tight text-[#1A3A5F]">
             Automação de cobranças
           </h2>
           <p className="text-[#64748B] text-sm">
@@ -406,7 +411,7 @@ export default function OnboardingFlow() {
           <button
             onClick={next}
             disabled={!form.automation}
-            className="flex-1 h-14 rounded-xl bg-gradient-to-r from-[#1A3A5F] to-[#0A5F8A] text-white font-bold flex items-center justify-center gap-2 shadow-lg shadow-[#1A3A5F]/20 hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:shadow-none transition-all duration-200"
+            className="flex-1 h-14 rounded-xl bg-[#1A3A5F] text-white font-bold flex items-center justify-center gap-2 shadow-lg shadow-[#1A3A5F]/20 hover:bg-[#1A3A5F]/90 hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:shadow-none transition-all duration-200"
           >
             Finalizar setup
             <ArrowRight className="w-5 h-5" />
@@ -422,15 +427,15 @@ export default function OnboardingFlow() {
       <div className="flex flex-col items-center text-center gap-8">
         {/* Success Animation */}
         <div className="relative">
-          <div className="w-28 h-28 rounded-full bg-gradient-to-br from-[#1A3A5F] to-[#00D2C8] flex items-center justify-center shadow-2xl shadow-[#1A3A5F]/30 animate-[bounce_0.6s_ease-out_1]">
-            <CheckCircle2 className="w-14 h-14 text-white" strokeWidth={1.5} />
+          <div className="w-28 h-28 rounded-full bg-[#1A3A5F] flex items-center justify-center shadow-2xl shadow-[#1A3A5F]/30 animate-[bounce_0.6s_ease-out_1]">
+            <CheckCircle2 className="w-14 h-14 text-[#00D2C8]" strokeWidth={1.5} />
           </div>
           {/* Ring pulse */}
           <div className="absolute inset-0 rounded-full bg-[#00D2C8]/20 animate-ping" />
         </div>
 
         <div className="space-y-4 max-w-sm">
-          <h2 className="text-4xl font-extrabold tracking-tight text-[#0F1C2E] leading-tight">
+          <h2 className="text-4xl font-extrabold tracking-tight text-[#1A3A5F] leading-tight">
             Seu espaço financeiro<br />está pronto!
           </h2>
           <p className="text-[#64748B] text-sm leading-relaxed">
@@ -454,7 +459,7 @@ export default function OnboardingFlow() {
 
         <button
           onClick={() => router.push('/')}
-          className="w-full max-w-xs h-14 rounded-2xl bg-gradient-to-r from-[#1A3A5F] to-[#0A5F8A] text-white font-bold text-base flex items-center justify-center gap-2 shadow-xl shadow-[#1A3A5F]/25 hover:shadow-2xl hover:shadow-[#1A3A5F]/35 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
+          className="w-full max-w-xs h-14 rounded-2xl bg-[#1A3A5F] text-white font-bold text-base flex items-center justify-center gap-2 shadow-xl shadow-[#1A3A5F]/25 hover:bg-[#1A3A5F]/90 hover:shadow-2xl hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
         >
           Ir para o Dashboard
           <ArrowRight className="w-5 h-5" />
