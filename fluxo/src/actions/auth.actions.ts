@@ -35,7 +35,7 @@ export async function requestPasswordReset(email: string) {
     });
 
     // Enviar email via Resend
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://fluxo-psi-sepia.vercel.app';
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://fluxeer.com.br';
     const resetUrl = `${baseUrl}/reset-password?token=${token}`;
 
     await sendEmail({

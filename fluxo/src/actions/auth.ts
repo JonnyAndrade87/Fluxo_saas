@@ -95,7 +95,7 @@ export async function register(prevState: { error?: string, success?: boolean } 
 
     // Send Welcome Email using centralized Fluxeer template
     try {
-      const loginUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://fluxo-psi-sepia.vercel.app'}/login`;
+      const loginUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://fluxeer.com.br'}/login`;
       await sendEmail({
         to: email,
         subject: 'Boas-vindas ao Fluxo! Seu ambiente está pronto.',

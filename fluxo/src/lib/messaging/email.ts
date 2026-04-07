@@ -215,7 +215,7 @@ export function buildWelcomeEmailHtml({
   name,
   companyName,
   email,
-  loginUrl = 'https://fluxo-psi-sepia.vercel.app/login',
+  loginUrl = 'https://fluxeer.com.br/login',
 }: {
   name: string;
   companyName: string;
