@@ -82,8 +82,8 @@ export function Topbar({
           </div>
         </div>
 
-        {/* Center: Command Search (click to open modal) */}
-        <div className="flex-1 max-w-lg mx-6">
+        {/* Center: Command Search (click to open modal) - Hidden on mobile */}
+        <div className="hidden md:flex flex-1 max-w-lg mx-6">
           <button
             onClick={() => { setSearchOpen(true); setTimeout(() => searchRef.current?.focus(), 50); }}
             className="w-full relative group flex items-center"
@@ -102,11 +102,20 @@ export function Topbar({
           </button>
         </div>
 
-        {/* Right: Notifications */}
-        <div className="flex items-center gap-4 relative" ref={notifRef}>
+        {/* Right: Notifications & Mobile Search */}
+        <div className="flex items-center gap-3 md:gap-4 relative" ref={notifRef}>
+          {/* Mobile Search Icon */}
+          <button
+            onClick={() => { setSearchOpen(true); setTimeout(() => searchRef.current?.focus(), 50); }}
+            className="md:hidden w-10 h-10 flex items-center justify-center text-obsidian hover:bg-muted/50 rounded-full transition-colors"
+          >
+            <Search className="w-5 h-5" />
+          </button>
+
+          {/* Notifications */}
           <button
             onClick={() => setNotifOpen(v => !v)}
-            className="relative w-10 h-10 rounded-full bg-fluxeer-blue flex items-center justify-center text-white/80 hover:text-white transition-colors group shadow-md"
+            className="relative w-10 h-10 rounded-full bg-fluxeer-blue flex items-center justify-center text-white/80 hover:text-white transition-colors group shadow-md shrink-0"
           >
             <Bell className="w-5 h-5 group-hover:scale-110 transition-transform" />
             {hasUnread && <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 border-2 border-fluxeer-blue"></span>}
