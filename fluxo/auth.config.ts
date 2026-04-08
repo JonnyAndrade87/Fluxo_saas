@@ -9,7 +9,10 @@ export const authConfig = {
       const isLoggedIn = !!auth?.user;
         const isPublicRoute = 
           nextUrl.pathname === '/login' || 
-          nextUrl.pathname === '/register';
+          nextUrl.pathname === '/register' ||
+          nextUrl.pathname === '/verify-email' ||
+          nextUrl.pathname === '/forgot-password' ||
+          nextUrl.pathname.startsWith('/reset-password');
       
       // Allow access to public routes
       if (isPublicRoute) {

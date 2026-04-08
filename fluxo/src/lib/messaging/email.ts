@@ -294,3 +294,69 @@ export function buildPasswordResetEmailHtml({
   `;
   return wrapEmailLayout(body);
 }
+
+/**
+ * Build Fluxeer branded account activation email.
+ */
+export function buildActivationEmailHtml({
+  name,
+  companyName,
+  activationUrl,
+}: {
+  name: string;
+  companyName: string;
+  activationUrl: string;
+}): string {
+  const firstName = name.split(' ')[0];
+  const body = `
+    <tr><td>
+      <table width="100%" cellpadding="0" cellspacing="0" style="background:linear-gradient(135deg,#1A3A5F 0%,#0A5F8A 100%);padding:36px 40px;">
+        <tr>
+          <td>
+            <table cellpadding="0" cellspacing="0">
+              <tr>
+                <td style="padding-right:14px;vertical-align:middle;">
+                  <div style="width:40px;height:40px;background:rgba(0,210,200,0.2);border-radius:10px;display:flex;align-items:center;justify-content:center;">
+                    <span style="color:#00D2C8;font-size:22px;font-weight:900;font-family:sans-serif;">F</span>
+                  </div>
+                </td>
+                <td style="vertical-align:middle;">
+                  <span style="color:#ffffff;font-size:22px;font-weight:800;font-family:sans-serif;letter-spacing:-0.5px;">Fluxeer<span style="color:#00D2C8;">.</span></span>
+                </td>
+              </tr>
+            </table>
+            <h1 style="margin:24px 0 0;color:#ffffff;font-size:24px;font-weight:700;font-family:sans-serif;">Ative sua conta</h1>
+            <p style="margin:8px 0 0;color:rgba(255,255,255,0.75);font-size:14px;font-family:sans-serif;">Um clique e seu workspace está pronto.</p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+    <tr>
+      <td style="padding:40px;">
+        <p style="margin:0 0 20px;color:#1A3A5F;font-size:16px;font-weight:700;">Olá, ${firstName}! 👋</p>
+        <p style="margin:0 0 16px;color:#475569;font-size:15px;line-height:1.7;">
+          Sua conta na <strong style="color:#1A3A5F;">${companyName}</strong> foi criada no Fluxeer. 
+          Para ativá-la e configurar seu espaço financeiro, clique no botão abaixo.
+        </p>
+        <div style="text-align:center;margin:36px 0;">
+          <a href="${activationUrl}" 
+             style="background:linear-gradient(135deg,#1A3A5F,#00D2C8);color:#ffffff;padding:16px 40px;text-decoration:none;border-radius:12px;font-weight:800;font-size:16px;display:inline-block;letter-spacing:-0.3px;box-shadow:0 8px 24px rgba(26,58,95,0.3);">
+            Ativar Minha Conta &rarr;
+          </a>
+        </div>
+        <table width="100%" cellpadding="0" cellspacing="0" style="background:#F0FFFE;border:1px solid #00D2C8;border-radius:10px;margin-bottom:24px;">
+          <tr><td style="padding:16px 20px;">
+            <p style="margin:0;color:#0A5F8A;font-size:13px;line-height:1.6;">
+              ⏳ Este link expira em <strong>24 horas</strong>.<br/>
+              Se você não criou essa conta, ignore este e-mail com segurança.
+            </p>
+          </td></tr>
+        </table>
+        <p style="margin:0;color:#94A3B8;font-size:12px;text-align:center;">Se o botão não funcionar, copie e cole abaixo:</p>
+        <p style="margin:8px 0 0;color:#64748B;font-size:11px;text-align:center;word-break:break-all;">${activationUrl}</p>
+      </td>
+    </tr>
+    ${emailFooter()}
+  `;
+  return wrapEmailLayout(body);
+}
