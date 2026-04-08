@@ -21,7 +21,6 @@ type AutomationPref = 'smart' | 'manual' | null;
 
 interface FormData {
   companyName: string;
-  cnpj: string;
   businessType: string;
   billingModel: BillingModel;
   automation: AutomationPref;
@@ -29,18 +28,7 @@ interface FormData {
 
 const TOTAL_PROGRESS_STEPS = 4; // steps 2–5 show progress (welcome doesn't)
 
-// ─── CNPJ Mask ────────────────────────────────────────────────────────────────
 
-function applyCnpjMask(value: string): string {
-  const digits = value.replace(/\D/g, '').slice(0, 14);
-  return digits
-    .replace(/^(\d{2})(\d)/, '$1.$2')
-    .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
-    .replace(/\.(\d{3})(\d)/, '.$1/$2')
-    .replace(/(\d{4})(\d)/, '$1-$2');
-}
-
-// ─── Progress Bar ─────────────────────────────────────────────────────────────
 
 function ProgressBar({ step }: { step: number }) {
   // step 1 = welcome (no bar), step 2–5 show progress
@@ -111,7 +99,6 @@ export default function OnboardingFlow() {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<FormData>({
     companyName: '',
-    cnpj: '',
     businessType: '',
     billingModel: null,
     automation: null,
@@ -181,18 +168,6 @@ export default function OnboardingFlow() {
             />
           </div>
 
-          {/* CNPJ */}
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-[#1A3A5F]">CNPJ</label>
-            <input
-              type="text"
-              placeholder="00.000.000/0001-00"
-              value={form.cnpj}
-              maxLength={18}
-              onChange={(e) => setForm((f) => ({ ...f, cnpj: applyCnpjMask(e.target.value) }))}
-              className="w-full h-14 px-4 rounded-xl border-2 border-[#E4E9F0] bg-white text-[#0F1C2E] placeholder:text-[#CBD5E1] focus:border-[#1A3A5F] focus:ring-4 focus:ring-[#1A3A5F]/10 outline-none transition-all duration-200 text-base font-mono tracking-widest"
-            />
-          </div>
 
           {/* Business Type */}
           <div className="space-y-2">
