@@ -1,102 +1,139 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
-import { Menu, X, LogOut, LifeBuoy, Settings } from 'lucide-react';
+import {
+  Menu, X, LogOut, LifeBuoy, Settings,
+  LayoutDashboard, Receipt, Users, BarChart3,
+  CloudUpload, Inbox, Layers, MessageCircle
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { navGroups } from './Sidebar';
+
+const navGroups = [
+  {
+    label: 'Operacional',
+    items: [
+      { name: 'Visão Geral', href: '/', icon: LayoutDashboard },
+      { name: 'Cobranças', href: '/cobrancas', icon: Receipt },
+      { name: 'Clientes', href: '/clientes', icon: Users },
+      { name: 'Histórico', href: '/historico', icon: Inbox },
+      { name: 'Comunicações', href: '/comunicacoes', icon: MessageCircle },
+      { name: 'Importar Lote', href: '/importar', icon: CloudUpload },
+    ],
+  },
+  {
+    label: 'Financeiro',
+    items: [
+      { name: 'Relatórios', href: '/relatorios', icon: BarChart3 },
+      { name: 'Monitor de Fila', href: '/fila', icon: Layers },
+    ],
+  },
+];
 
 interface MobileSidebarProps {
-  user?: {
-    name?: string | null;
-    email?: string | null;
-    role?: string | null;
-  } | null;
+  user?: { name?: string | null; email?: string | null; role?: string | null } | null;
 }
 
 export function MobileSidebar({ user }: MobileSidebarProps) {
   const pathname = usePathname();
-  const [isOpen, setIsOpen] = useState(false);
+  const [open, setOpen] = useState(false);
 
-  const displayName = user?.name || "Usuário";
-  const initials = displayName.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase();
+  // Fechar com ESC
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, []);
+
+  // Travar o scroll do body quando o menu estiver aberto
+  useEffect(() => {
+    document.body.style.overflow = open ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [open]);
+
+  const displayName = user?.name || 'Usuário';
+  const initials = displayName.split(' ').map((n) => n[0]).join('').substring(0, 2).toUpperCase();
   const displayRole = user?.role === 'admin' ? 'Administrador' : 'Operador';
-
-  const handleLogout = () => {
-    signOut({ callbackUrl: '/login' });
-  };
 
   return (
     <>
-      {/* Hamburger Button (visible only on mobile/tablet) */}
+      {/* ── Botão Hamburger ──────────────────────────────── */}
       <button
-        onClick={() => setIsOpen(true)}
-        className="lg:hidden p-2 -ml-2 rounded-lg text-muted-foreground hover:text-obsidian hover:bg-muted/50 transition-colors"
+        onClick={() => setOpen(true)}
         aria-label="Abrir menu"
+        className="lg:hidden flex items-center justify-center w-10 h-10 rounded-full text-obsidian hover:bg-muted/60 transition-colors"
       >
-        <Menu className="w-6 h-6" />
+        <Menu className="w-6 h-6" strokeWidth={2} />
       </button>
 
-      {/* Overlay & Drawer */}
-      {isOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden flex">
+      {/* ── Overlay Portal ────────────────────────────────── */}
+      {open && (
+        <div
+          className="fixed inset-0 z-[100] lg:hidden"
+          aria-modal="true"
+          role="dialog"
+        >
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
-            onClick={() => setIsOpen(false)}
+            className="absolute inset-0 bg-black/60 backdrop-blur-[2px]"
+            onClick={() => setOpen(false)}
           />
 
-          {/* Sidebar Panel */}
-          <aside className="relative w-[280px] max-w-[80vw] h-full bg-[#1A3A5F] flex flex-col shadow-2xl animate-in slide-in-from-left duration-300 ease-out z-10">
-            {/* Close Button */}
-            <button
-              onClick={() => setIsOpen(false)}
-              className="absolute top-6 right-4 p-2 text-white/50 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-colors flex items-center justify-center"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            {/* Logo */}
-            <div className="h-20 px-6 flex items-center">
+          {/* Drawer Panel — posição fixed, independe do layout pai */}
+          <div
+            className={cn(
+              'fixed top-0 left-0 h-full w-72 max-w-[85vw] z-[101]',
+              'bg-[#1A3A5F] flex flex-col',
+              'shadow-[4px_0_40px_0_rgba(0,0,0,0.45)]',
+              'animate-in slide-in-from-left-full duration-300 ease-out'
+            )}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 pt-6 pb-4 shrink-0">
               <img
                 src="/logo_fluxeer_dashboard.png"
-                alt="Fluxeer Logo"
+                alt="Fluxeer"
                 className="h-8 object-contain object-left drop-shadow-lg"
               />
+              <button
+                onClick={() => setOpen(false)}
+                className="flex items-center justify-center w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
-            {/* Navigation */}
-            <nav className="flex-1 overflow-y-auto px-3 space-y-8 pb-8 custom-scrollbar">
-              {navGroups.map((group, idx) => (
-                <div key={idx}>
-                  <h3 className="px-3 text-[10px] font-bold uppercase tracking-widest text-white/40 mb-3 font-mono">
+            {/* Nav — scrollável */}
+            <nav className="flex-1 overflow-y-auto px-3 py-2 space-y-6">
+              {navGroups.map((group) => (
+                <div key={group.label}>
+                  <p className="px-3 mb-2 text-[10px] font-bold uppercase tracking-widest text-white/40 font-mono">
                     {group.label}
-                  </h3>
-                  <div className="space-y-1">
+                  </p>
+                  <div className="space-y-0.5">
                     {group.items.map((item) => {
-                      const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href));
+                      const active =
+                        pathname === item.href ||
+                        (item.href !== '/' && pathname.startsWith(item.href));
                       return (
                         <Link
                           key={item.href}
                           href={item.href}
-                          onClick={() => setIsOpen(false)}
+                          onClick={() => setOpen(false)}
                           className={cn(
-                            "group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 border",
-                            isActive
-                              ? "bg-[#234b7a] text-[#00D2C8] shadow-sm border-[#2e5b8e]/50"
-                              : "text-white/60 hover:bg-[#234b7a]/50 hover:text-white border-transparent"
+                            'flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium transition-all duration-200',
+                            active
+                              ? 'bg-[#234b7a] text-[#00D2C8]'
+                              : 'text-white/65 hover:bg-white/10 hover:text-white'
                           )}
                         >
                           <item.icon
-                            className={cn(
-                              "w-5 h-5 transition-transform duration-300",
-                              isActive ? "text-[#00D2C8]" : "text-white/50 group-hover:text-white group-hover:scale-110"
-                            )}
-                            strokeWidth={isActive ? 2.5 : 2}
+                            className={cn('w-5 h-5 shrink-0', active ? 'text-[#00D2C8]' : 'text-white/50')}
+                            strokeWidth={active ? 2.5 : 2}
                           />
-                          <span>{item.name}</span>
+                          {item.name}
                         </Link>
                       );
                     })}
@@ -105,42 +142,40 @@ export function MobileSidebar({ user }: MobileSidebarProps) {
               ))}
             </nav>
 
-            {/* Footer / User Profile */}
-            <div className="mt-auto px-4 space-y-1 pt-6 pb-6 border-t border-white/10 shrink-0">
+            {/* Footer */}
+            <div className="shrink-0 px-3 pb-6 pt-4 border-t border-white/10 space-y-0.5">
               <a
                 href="mailto:suporte@fluxeer.com"
-                className="group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white/60 hover:bg-[#234b7a]/50 hover:text-white transition-all duration-300"
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white/65 hover:bg-white/10 hover:text-white transition-all duration-200"
               >
-                <LifeBuoy className="w-5 h-5 group-hover:text-[#00D2C8] transition-colors" />
-                <span>Suporte</span>
+                <LifeBuoy className="w-5 h-5 text-white/50 shrink-0" />
+                Suporte
               </a>
               <Link
                 href="/configuracoes"
-                onClick={() => setIsOpen(false)}
-                className="group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white/60 hover:bg-[#234b7a]/50 hover:text-white transition-all duration-300"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white/65 hover:bg-white/10 hover:text-white transition-all duration-200"
               >
-                <Settings className="w-5 h-5 group-hover:text-[#00D2C8] transition-colors" />
-                <span>Configurações</span>
+                <Settings className="w-5 h-5 text-white/50 shrink-0" />
+                Configurações
               </Link>
 
-              {/* User Card */}
-              <div
-                onClick={handleLogout}
-                className="mt-4 p-3 bg-[#112740] border border-white/5 rounded-xl shadow-sm hover:border-rose-400/50 hover:bg-rose-500/10 transition-colors cursor-pointer group flex items-center justify-between"
+              {/* User card */}
+              <button
+                onClick={() => signOut({ callbackUrl: '/login' })}
+                className="w-full mt-2 p-3 flex items-center gap-3 bg-[#112740] border border-white/5 rounded-xl hover:border-rose-500/50 hover:bg-rose-500/10 transition-all group"
               >
-                <div className="flex items-center gap-3 overflow-hidden pr-2">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#00D2C8]/20 to-[#00D2C8]/10 border border-[#00D2C8]/30 flex items-center justify-center shrink-0">
-                    <span className="text-xs font-bold text-[#00D2C8]">{initials}</span>
-                  </div>
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-sm font-semibold text-white leading-none truncate">{displayName}</span>
-                    <span className="text-[10px] text-white/50 mt-1 truncate">{displayRole}</span>
-                  </div>
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[#00D2C8]/30 to-[#00D2C8]/10 border border-[#00D2C8]/40 flex items-center justify-center shrink-0">
+                  <span className="text-xs font-bold text-[#00D2C8]">{initials}</span>
                 </div>
-                <LogOut className="w-4 h-4 text-white/30 group-hover:text-rose-400 transition-colors shrink-0" />
-              </div>
+                <div className="flex-1 min-w-0 text-left">
+                  <p className="text-sm font-semibold text-white truncate">{displayName}</p>
+                  <p className="text-[11px] text-white/50 truncate">{displayRole}</p>
+                </div>
+                <LogOut className="w-4 h-4 text-white/30 group-hover:text-rose-400 shrink-0 transition-colors" />
+              </button>
             </div>
-          </aside>
+          </div>
         </div>
       )}
     </>
