@@ -110,8 +110,25 @@ export async function register(prevState: { error?: string, success?: boolean } 
       console.warn('Welcome email failed to send (but registration succeeded):', err);
     }
 
+    // Auto-login after successful registration (throws NEXT_REDIRECT internally)
+    await signIn('credentials', {
+      email,
+      password: rawPassword,
+      redirectTo: '/onboarding',
+    });
+
     return { success: true };
-  } catch (error) {
+  } catch (error: any) {
+    // Auth.js throws a NEXT_REDIRECT digest when redirection is invoked securely
+    if (error && typeof error === 'object' && ('message' in error) && ((error as any).message === 'NEXT_REDIRECT')) {
+      throw error;
+    }
+    
+    // Auth.js edge error types
+    if (error && typeof error === 'object' && 'digest' in error) {
+      throw error;
+    }
+
     console.error('Registration error:', error);
     return { error: 'Failed to create account. Please try again later.' };
   }

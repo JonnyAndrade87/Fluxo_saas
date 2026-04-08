@@ -7,11 +7,9 @@ export const authConfig = {
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
-      const isPublicRoute = 
-        nextUrl.pathname === '/login' || 
-        nextUrl.pathname === '/register' || 
-        nextUrl.pathname === '/onboarding' ||
-        nextUrl.pathname.startsWith('/onboarding/');
+        const isPublicRoute = 
+          nextUrl.pathname === '/login' || 
+          nextUrl.pathname === '/register';
       
       // Allow access to public routes
       if (isPublicRoute) {
