@@ -1,6 +1,7 @@
 'use client';
 
 import { Bell, Search, Command, X, CheckCircle2, AlertTriangle, Clock } from "lucide-react";
+import { MobileSidebar } from "./MobileSidebar";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
@@ -13,7 +14,13 @@ const QUICK_LINKS = [
   { label: "Importar dados", href: "/importar", description: "Importar planilhas de clientes e faturas" },
 ];
 
-export function Topbar({ tenantName = "Sua Empresa" }: { tenantName?: string }) {
+export function Topbar({ 
+  tenantName = "Sua Empresa",
+  user
+}: { 
+  tenantName?: string;
+  user?: any;
+}) {
   const router = useRouter();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -64,11 +71,13 @@ export function Topbar({ tenantName = "Sua Empresa" }: { tenantName?: string }) 
 
   return (
     <>
-      <header data-topbar className="h-16 w-full flex items-center justify-between px-8 bg-white/80 backdrop-blur-md border-b border-border/50 sticky top-0 z-10 transition-all">
-        {/* Left: Context badge */}
-        <div className="hidden md:flex items-center gap-2">
-          <div className="px-3 py-1.5 rounded-full border border-border bg-canvas text-xs font-semibold text-obsidian flex items-center gap-2 shadow-sm">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+      <header data-topbar className="h-16 w-full flex items-center justify-between px-4 md:px-8 bg-white/80 backdrop-blur-md border-b border-border/50 sticky top-0 z-10 transition-all gap-4">
+        {/* Left: Hamburger & Context badge */}
+        <div className="flex items-center gap-3">
+          <MobileSidebar user={user} />
+          
+          <div className="hidden md:flex items-center px-3 py-1.5 rounded-full border border-border bg-canvas text-xs font-semibold text-obsidian shadow-sm">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse mr-2"></span>
             {tenantName} (Produção)
           </div>
         </div>

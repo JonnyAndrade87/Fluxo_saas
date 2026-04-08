@@ -21,7 +21,7 @@ import Image from "next/image"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { useState } from "react"
 
-const navGroups = [
+export const navGroups = [
   {
     label: "Operacional",
     items: [
