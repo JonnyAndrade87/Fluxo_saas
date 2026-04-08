@@ -109,7 +109,7 @@ export async function register(prevState: { error?: string; success?: boolean } 
 
     // Enviar e-mail de ativação
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://fluxeer.com.br';
-    const activationUrl = `${baseUrl}/verify-email?token=${token}`;
+    const activationUrl = `${baseUrl}/activate?token=${token}`;
 
     await sendEmail({
       to: email,

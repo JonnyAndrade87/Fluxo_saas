@@ -79,6 +79,53 @@ export const { auth, signIn, signOut, handlers: { GET, POST } } = NextAuth({
         }
       },
     }),
+    // Provider especial para ativação por e-mail — não requer senha
+    Credentials({
+      id: 'activation-token',
+      credentials: { token: { type: 'text' } },
+      async authorize(credentials) {
+        try {
+          const token = credentials?.token as string | undefined;
+          if (!token) return null;
+
+          const record = await prisma.emailVerificationToken.findUnique({ where: { token } });
+          if (!record || new Date() > record.expires) return null;
+
+          const user = await prisma.user.findUnique({
+            where: { email: record.email },
+            include: { tenants: { take: 1, select: { tenantId: true, role: true } } },
+          });
+          if (!user) return null;
+
+          // Ativar conta e queimar token atomicamente
+          await Promise.all([
+            prisma.user.update({
+              where: { id: user.id },
+              data: { emailVerified: true, isActive: true },
+            }),
+            prisma.emailVerificationToken.delete({ where: { token } }),
+          ]);
+
+          const tenantUser = user.tenants[0];
+          const isSuperAdmin = !!process.env.SUPER_ADMIN_EMAILS &&
+            process.env.SUPER_ADMIN_EMAILS.split(',')
+              .map(e => e.trim().toLowerCase())
+              .includes(user.email.toLowerCase());
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.fullName,
+            tenantId: tenantUser?.tenantId ?? null,
+            role: tenantUser?.role ?? 'admin',
+            isSuperAdmin,
+          };
+        } catch (err: any) {
+          console.error('[ACTIVATION-TOKEN] Error:', err.message);
+          return null;
+        }
+      },
+    }),
   ],
   callbacks: {
     ...authConfig.callbacks,

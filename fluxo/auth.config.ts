@@ -10,6 +10,7 @@ export const authConfig = {
         const isPublicRoute = 
           nextUrl.pathname === '/login' || 
           nextUrl.pathname === '/register' ||
+          nextUrl.pathname === '/activate' ||
           nextUrl.pathname === '/verify-email' ||
           nextUrl.pathname === '/forgot-password' ||
           nextUrl.pathname.startsWith('/reset-password');
