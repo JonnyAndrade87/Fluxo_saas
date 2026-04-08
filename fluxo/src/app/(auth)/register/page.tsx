@@ -35,7 +35,7 @@ export default function RegisterPage() {
   useEffect(() => {
     if (state?.success) {
       const timer = setTimeout(() => {
-        router.push('/login');
+        router.push('/login?callbackUrl=/onboarding');
       }, 2000);
       return () => clearTimeout(timer);
     }

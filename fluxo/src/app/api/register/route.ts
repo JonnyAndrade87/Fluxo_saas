@@ -80,14 +80,15 @@ export async function POST(request: Request) {
       return { tenantId: tenant.id, userId: user.id }
     })
 
-    // Disparar E-mail de Boas-Vindas de forma assíncrona (fire and forget)
-    void sendEmail({
+    // Await obrigatório em Vercel Serverless Functions para o email sair antes de retornar a resposta
+    await sendEmail({
       to: email,
       subject: 'Bem-vindo ao Fluxo',
       html: buildWelcomeEmailHtml({
         name: name || 'Usuário',
         companyName: company || 'Sua Empresa',
         email,
+        loginUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'https://fluxeer.com.br'}/onboarding`
       }),
     }).catch(err => console.error("Erro ao disparar welcome email (Credentials):", err));
 
