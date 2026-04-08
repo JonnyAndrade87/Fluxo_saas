@@ -447,7 +447,7 @@ export default function OnboardingFlow() {
         </div>
 
         <button
-          onClick={() => router.push('/')}
+          onClick={() => router.push('/?welcome=1')}
           className="w-full max-w-xs h-14 rounded-2xl bg-[#1A3A5F] text-white font-bold text-base flex items-center justify-center gap-2 shadow-xl shadow-[#1A3A5F]/25 hover:bg-[#1A3A5F]/90 hover:shadow-2xl hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
         >
           Ir para o Dashboard

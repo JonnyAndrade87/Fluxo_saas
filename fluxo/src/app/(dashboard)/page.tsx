@@ -28,6 +28,7 @@ import { getOnboardingStatus } from "@/actions/onboarding"
 import DashboardChart from "./DashboardChart"
 import OnboardingChecklist from "@/components/onboarding/OnboardingChecklist"
 import { CashForecast } from "@/components/dashboard/CashForecast"
+import WelcomeModal from "@/components/dashboard/WelcomeModal"
 
 const fmt = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const formatCurrency = (val: number) => fmt.format(val).replace('R$\u00a0', '').replace('R$ ', '').trim();
@@ -67,6 +68,9 @@ export default async function Dashboard() {
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12">
+
+      {/* ── Modal de Boas-vindas (detecta ?welcome=1 após onboarding) ── */}
+      <WelcomeModal />
 
       {/* ── Onboarding Checklist (hidden once complete or dismissed) ──── */}
       {!onboardingStatus.isComplete && (
