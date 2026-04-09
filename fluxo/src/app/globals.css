@@ -126,6 +126,18 @@
   body {
     @apply bg-background text-foreground font-sans tracking-tight;
     -webkit-font-smoothing: antialiased;
+    /* Prevent horizontal overflow on mobile */
+    overflow-x: hidden;
+  }
+
+  /* Ensure media/embeds never exceed the viewport */
+  img, video, iframe, svg {
+    max-width: 100%;
+  }
+
+  /* Ensure html root itself is contained */
+  html {
+    overflow-x: hidden;
   }
 }
 

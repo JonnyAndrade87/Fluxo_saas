@@ -181,7 +181,7 @@ export default function ReceivablesClient({ initialData, initialTotalPages = 1 }
         <CardContent className="pt-6">
           
           {/* Filters Bar */}
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6 bg-white p-2 rounded-xl border border-border/40 shadow-sm">
+          <div className="flex flex-wrap items-start md:items-center justify-between gap-3 mb-6 bg-white p-2 rounded-xl border border-border/40 shadow-sm">
             <div className="relative w-full md:max-w-xs group">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground group-focus-within:text-indigo-500 transition-colors" />
               <Input 
@@ -193,11 +193,11 @@ export default function ReceivablesClient({ initialData, initialTotalPages = 1 }
               />
             </div>
             
-            <div className="flex items-center gap-3 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 px-2 lg:px-0">
-              <div className="flex items-center gap-1.5 border-l border-border pl-4">
-                 <Filter className="w-4 h-4 text-muted-foreground hidden sm:block" />
+            <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+              <div className="flex flex-wrap items-center gap-2">
+                 <Filter className="w-4 h-4 text-muted-foreground hidden sm:block shrink-0" />
                  <select 
-                   className="text-sm h-9 px-3 rounded-lg border border-border bg-white text-obsidian focus:ring-1 focus:ring-indigo-500 outline-none"
+                   className="text-sm h-9 px-3 rounded-lg border border-border bg-white text-obsidian focus:ring-1 focus:ring-indigo-500 outline-none flex-1 min-w-0"
                    value={status} onChange={e => setStatus(e.target.value)}
                  >
                     <option value="all">Status do Banco: Todos</option>
@@ -208,7 +208,7 @@ export default function ReceivablesClient({ initialData, initialTotalPages = 1 }
                     <option value="CANCELED">Cancelados</option>
                  </select>
                  <select 
-                   className="text-sm h-9 px-3 rounded-lg border border-border bg-white text-obsidian focus:ring-1 focus:ring-indigo-500 outline-none"
+                   className="text-sm h-9 px-3 rounded-lg border border-border bg-white text-obsidian focus:ring-1 focus:ring-indigo-500 outline-none flex-1 min-w-0"
                    value={dateRange} onChange={e => setDateRange(e.target.value)}
                  >
                     <option value="all">Período: Completo</option>
@@ -222,6 +222,7 @@ export default function ReceivablesClient({ initialData, initialTotalPages = 1 }
           
           {/* Table Area */}
           <div className={`rounded-xl border border-border/60 overflow-hidden bg-white shadow-sm transition-opacity duration-300 ${isPending ? 'opacity-60' : 'opacity-100'}`}>
+            <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
               <thead className="bg-[#FAFAFB] text-muted-foreground text-xs uppercase tracking-wider font-semibold border-b border-border/60">
                 <tr>
@@ -339,6 +340,7 @@ export default function ReceivablesClient({ initialData, initialTotalPages = 1 }
                 )})}
               </tbody>
             </table>
+            </div>{/* end overflow-x-auto */}
 
             {/* Pagination Controls */}
             {totalPages > 1 && (

@@ -180,7 +180,7 @@ export function CommunicationsClient({ initialLogs }: Props) {
         onSubmit={(e) => { e.preventDefault(); handleFetchLogs(); }} 
         className="flex flex-col lg:flex-row gap-3 p-4 bg-white border border-border/60 rounded-xl shadow-sm"
       >
-        <div className="flex items-center gap-2 flex-1 min-w-[200px] border border-border/60 rounded-lg px-3">
+        <div className="flex items-center gap-2 flex-1 min-w-0 border border-border/60 rounded-lg px-3">
           <Search className="w-4 h-4 text-muted-foreground shrink-0" />
           <input
             id="input-search-communications"
