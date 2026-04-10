@@ -1,8 +1,9 @@
 'use server';
 
-import prisma from '@/lib/db';
+import prisma from '@/lib/prisma';
 import { calculateRiskScore, RiskScoreResult } from '@/lib/risk-score';
 import { createRiskAlerts } from './risk-alerts';
+import { isInvoiceOverdue } from '@/lib/invoice-utils';
 
 /**
  * Extrai dados de risco de um cliente e calcula seu score
@@ -49,9 +50,7 @@ export async function getRiskScoreForCustomer(
   today.setHours(0, 0, 0, 0);
 
   // 1. Atrasos (histórico completo de faturas atrasadas)
-  const delayedInvoices = invoices.filter(
-    inv => (inv.status === 'OPEN' || inv.status === 'PROMISE_TO_PAY') && new Date(inv.dueDate) < new Date()
-  );
+  const delayedInvoices = invoices.filter(inv => isInvoiceOverdue(inv));
   const delayCount = delayedInvoices.length;
 
   // 2. Atraso máximo e médio
@@ -73,8 +72,8 @@ export async function getRiskScoreForCustomer(
 
   // 3. Valor total em aberto (pendente + atrasado)
   const openAmount = invoices
-    .filter(inv => (inv.status === 'OPEN' || inv.status === 'PROMISE_TO_PAY') && new Date(inv.dueDate) >= new Date() || (inv.status === 'OPEN' || inv.status === 'PROMISE_TO_PAY') && new Date(inv.dueDate) < new Date())
-    .reduce((sum, inv) => sum + inv.updatedAmount, 0);
+    .filter(inv => inv.status === 'OPEN' || inv.status === 'PROMISE_TO_PAY')
+    .reduce((sum, inv) => sum + (inv.updatedAmount || inv.amount || 0), 0);
 
   // 4. Promessas quebradas
   const promisesBrokenCount = brokenPromises.length;

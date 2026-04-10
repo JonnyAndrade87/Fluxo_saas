@@ -7,7 +7,7 @@
  * Safe to re-run: skips if data already exists.
  */
 
-import prisma from '../src/lib/db';
+import prisma from '../src/lib/prisma';
 
 // ─── Date helpers ────────────────────────────────────────────────────────────
 
@@ -91,8 +91,8 @@ async function main() {
   // ──────────────────────────────────────────────────────────────────────────
   const c1 = customers.find(c => c.name.includes('Alpha')) ?? customers[0];
   const c1Invoices = c1.invoices;
-  const c1PaidInv = c1Invoices.find(i => i.status === 'paid');
-  const c1PendingInv = c1Invoices.find(i => i.status === 'pending');
+  const c1PaidInv = c1Invoices.find(i => i.status === 'PAID');
+  const c1PendingInv = c1Invoices.find(i => i.status === 'OPEN');
 
   console.log(`📧 Inserindo histórico para: ${c1.name}`);
 
@@ -163,7 +163,7 @@ async function main() {
   const c2 = customers.find(c => c.name.includes('Beta')) ?? customers[1];
   const c2Invoices = c2.invoices;
   const c2OverdueInv = c2Invoices.find(i => i.status === 'overdue');
-  const c2PendingInv = c2Invoices.find(i => i.status === 'pending');
+  const c2PendingInv = c2Invoices.find(i => i.status === 'OPEN');
 
   console.log(`📧 Inserindo histórico para: ${c2.name}`);
 
@@ -213,7 +213,7 @@ async function main() {
         amount: 12500.00,
         promisedDate: daysFromNow(5),
         notes: 'Mario (financeiro) ligou confirmando pagamento até dia 26/03. Entrada de recebíveis deles nessa data.',
-        status: 'pending',
+        status: 'OPEN',
         createdAt: daysAgo(1),
       }});
     }
@@ -283,7 +283,7 @@ async function main() {
     // 3 invoices for Gamma — one paid 60 days ago, one overdue 15 days, one future
     const gInv1 = await prisma.invoice.create({ data: {
       tenantId, customerId: c3.id, invoiceNumber: 'INV-2024-200',
-      amount: 32000.00, balanceDue: 0, status: 'paid',
+      amount: 32000.00, balanceDue: 0, status: 'PAID',
       issueDate: daysAgo(75), dueDate: daysAgo(60),
     }});
     const gInv2 = await prisma.invoice.create({ data: {

@@ -3,7 +3,7 @@ import Credentials from 'next-auth/providers/credentials';
 import Google from 'next-auth/providers/google';
 import { authConfig } from './auth.config';
 import { z } from 'zod';
-import prisma from '@/lib/db';
+import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { sendEmail, buildWelcomeEmailHtml } from '@/lib/messaging/email';
 

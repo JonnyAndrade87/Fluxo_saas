@@ -1,6 +1,6 @@
 'use server';
 
-import prisma from '@/lib/db';
+import prisma from '@/lib/prisma';
 import { auth } from '../../auth';
 import { generateCollectionLogs } from '@/services/communication/communicationService';
 

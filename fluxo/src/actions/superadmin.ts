@@ -1,6 +1,6 @@
 'use server';
 
-import prisma from '@/lib/db';
+import prisma from '@/lib/prisma';
 import { auth } from '../../auth';
 
 function assertSuperAdmin(session: any) {
@@ -45,7 +45,7 @@ export async function getGlobalMetrics(): Promise<GlobalMetrics> {
     prisma.invoice.count(),
     prisma.invoice.aggregate({
       _sum: { amount: true },
-      where: { status: { in: ['OPEN', 'PROMISE_TO_PAY', 'OVERDUE'] } }
+      where: { status: { in: ['OPEN', 'PROMISE_TO_PAY'] } }
     }),
     // Prisma treats OVERDUE visually or dynamically, let's query raw overdue:
     prisma.communicationLog.count({

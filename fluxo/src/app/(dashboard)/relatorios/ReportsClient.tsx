@@ -113,16 +113,18 @@ export default function ReportsClient({ initialData }: { initialData: ReportMetr
   };
 
   return (
-    <div className={`space-y-7 transition-opacity duration-300 ${isPending ? 'opacity-60 pointer-events-none' : 'opacity-100'}`}>
+    <div className={`space-y-7 transition-opacity duration-300 w-full ${isPending ? 'opacity-60 pointer-events-none' : 'opacity-100'}`}>
 
       {/* Period Selector + Export */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1.5 bg-white border border-border/60 rounded-xl p-1 shadow-sm">
+      <div className="space-y-3">
+        {/* Period pills — full width on mobile, equal-sized buttons */}
+        <div className="bg-white border border-border/60 rounded-xl p-1 shadow-sm flex w-full overflow-hidden">
           {PERIODS.map(opt => (
             <button
               key={opt.v}
               onClick={() => changePeriod(opt.v)}
-              className={`px-4 py-1.5 rounded-lg text-[13px] font-bold transition-all duration-150 ${
+              style={{ flex: 1 }}
+              className={`py-1.5 rounded-lg text-[13px] font-bold transition-all duration-150 ${
                 period === opt.v
                   ? 'bg-fluxeer-blue text-white shadow-sm'
                   : 'text-slate-500 hover:text-obsidian hover:bg-slate-50'
@@ -132,10 +134,11 @@ export default function ReportsClient({ initialData }: { initialData: ReportMetr
             </button>
           ))}
         </div>
-        <div className="flex items-center gap-3">
+        {/* Export row */}
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-[12px] text-muted-foreground font-medium">
             {isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-            <span>{data.periodLabel}</span>
+            <span className="hidden sm:inline">{data.periodLabel}</span>
           </div>
           <button
             onClick={handleExport}
@@ -151,7 +154,7 @@ export default function ReportsClient({ initialData }: { initialData: ReportMetr
       </div>
 
       {/* 6 KPI Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
         <KpiCard
           label="Faturamento Bruto no Período"
           value={fmtShort(data.totalBilled)}
@@ -209,13 +212,13 @@ export default function ReportsClient({ initialData }: { initialData: ReportMetr
             <CardTitle className="text-obsidian text-base font-bold">Fluxo de Faturamento Mensal</CardTitle>
             <CardDescription className="text-xs">Emitido × Recebido × Inadimplente por mês</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="h-[300px] w-full">
+          <CardContent className="px-3 sm:px-6 pb-4">
+            <div className="h-[220px] sm:h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={data.monthlyCashflow} margin={{ top: 10, right: 20, left: 0, bottom: 0 }} barGap={4}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                   <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 11 }} dy={8} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 11 }} tickFormatter={fmtY} dx={-4} width={70} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 10 }} tickFormatter={fmtY} dx={-4} width={55} />
                   <Tooltip
                     cursor={{ fill: '#f8fafc' }}
                     contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 16px rgba(0,0,0,0.08)', fontSize: '12px' }}

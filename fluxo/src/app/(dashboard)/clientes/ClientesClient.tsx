@@ -97,9 +97,9 @@ export default function ClientesClient({ initialData }: { initialData: any[] }) 
         </Button>
       </div>
 
-      <Card className="premium-card relative">
+      <Card className="premium-card relative w-full">
         <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500 rounded-l-2xl z-20" />
-        <CardHeader className="border-b border-border/50 bg-[#FAFAFB] px-6">
+        <CardHeader className="border-b border-border/50 bg-[#FAFAFB] px-4 sm:px-6">
           <CardTitle className="text-base flex items-center gap-2 text-obsidian">
             <Users className="w-4 h-4 text-indigo-500" /> Diretório Corporativo
           </CardTitle>
@@ -107,10 +107,10 @@ export default function ClientesClient({ initialData }: { initialData: any[] }) 
             Visualize a saúde financeira e contatos da sua carteira B2B. Valores refletem pagamentos reais e dívidas.
           </CardDescription>
         </CardHeader>
-        <CardContent className="pt-6">
-          
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 bg-white p-2 rounded-xl border border-border/40 shadow-sm">
-            <div className="relative w-full sm:max-w-md group">
+        <CardContent className="p-0 sm:pt-6 sm:px-6 sm:pb-6">
+          <div className="px-3 sm:px-0 pt-4 sm:pt-0">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-4 bg-white p-2 rounded-xl border border-border/40 shadow-sm">
+            <div className="relative w-full sm:max-w-md group min-w-0">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground group-focus-within:text-indigo-500 transition-colors" />
               <Input 
                  type="search" 
@@ -120,7 +120,7 @@ export default function ClientesClient({ initialData }: { initialData: any[] }) 
                  onChange={e => setSearch(e.target.value)}
               />
             </div>
-            <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
               <div className="relative">
                 <select 
                   className="h-9 w-full sm:w-36 rounded-md border border-border bg-white text-xs font-medium px-3 text-obsidian shadow-sm focus:ring-1 focus:ring-indigo-500 appearance-none cursor-pointer"
@@ -143,8 +143,8 @@ export default function ClientesClient({ initialData }: { initialData: any[] }) 
             </div>
           </div>
           
-          <div className={`rounded-xl border border-border/60 overflow-x-auto bg-white shadow-sm transition-opacity duration-300 ${isPending ? 'opacity-50' : 'opacity-100'}`}>
-            <table className="w-full text-sm text-left min-w-[800px]">
+          <div className={`rounded-xl border border-border/60 bg-white shadow-sm transition-opacity duration-300 w-full overflow-x-auto ${isPending ? 'opacity-50' : 'opacity-100'}`}>
+            <table className="w-full text-sm text-left min-w-[700px]">
               <thead className="bg-[#FAFAFB] text-muted-foreground text-xs uppercase tracking-wider font-semibold border-b border-border/60">
                 <tr>
                   <th className="px-6 py-4">Empresa (Sacado)</th>
@@ -248,6 +248,7 @@ export default function ClientesClient({ initialData }: { initialData: any[] }) 
               </tbody>
             </table>
           </div>
+          </div> {/* end px-3 wrapper */}
         </CardContent>
       </Card>
 

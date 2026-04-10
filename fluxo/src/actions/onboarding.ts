@@ -1,7 +1,8 @@
 'use server';
 
-import prisma from '@/lib/db';
+import prisma from '@/lib/prisma';
 import { auth } from '../../auth';
+import { redirect } from 'next/navigation';
 
 export interface OnboardingStep {
   id: string;
@@ -21,15 +22,18 @@ export interface OnboardingStatus {
 
 export async function getOnboardingStatus(): Promise<OnboardingStatus> {
   const session = await auth();
-  const tenantId = session?.user?.tenantId;
+
+  // Redirect unauthenticated users to login
+  if (!session?.user) {
+    redirect('/login');
+  }
+
+  const tenantId = session.user.tenantId;
 
   if (!tenantId) {
-    // unauthenticated — return fully-incomplete state
-    return {
-      isComplete: false,
-      completedCount: 0,
-      steps: buildSteps({ hasCustomer: false, hasInvoice: false, hasComm: false }),
-    };
+    // User authenticated but no tenant - redirect to onboarding (they should be here)
+    // This shouldn't happen if the auth flow is correct, but just in case
+    redirect('/onboarding');
   }
 
   // Single parallel round-trip: three cheap COUNT queries

@@ -113,7 +113,7 @@ export default async function Dashboard() {
           <h1 className="text-3xl font-sans font-semibold tracking-tighter text-obsidian">Visão Executiva</h1>
           <p className="text-muted-foreground text-sm">Painel de controle de recebíveis, inadimplência e cobrança.</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <Link href="/relatorios">
             <Button variant="outline" className="shadow-sm font-semibold rounded-lg bg-white border-border text-obsidian hover:bg-gray-50">Exportar Relatório</Button>
           </Link>
@@ -128,7 +128,7 @@ export default async function Dashboard() {
       </div>
 
       {/* ── 8 KPI Cards ────────────────────────────────────────────────────── */}
-      <div className="grid gap-3 grid-cols-2 sm:grid-cols-4 xl:grid-cols-8">
+      <div className="grid gap-3 grid-cols-1 min-[400px]:grid-cols-2 sm:grid-cols-4 xl:grid-cols-8">
 
         {/* 1. Total a Receber */}
         <Card className="premium-card relative overflow-hidden rounded-2xl col-span-1">

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/db';
+import prisma from '@/lib/prisma';
 import { enqueueAndSend } from '@/lib/queue';
 
 export const dynamic = 'force-dynamic';
@@ -82,7 +82,7 @@ export async function GET(request: Request) {
       const invoices = await prisma.invoice.findMany({
         where: {
           tenantId: flow.tenantId,
-          status: { in: ['pending', 'overdue'] }
+          status: { in: ['OPEN', 'PROMISE_TO_PAY'] }
         },
         include: {
           customer: {

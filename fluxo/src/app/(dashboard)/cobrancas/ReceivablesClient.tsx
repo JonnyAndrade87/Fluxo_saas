@@ -221,8 +221,8 @@ export default function ReceivablesClient({ initialData, initialTotalPages = 1 }
           </div>
           
           {/* Table Area */}
-          <div className={`rounded-xl border border-border/60 overflow-hidden bg-white shadow-sm transition-opacity duration-300 ${isPending ? 'opacity-60' : 'opacity-100'}`}>
-            <div className="overflow-x-auto">
+          <div className={`rounded-xl border border-border/60 overflow-hidden bg-white w-full shadow-sm transition-opacity duration-300 ${isPending ? 'opacity-60' : 'opacity-100'}`}>
+            <div className="overflow-x-auto w-full">
             <table className="w-full text-sm text-left">
               <thead className="bg-[#FAFAFB] text-muted-foreground text-xs uppercase tracking-wider font-semibold border-b border-border/60">
                 <tr>

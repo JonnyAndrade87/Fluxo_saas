@@ -1,6 +1,6 @@
 'use server';
 
-import prisma from '@/lib/db';
+import prisma from '@/lib/prisma';
 import { auth } from '../../auth';
 import {
   calculateCashFlowForecast,
@@ -9,6 +9,7 @@ import {
   InvoiceForForecast,
 } from '@/lib/forecast';
 import { getRiskScoreForCustomer } from './risk-score';
+import { isInvoiceOverdue } from '@/lib/invoice-utils';
 
 interface SessionUser {
   tenantId: string | null;
@@ -32,7 +33,7 @@ export async function getPaymentHistoryMetrics(
     where: {
       tenantId,
       createdAt: { gte: ninetyDaysAgo },
-      status: { notIn: ['draft', 'canceled'] },
+      status: { notIn: ['PAID', 'CANCELED'] },
     },
     include: {
       paymentPromises: true,
@@ -71,29 +72,17 @@ export async function getPaymentHistoryMetrics(
         totalDelayDays += delayDays;
         delayedInvoiceCount += 1;
       }
-    } else if ((inv.status === 'OPEN' || inv.status === 'PROMISE_TO_PAY') && new Date(inv.dueDate) < new Date()) {
-      // Ainda não pago
+    } else if (isInvoiceOverdue(inv)) {
+      // Ainda não pago e vencido
       const delayDays = Math.floor(
         (new Date().getTime() - inv.dueDate.getTime()) / (1000 * 60 * 60 * 24)
       );
-      if (delayDays <= 0) {
-        // A vencer mas ainda não marcado como pending
-        onTimePayments += 1;
-      } else {
-        latePayments += 1;
-        totalDelayDays += delayDays;
-        delayedInvoiceCount += 1;
-      }
-    } else if (inv.status === 'PROMISE_TO_PAY') {
-      // Contar como atraso
-      const delayDays = Math.floor(
-        (new Date().getTime() - inv.dueDate.getTime()) / (1000 * 60 * 60 * 24)
-      );
-      if (delayDays > 0) {
-        latePayments += 1;
-        totalDelayDays += delayDays;
-        delayedInvoiceCount += 1;
-      }
+      latePayments += 1;
+      totalDelayDays += delayDays;
+      delayedInvoiceCount += 1;
+    } else {
+      // A vencer
+      onTimePayments += 1;
     }
 
     // Contar promessas quebradas
@@ -137,11 +126,11 @@ export async function getInvoicesForForecast(
   const invoices = await prisma.invoice.findMany({
     where: {
       tenantId,
-      status: { notIn: ['draft', 'canceled', 'paid'] },
+      status: { in: ['OPEN', 'PROMISE_TO_PAY'] },
       OR: [
         // Títulos vencidos não pagos
         {
-          status: 'overdue',
+          dueDate: { lt: now },
         },
         // Títulos a vencer nos próximos 60 dias
         {

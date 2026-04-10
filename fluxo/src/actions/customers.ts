@@ -1,10 +1,11 @@
 'use server';
 
-import prisma from '@/lib/db';
+import prisma from '@/lib/prisma';
 import { auth } from '../../auth';
 import { revalidatePath } from 'next/cache';
 import { requireAuth, requireRole } from '@/lib/permissions';
 import { getRiskScoreForCustomer } from './risk-score';
+import { isInvoiceOverdue } from '@/lib/invoice-utils';
 
 interface SessionUser {
   tenantId: string | null;
@@ -64,11 +65,11 @@ export async function getCustomersList(search?: string, riskFilter?: string) {
       let overdueCount = 0;
 
       customer.invoices.forEach(inv => {
-        if (inv.status === 'paid') {
+        if (inv.status === 'PAID') {
           totalLtv += inv.amount;
         }
-        if (inv.status === 'overdue') {
-          totalRisk += inv.updatedAmount;
+        if (isInvoiceOverdue(inv)) {
+          totalRisk += inv.updatedAmount || inv.amount;
           overdueCount++;
         }
       });

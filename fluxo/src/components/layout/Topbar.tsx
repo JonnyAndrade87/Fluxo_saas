@@ -123,7 +123,7 @@ export function Topbar({
 
           {/* Notifications panel */}
           {notifOpen && (
-            <div className="absolute top-12 right-0 w-80 bg-white rounded-2xl shadow-2xl border border-border z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="absolute right-0 top-12 w-[280px] max-w-[calc(100vw-32px)] bg-white border border-border shadow-2xl rounded-2xl z-50 flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
               <div className="flex items-center justify-between px-5 py-4 border-b border-border">
                 <h3 className="text-sm font-bold text-obsidian">Notificações</h3>
                 <span className="text-[10px] bg-indigo-100 text-indigo-700 font-bold px-2 py-0.5 rounded-full uppercase tracking-widest">

@@ -95,7 +95,7 @@ export default function ForecastClient() {
       </div>
 
       {/* Cards Resumo */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 min-[600px]:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">Nominal</CardTitle>
@@ -161,7 +161,7 @@ export default function ForecastClient() {
           <CardTitle>Projeção por {analysisType === 'weekly' ? 'Semana' : 'Mês'}</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto w-full">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b">
                 <tr>
@@ -208,7 +208,7 @@ export default function ForecastClient() {
           <CardTitle>Impacto por Cliente (Top 10)</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto w-full">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b">
                 <tr>

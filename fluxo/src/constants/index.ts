@@ -79,19 +79,17 @@ export const RISK_SCORE_RANGES = {
 // ============================================================================
 
 export const INVOICE_STATUS = {
-  PAID: 'paid',
-  PENDING: 'pending',
-  OVERDUE: 'overdue',
-  CANCELLED: 'cancelled',
-  PARTIAL: 'partial',
+  PAID: 'PAID',
+  PENDING: 'PENDING',
+  CANCELLED: 'CANCELLED',
+  PARTIAL: 'PARTIAL',
 } as const;
 
 export const INVOICE_STATUS_LABELS: Record<string, string> = {
-  paid: 'Paga',
-  pending: 'Pendente',
-  overdue: 'Vencida',
-  cancelled: 'Cancelada',
-  partial: 'Parcial',
+  PAID: 'Paga',
+  PENDING: 'Pendente',
+  CANCELLED: 'Cancelada',
+  PARTIAL: 'Parcial',
 };
 
 // ============================================================================

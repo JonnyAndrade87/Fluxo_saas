@@ -3,7 +3,7 @@
  * Registra ações críticas para conformidade e rastreabilidade
  */
 
-import prisma from '@/lib/db';
+import prisma from '@/lib/prisma';
 import { shouldAudit, formatAuditAction, type AuditAction, type UserRole } from '@/lib/permissions';
 
 export interface LogAuditParams {

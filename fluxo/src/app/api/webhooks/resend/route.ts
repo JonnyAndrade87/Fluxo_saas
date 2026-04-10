@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/db';
+import prisma from '@/lib/prisma';
 import { verifyResendSignature } from '@/lib/webhookVerify';
 
 export const dynamic = 'force-dynamic';

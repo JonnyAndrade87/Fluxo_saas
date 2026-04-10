@@ -438,10 +438,10 @@ export default function HistoricoClient() {
   }) ?? [];
 
   return (
-    <div className="flex h-full min-h-[calc(100vh-6rem)] animate-in fade-in duration-300">
-
+    <div className="flex flex-col md:flex-row w-full min-h-[calc(100vh-6rem)] animate-in fade-in duration-300">
+      
       {/* ── LEFT PANEL ── */}
-      <div className="w-[320px] shrink-0 border-r border-border/50 flex flex-col bg-white">
+      <div className="w-full md:w-[320px] shrink-0 border-b md:border-b-0 md:border-r border-border/50 flex flex-col bg-white">
         {/* Header */}
         <div className="p-4 border-b border-border/50 space-y-3">
           <div className="flex items-center justify-between">
@@ -509,7 +509,19 @@ export default function HistoricoClient() {
       </div>
 
       {/* ── RIGHT PANEL ── */}
-      <div className="flex-1 flex flex-col bg-[#FAFAFB] overflow-hidden">
+      <div className="flex-1 flex flex-col bg-[#FAFAFB] min-h-[320px] overflow-hidden">
+
+        {/* Mobile back button — only visible when a customer is selected on narrow screens */}
+        {selectedId && (
+          <div className="flex md:hidden items-center gap-2 px-4 py-2 bg-white border-b border-border/50">
+            <button
+              onClick={() => { setSelectedId(null); setDetail(null); }}
+              className="flex items-center gap-1.5 text-sm font-semibold text-indigo-600 hover:text-indigo-800 transition-colors"
+            >
+              <ChevronRight className="w-4 h-4 rotate-180" /> Voltar
+            </button>
+          </div>
+        )}
 
         {/* Loading detail */}
         {loadingDetail && (
@@ -521,7 +533,7 @@ export default function HistoricoClient() {
           </div>
         )}
 
-        {/* No selection */}
+        {/* No selection — only visible on desktop */}
         {!selectedId && !loadingDetail && (
           <EmptyState message="Selecione um cliente" icon={Inbox} />
         )}
@@ -531,7 +543,7 @@ export default function HistoricoClient() {
           <div className="flex flex-col h-full overflow-hidden">
 
             {/* Right header: customer info */}
-            <div className="p-5 border-b border-border/50 bg-white flex items-start gap-5">
+            <div className="p-4 border-b border-border/50 bg-white flex flex-wrap items-start gap-4">
               <div className="w-11 h-11 rounded-xl bg-indigo-100 flex items-center justify-center shrink-0">
                 <Building2 className="w-5 h-5 text-indigo-600" />
               </div>
@@ -545,7 +557,7 @@ export default function HistoricoClient() {
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground font-mono mt-0.5">{detail.customer.documentNumber}</p>
-                <div className="flex items-center gap-4 mt-1.5 flex-wrap">
+                <div className="flex items-center gap-3 mt-1.5 flex-wrap">
                   {detail.customer.email && (
                     <a href={`mailto:${detail.customer.email}`} className="flex items-center gap-1 text-[11px] text-indigo-600 hover:underline font-medium">
                       <Mail className="w-3 h-3" /> {detail.customer.email}
@@ -569,20 +581,20 @@ export default function HistoricoClient() {
                 </div>
               </div>
               {/* Quick stats */}
-              <div className="flex gap-3 shrink-0">
-                <div className="text-center">
+              <div className="flex gap-3 shrink-0 flex-wrap justify-end">
+                <div className="text-center min-w-[44px]">
                   <p className="text-[18px] font-extrabold text-rose-600">
                     {detail.invoices.filter(i => getInvoiceVisualState(i).includes('Vencida') || getInvoiceVisualState(i).includes('Vence hoje')).length}
                   </p>
                   <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Atrasadas</p>
                 </div>
-                <div className="text-center">
+                <div className="text-center min-w-[44px]">
                   <p className="text-[18px] font-extrabold text-amber-600">
                     {detail.invoices.filter(i => (i.status === 'OPEN' || i.status === 'PROMISE_TO_PAY') && getInvoiceVisualState(i).includes('Em dia')).length}
                   </p>
                   <p className="text-[10px] text-muted-foreground uppercase tracking-wide">A Vencer</p>
                 </div>
-                <div className="text-center">
+                <div className="text-center min-w-[44px]">
                   <p className="text-[18px] font-extrabold text-emerald-600">
                     {detail.invoices.filter(i => i.status === 'PAID').length}
                   </p>
@@ -592,62 +604,64 @@ export default function HistoricoClient() {
             </div>
 
             {/* Tabs + Filter row */}
-            <div className="flex items-center justify-between px-5 py-2.5 border-b border-border/40 bg-white">
-              <div className="flex items-center gap-0.5">
-                {[
-                  { v: 'timeline', l: 'Timeline' },
-                  { v: 'invoices', l: 'Faturas' },
-                ].map(tab => (
-                  <button
-                    key={tab.v}
-                    onClick={() => setActiveTab(tab.v as any)}
-                    className={`px-4 py-1.5 rounded-md text-[13px] font-semibold transition-colors ${
-                      activeTab === tab.v ? 'bg-fluxeer-blue text-white' : 'text-slate-500 hover:bg-slate-100'
-                    }`}
-                  >
-                    {tab.l}
-                  </button>
-                ))}
-              </div>
-              <div className="flex items-center gap-3">
+            <div className="flex flex-col gap-2 px-4 py-2.5 border-b border-border/40 bg-white">
+              {/* Top row: tabs + add-task button */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-0.5">
+                  {[
+                    { v: 'timeline', l: 'Timeline' },
+                    { v: 'invoices', l: 'Faturas' },
+                  ].map(tab => (
+                    <button
+                      key={tab.v}
+                      onClick={() => setActiveTab(tab.v as any)}
+                      className={`px-4 py-1.5 rounded-md text-[13px] font-semibold transition-colors ${
+                        activeTab === tab.v ? 'bg-fluxeer-blue text-white' : 'text-slate-500 hover:bg-slate-100'
+                      }`}
+                    >
+                      {tab.l}
+                    </button>
+                  ))}
+                </div>
                 <button
                   onClick={() => setIsTaskModalOpen(true)}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[13px] font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors border border-indigo-200"
                 >
                   <Plus className="w-3.5 h-3.5" /> Tarefa
                 </button>
-                {activeTab === 'timeline' && (
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded-md border border-border/50">
-                      <Filter className="w-3 h-3 text-muted-foreground" />
-                      <select
-                        value={eventTypeFilter}
-                        onChange={e => setEventTypeFilter(e.target.value)}
-                        className="text-[11px] font-bold text-slate-600 bg-transparent border-0 focus:ring-0 pr-1 cursor-pointer"
-                      >
-                        <option value="all">Tipos: Todos</option>
-                        <option value="communication">Envios</option>
-                        <option value="note">Notas</option>
-                        <option value="promise">Promessas</option>
-                        <option value="task">Tarefas</option>
-                      </select>
-                    </div>
-                    <div className="flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded-md border border-border/50">
-                      <FileText className="w-3 h-3 text-muted-foreground" />
-                      <select
-                        value={invoiceFilter}
-                        onChange={e => setInvoiceFilter(e.target.value)}
-                        className="text-[11px] font-bold text-slate-600 bg-transparent border-0 focus:ring-0 pr-1 cursor-pointer max-w-[140px]"
-                      >
-                        <option value="all">Fatura: Todas</option>
-                        {detail.invoices.map(inv => (
-                          <option key={inv.id} value={inv.id}>#{inv.invoiceNumber}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-                )}
               </div>
+              {/* Filter row — separate line that wraps freely */}
+              {activeTab === 'timeline' && (
+                <div className="flex items-center gap-2 flex-wrap">
+                  <div className="flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded-md border border-border/50">
+                    <Filter className="w-3 h-3 text-muted-foreground" />
+                    <select
+                      value={eventTypeFilter}
+                      onChange={e => setEventTypeFilter(e.target.value)}
+                      className="text-[11px] font-bold text-slate-600 bg-transparent border-0 focus:ring-0 pr-1 cursor-pointer"
+                    >
+                      <option value="all">Tipos: Todos</option>
+                      <option value="communication">Envios</option>
+                      <option value="note">Notas</option>
+                      <option value="promise">Promessas</option>
+                      <option value="task">Tarefas</option>
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded-md border border-border/50">
+                    <FileText className="w-3 h-3 text-muted-foreground" />
+                    <select
+                      value={invoiceFilter}
+                      onChange={e => setInvoiceFilter(e.target.value)}
+                      className="text-[11px] font-bold text-slate-600 bg-transparent border-0 focus:ring-0 pr-1 cursor-pointer max-w-[140px]"
+                    >
+                      <option value="all">Fatura: Todas</option>
+                      {detail.invoices.map(inv => (
+                        <option key={inv.id} value={inv.id}>#{inv.invoiceNumber}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Scrollable content */}
@@ -678,9 +692,9 @@ export default function HistoricoClient() {
                       const vStatus = getInvoiceVisualState(inv);
                       const fins = calculateInvoiceFinancials(inv);
                       return (
-                        <div key={inv.id} className="flex items-center justify-between p-4 rounded-xl bg-white border border-border/60 shadow-sm hover:border-indigo-200 transition-colors">
-                          <div className="space-y-0.5">
-                            <div className="flex items-center gap-2">
+                        <div key={inv.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-xl bg-white border border-border/60 shadow-sm hover:border-indigo-200 transition-colors">
+                          <div className="space-y-0.5 flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <p className="font-bold text-obsidian text-[14px]">#{inv.invoiceNumber}</p>
                               <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                                 inv.status === 'PAID' ? 'bg-emerald-50 text-emerald-700' :

@@ -1,6 +1,6 @@
 'use server';
 
-import prisma from '@/lib/db';
+import prisma from '@/lib/prisma';
 import { sendEmail, buildPasswordResetEmailHtml } from '@/lib/messaging/email';
 import { randomUUID } from 'crypto';
 import bcrypt from 'bcryptjs';

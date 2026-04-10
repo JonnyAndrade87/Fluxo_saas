@@ -13,7 +13,7 @@
  *   MSG_LIMIT_TENANT_DAY     (default: 200)
  */
 
-import prisma from '@/lib/db';
+import prisma from '@/lib/prisma';
 
 export interface RateLimitResult {
   allowed: boolean;

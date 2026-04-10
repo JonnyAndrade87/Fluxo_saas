@@ -1,6 +1,7 @@
 'use server';
 
-import prisma from '@/lib/db';
+import prisma from '@/lib/prisma';
+import { isInvoiceOverdue } from '@/lib/invoice-utils';
 import { auth } from '../../auth';
 
 export interface CollectionCustomerSummary {
@@ -115,7 +116,7 @@ export async function getCollectionCustomers(filters?: {
   return customers.map(c => {
     const invoiceList = c.invoices || [];
     const open = invoiceList.filter((i: any) => i.status === 'OPEN' || i.status === 'PROMISE_TO_PAY');
-    const overdue = invoiceList.filter((i: any) => (i.status === 'OPEN' || i.status === 'PROMISE_TO_PAY') && new Date(i.dueDate) < new Date());
+    const overdue = invoiceList.filter((i: any) => isInvoiceOverdue(i));
     const totalOverdue = overdue.reduce((s: number, i: any) => s + (i.updatedAmount || i.amount), 0);
     const lastComm = c.communications?.[0]?.sentAt ?? null;
     const lastNote = c.customerNotes?.[0]?.createdAt ?? null;

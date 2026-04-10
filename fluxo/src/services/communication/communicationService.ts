@@ -11,7 +11,7 @@
  * This service is plug-compatible: swapping COMMUNICATION_MODE activates the real sender.
  */
 
-import prisma from '@/lib/db';
+import prisma from '@/lib/prisma';
 import { generateMessage, formatBRL, formatDateBR, type MessageVars } from './messageGenerator';
 import { buildWhatsAppLink } from './whatsappLink';
 import { getRuleForDiff, COLLECTION_RULES, type RuleType, type ChannelType } from './collectionRules';

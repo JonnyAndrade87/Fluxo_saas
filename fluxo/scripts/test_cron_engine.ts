@@ -45,12 +45,12 @@ async function runTest() {
 
   // 5. SEEDING INVOICES FOR ALL 10 SCENARIOS
   console.log("-> Seeding in-memory database with 10 exact scenarios...");
-  const invS1 = await prisma.invoice.create({ data: { id: 'inv-s1', tenantId: t1.id, customerId: cust1.id, amount: 100, balanceDue: 100, status: 'pending', dueDate: addDays(3), invoiceNumber: 'INV-S1-OPEN-MATCH' }});
-  const invS2 = await prisma.invoice.create({ data: { id: 'inv-s2', tenantId: t1.id, customerId: cust1.id, amount: 200, balanceDue: 200, status: 'pending', dueDate: addDays(10), invoiceNumber: 'INV-S2-OPEN-IGNORE' }});
-  const invS3 = await prisma.invoice.create({ data: { id: 'inv-s3', tenantId: t1.id, customerId: cust1.id, amount: 300, balanceDue: 0, status: 'paid', dueDate: addDays(3), invoiceNumber: 'INV-S3-PAID-D-3' }});
-  const invS4 = await prisma.invoice.create({ data: { id: 'inv-s4', tenantId: t1.id, customerId: cust1.id, amount: 400, balanceDue: 0, status: 'canceled', dueDate: addDays(0), invoiceNumber: 'INV-S4-CANCEL-D0' }});
-  const invS5 = await prisma.invoice.create({ data: { id: 'inv-s5', tenantId: t1.id, customerId: cust1.id, amount: 500, balanceDue: 500, status: 'overdue', dueDate: addDays(-5), invoiceNumber: 'INV-S5-OVERDUE-MATCH' }});
-  const invS9 = await prisma.invoice.create({ data: { id: 'inv-s9', tenantId: t2.id, customerId: cust2.id, amount: 900, balanceDue: 900, status: 'pending', dueDate: addDays(3), invoiceNumber: 'INV-S9-TENANT-ISOLATION' }});
+  const invS1 = await prisma.invoice.create({ data: { id: 'inv-s1', tenantId: t1.id, customerId: cust1.id, amount: 100, balanceDue: 100, status: 'OPEN', dueDate: addDays(3), invoiceNumber: 'INV-S1-OPEN-MATCH' }});
+  const invS2 = await prisma.invoice.create({ data: { id: 'inv-s2', tenantId: t1.id, customerId: cust1.id, amount: 200, balanceDue: 200, status: 'OPEN', dueDate: addDays(10), invoiceNumber: 'INV-S2-OPEN-IGNORE' }});
+  const invS3 = await prisma.invoice.create({ data: { id: 'inv-s3', tenantId: t1.id, customerId: cust1.id, amount: 300, balanceDue: 0, status: 'PAID', dueDate: addDays(3), invoiceNumber: 'INV-S3-PAID-D-3' }});
+  const invS4 = await prisma.invoice.create({ data: { id: 'inv-s4', tenantId: t1.id, customerId: cust1.id, amount: 400, balanceDue: 0, status: 'CANCELED', dueDate: addDays(0), invoiceNumber: 'INV-S4-CANCEL-D0' }});
+  const invS5 = await prisma.invoice.create({ data: { id: 'inv-s5', tenantId: t1.id, customerId: cust1.id, amount: 500, balanceDue: 500, status: 'OPEN', dueDate: addDays(-5), invoiceNumber: 'INV-S5-OVERDUE-MATCH' }});
+  const invS9 = await prisma.invoice.create({ data: { id: 'inv-s9', tenantId: t2.id, customerId: cust2.id, amount: 900, balanceDue: 900, status: 'OPEN', dueDate: addDays(3), invoiceNumber: 'INV-S9-TENANT-ISOLATION' }});
 
   console.log("✅ Seed completed. Executing GET /api/cron...\n");
 
@@ -86,8 +86,8 @@ async function runTest() {
   console.log(' -> Marcando S1 como PAID (Pagamento Registrado)');
   console.log(' -> Marcando S5 como CANCELED (Dívida Perdida)');
   
-  await prisma.invoice.update({ where: { id: invS1.id }, data: { status: 'paid', balanceDue: 0 }});
-  await prisma.invoice.update({ where: { id: invS5.id }, data: { status: 'canceled', balanceDue: 0 }});
+  await prisma.invoice.update({ where: { id: invS1.id }, data: { status: 'PAID', balanceDue: 0 }});
+  await prisma.invoice.update({ where: { id: invS5.id }, data: { status: 'CANCELED', balanceDue: 0 }});
   
   console.log("✅ Mutação concluída. Executando GET /api/cron novamente para ver se disparam dupla notificação...");
   const req2 = new Request('http://localhost:3000/api/cron');

@@ -69,11 +69,25 @@ export function getInvoiceVisualState(invoice: Partial<Invoice>): VisualStatus {
 }
 
 /**
+ * Verifica se uma fatura está vencida
+ */
+export function isInvoiceOverdue(invoice: Partial<Invoice>): boolean {
+  if (invoice.status === 'PAID' || invoice.status === 'CANCELED') {
+    return false;
+  }
+
+  const todayStr = getBrazilDateString(new Date())!;
+  const dueStr = getBrazilDateString(invoice.dueDate)!;
+  
+  return dueStr < todayStr;
+}
+
+/**
  * Calcula os valores financeiros da fatura (Multa e Juros)
  */
 export function calculateInvoiceFinancials(invoice: Partial<Invoice>) {
   const baseAmount = invoice.amount || 0;
-  
+
   // Se estiver paga ou cancelada, usamos os valores já persistidos no banco
   if (invoice.status === 'PAID' || invoice.status === 'CANCELED') {
     return {

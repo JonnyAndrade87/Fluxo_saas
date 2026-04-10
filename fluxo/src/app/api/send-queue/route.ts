@@ -38,7 +38,7 @@ export async function GET(request: Request) {
     }
   }
 
-  const { default: prisma } = await import('@/lib/db');
+  const { default: prisma } = await import('@/lib/prisma');
   const [queued, sent, failed] = await Promise.all([
     prisma.messageQueue.count({ where: { status: 'queued' } }),
     prisma.messageQueue.count({ where: { status: 'sent' } }),

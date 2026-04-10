@@ -1,6 +1,6 @@
 'use server';
 
-import prisma from '@/lib/db';
+import prisma from '@/lib/prisma';
 import { auth } from '../../auth';
 import { getRiskScoreForCustomer } from './risk-score';
 import {
@@ -54,7 +54,10 @@ async function getInvoicesWithFilters(
   }
 
   // Status filter
-  if (filters.status) {
+  if (filters.status === 'overdue') {
+    where.status = { in: ['OPEN', 'PROMISE_TO_PAY'] };
+    where.dueDate = { lt: new Date() };
+  } else if (filters.status) {
     where.status = filters.status;
   }
 

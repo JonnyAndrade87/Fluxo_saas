@@ -1,6 +1,6 @@
 'use server';
 
-import prisma from '@/lib/db';
+import prisma from '@/lib/prisma';
 import { requireAuth } from '@/lib/permissions';
 import { revalidatePath } from 'next/cache';
 
@@ -70,7 +70,7 @@ export async function cancelTask(taskId: string) {
   const updated = await prisma.task.update({
     where: { id: taskId },
     data: {
-      status: 'canceled',
+      status: 'CANCELED',
     }
   });
 

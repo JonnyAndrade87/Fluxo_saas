@@ -12,7 +12,7 @@
  */
 
 import { createHash } from 'crypto';
-import prisma from '@/lib/db';
+import prisma from '@/lib/prisma';
 import { sendEmail, buildBillingEmailHtml } from './messaging/email';
 import { sendWhatsApp, sendWhatsAppTemplate } from './messaging/whatsapp';
 import { checkRateLimit } from './rateLimiter';

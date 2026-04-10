@@ -1,4 +1,4 @@
-import prisma from '../src/lib/db'
+import prisma from '../src/lib/prisma'
 import bcrypt from 'bcryptjs'
 
 async function main() {
@@ -71,7 +71,7 @@ async function main() {
   await prisma.invoice.create({
     data: {
       tenantId: tenant.id, customerId: customer1.id, invoiceNumber: 'INV-2024-001',
-      amount: 4500.00, balanceDue: 0, status: 'paid', issueDate: past30, dueDate: past30
+      amount: 4500.00, balanceDue: 0, status: 'PAID', issueDate: past30, dueDate: past30
     }
   });
 
@@ -79,7 +79,7 @@ async function main() {
   await prisma.invoice.create({
     data: {
       tenantId: tenant.id, customerId: customer1.id, invoiceNumber: 'INV-2024-002',
-      amount: 4500.00, balanceDue: 4500.00, status: 'pending', issueDate: now, dueDate: future10
+      amount: 4500.00, balanceDue: 4500.00, status: 'OPEN', issueDate: now, dueDate: future10
     }
   });
 
@@ -95,7 +95,7 @@ async function main() {
   await prisma.invoice.create({
     data: {
       tenantId: tenant.id, customerId: customer2.id, invoiceNumber: 'INV-2024-090',
-      amount: 18000.00, balanceDue: 18000.00, status: 'pending', issueDate: now, dueDate: future10
+      amount: 18000.00, balanceDue: 18000.00, status: 'OPEN', issueDate: now, dueDate: future10
     }
   });
 
@@ -114,7 +114,7 @@ async function main() {
         amount: 12500.00,
         promisedDate: future10,
         notes: 'Cliente prometeu pagar após entrada de recebível deles dia 10',
-        status: 'pending'
+        status: 'OPEN'
       }
     });
 
