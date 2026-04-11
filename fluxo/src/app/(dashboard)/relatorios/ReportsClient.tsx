@@ -113,29 +113,28 @@ export default function ReportsClient({ initialData }: { initialData: ReportMetr
   };
 
   return (
-    <div className={`space-y-7 transition-opacity duration-300 w-full ${isPending ? 'opacity-60 pointer-events-none' : 'opacity-100'}`}>
+    <div className={`space-y-7 transition-opacity duration-300 w-full max-w-full min-w-0 ${isPending ? 'opacity-60 pointer-events-none' : 'opacity-100'}`}>
 
       {/* Period Selector + Export */}
       <div className="space-y-3">
         {/* Period pills — full width on mobile, equal-sized buttons */}
-        <div className="bg-white border border-border/60 rounded-xl p-1 shadow-sm flex w-full overflow-hidden">
+        <div className="bg-white border border-border/60 rounded-xl p-1 shadow-sm flex flex-wrap w-full max-w-full gap-1 min-w-0">
           {PERIODS.map(opt => (
             <button
               key={opt.v}
               onClick={() => changePeriod(opt.v)}
-              style={{ flex: 1 }}
-              className={`py-1.5 rounded-lg text-[13px] font-bold transition-all duration-150 ${
+              className={`flex-1 min-w-[70px] py-1.5 px-1 rounded-lg text-[13px] font-bold transition-all duration-150 ${
                 period === opt.v
                   ? 'bg-fluxeer-blue text-white shadow-sm'
                   : 'text-slate-500 hover:text-obsidian hover:bg-slate-50'
               }`}
             >
-              {opt.l}
+              <span className="truncate block mx-auto">{opt.l}</span>
             </button>
           ))}
         </div>
         {/* Export row */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 w-full min-w-0">
           <div className="flex items-center gap-2 text-[12px] text-muted-foreground font-medium">
             {isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
             <span className="hidden sm:inline">{data.periodLabel}</span>
@@ -154,7 +153,7 @@ export default function ReportsClient({ initialData }: { initialData: ReportMetr
       </div>
 
       {/* 6 KPI Cards */}
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 w-full min-w-0">
         <KpiCard
           label="Faturamento Bruto no Período"
           value={fmtShort(data.totalBilled)}
@@ -204,10 +203,10 @@ export default function ReportsClient({ initialData }: { initialData: ReportMetr
       </div>
 
       {/* Charts Row */}
-      <div className="grid gap-6 xl:grid-cols-12">
+      <div className="grid gap-6 xl:grid-cols-12 w-full min-w-0">
 
         {/* Bar Chart — Monthly Cashflow */}
-        <Card className="col-span-12 xl:col-span-8 premium-card shadow-sm">
+        <Card className="col-span-12 xl:col-span-8 premium-card shadow-sm w-full min-w-0 overflow-hidden">
           <CardHeader className="pb-2">
             <CardTitle className="text-obsidian text-base font-bold">Fluxo de Faturamento Mensal</CardTitle>
             <CardDescription className="text-xs">Emitido × Recebido × Inadimplente por mês</CardDescription>
@@ -235,7 +234,7 @@ export default function ReportsClient({ initialData }: { initialData: ReportMetr
         </Card>
 
         {/* Pie Chart — Status Distribution */}
-        <Card className="col-span-12 xl:col-span-4 premium-card shadow-sm">
+        <Card className="col-span-12 xl:col-span-4 premium-card shadow-sm w-full min-w-0 overflow-hidden">
           <CardHeader className="pb-2">
             <CardTitle className="text-obsidian text-base font-bold">Distribuição da Carteira</CardTitle>
             <CardDescription className="text-xs">Fatia de capital preso vs líquido</CardDescription>
@@ -293,7 +292,7 @@ export default function ReportsClient({ initialData }: { initialData: ReportMetr
       </div>
 
       {/* Per-client Ranking Table */}
-      <Card className="premium-card shadow-sm">
+      <Card className="premium-card shadow-sm w-full min-w-0 overflow-hidden">
         <CardHeader className="border-b border-border/40 bg-[#FAFAFB] rounded-t-2xl pb-4">
           <CardTitle className="text-base font-bold text-obsidian flex items-center gap-2">
             <Users className="w-4 h-4 text-indigo-500" /> Ranking por Cliente

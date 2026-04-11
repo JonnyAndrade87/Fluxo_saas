@@ -21,11 +21,11 @@ export default async function RelatoriosPage() {
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500 pb-10">
+    <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500 pb-10 w-full max-w-[100vw] min-w-0 overflow-x-hidden sm:overflow-x-visible">
 
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-border/50 pb-6">
-        <div className="space-y-1">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-border/50 pb-6 w-full min-w-0">
+        <div className="space-y-1 w-full min-w-0">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50/50 border border-border text-xs font-semibold text-indigo-700 mb-2 shadow-sm">
             <BarChart3 className="w-3.5 h-3.5" />
             Inteligência Financeira

@@ -76,11 +76,11 @@ export default function ClientesClient({ initialData }: { initialData: any[] }) 
   const formatDate = (date: Date) => new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(date));
 
   return (
-    <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500 pb-10">
+    <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500 pb-10 w-full max-w-full min-w-0">
       
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-border/50 pb-6">
-        <div className="space-y-1">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-border/50 pb-6 w-full min-w-0">
+        <div className="space-y-1 w-full min-w-0">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50/50 border border-border text-xs font-semibold text-indigo-700 mb-2 shadow-sm">
             <Building2 className="w-3.5 h-3.5" />
             CRM Central
@@ -97,18 +97,18 @@ export default function ClientesClient({ initialData }: { initialData: any[] }) 
         </Button>
       </div>
 
-      <Card className="premium-card relative w-full">
+      <Card className="premium-card relative w-full max-w-full min-w-0 overflow-hidden">
         <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500 rounded-l-2xl z-20" />
-        <CardHeader className="border-b border-border/50 bg-[#FAFAFB] px-4 sm:px-6">
-          <CardTitle className="text-base flex items-center gap-2 text-obsidian">
-            <Users className="w-4 h-4 text-indigo-500" /> Diretório Corporativo
+        <CardHeader className="border-b border-border/50 bg-[#FAFAFB] px-4 sm:px-6 min-w-0">
+          <CardTitle className="text-base flex items-center gap-2 text-obsidian min-w-0 break-words">
+            <Users className="w-4 h-4 text-indigo-500 shrink-0" /> <span className="truncate">Diretório Corporativo</span>
           </CardTitle>
-          <CardDescription className="text-xs">
+          <CardDescription className="text-xs break-words">
             Visualize a saúde financeira e contatos da sua carteira B2B. Valores refletem pagamentos reais e dívidas.
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-0 sm:pt-6 sm:px-6 sm:pb-6">
-          <div className="px-3 sm:px-0 pt-4 sm:pt-0">
+        <CardContent className="p-0 sm:pt-6 sm:px-6 sm:pb-6 min-w-0 w-full max-w-full">
+          <div className="px-3 sm:px-0 pt-4 sm:pt-0 min-w-0 w-full max-w-full">
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-4 bg-white p-2 rounded-xl border border-border/40 shadow-sm">
             <div className="relative w-full sm:max-w-md group min-w-0">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground group-focus-within:text-indigo-500 transition-colors" />
@@ -120,8 +120,8 @@ export default function ClientesClient({ initialData }: { initialData: any[] }) 
                  onChange={e => setSearch(e.target.value)}
               />
             </div>
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
-              <div className="relative">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto min-w-0">
+              <div className="relative min-w-0">
                 <select 
                   className="h-9 w-full sm:w-36 rounded-md border border-border bg-white text-xs font-medium px-3 text-obsidian shadow-sm focus:ring-1 focus:ring-indigo-500 appearance-none cursor-pointer"
                   value={riskFilter}
@@ -143,7 +143,7 @@ export default function ClientesClient({ initialData }: { initialData: any[] }) 
             </div>
           </div>
           
-          <div className={`rounded-xl border border-border/60 bg-white shadow-sm transition-opacity duration-300 w-full overflow-x-auto ${isPending ? 'opacity-50' : 'opacity-100'}`}>
+          <div className={`rounded-xl border border-border/60 bg-white shadow-sm transition-opacity duration-300 w-full overflow-x-auto min-w-0 max-w-full ${isPending ? 'opacity-50' : 'opacity-100'}`}>
             <table className="w-full text-sm text-left min-w-[700px]">
               <thead className="bg-[#FAFAFB] text-muted-foreground text-xs uppercase tracking-wider font-semibold border-b border-border/60">
                 <tr>
@@ -252,10 +252,10 @@ export default function ClientesClient({ initialData }: { initialData: any[] }) 
         </CardContent>
       </Card>
 
-      {/* Customer Drawer (Slide-Over Vertical) */}
+      {/* Customer Drawer (Mobile Bottom Sheet / Desktop Right Slide-Over) */}
       {(drawerData || isDrawerLoading) && (
-         <div className="fixed inset-0 z-50 flex justify-end bg-obsidian/20 backdrop-blur-sm animate-in fade-in">
-            <div className="w-full max-w-lg bg-white h-full shadow-2xl border-l border-border animate-in slide-in-from-right-full duration-300 flex flex-col relative overflow-hidden">
+         <div className="fixed inset-0 z-50 flex items-end sm:justify-end bg-obsidian/40 backdrop-blur-sm animate-in fade-in duration-300">
+            <div className="w-full sm:max-w-lg bg-white h-[90vh] sm:h-full rounded-t-3xl sm:rounded-none sm:rounded-l-3xl shadow-2xl border-t sm:border-t-0 sm:border-l border-border animate-in slide-in-from-bottom sm:slide-in-from-bottom-0 sm:slide-in-from-right-full duration-300 flex flex-col relative overflow-hidden">
                
                {isDrawerLoading && !drawerData && (
                   <div className="absolute inset-0 bg-white/50 backdrop-blur-md z-50 flex flex-col items-center justify-center space-y-4">
@@ -267,7 +267,10 @@ export default function ClientesClient({ initialData }: { initialData: any[] }) 
                {drawerData && (
                  <>
                    {/* Header C-Level */}
-                   <div className="bg-[#050B14] text-white p-6 relative overflow-hidden shrink-0">
+                   <div className="bg-[#050B14] text-white p-6 pt-8 sm:pt-6 relative overflow-hidden shrink-0 rounded-t-3xl sm:rounded-none sm:rounded-tl-3xl">
+                      {/* Mobile Pull Indicator */}
+                      <div className="sm:hidden absolute top-3 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-white/20 rounded-full"></div>
+                      
                       <div className="absolute right-0 top-0 bottom-0 w-1/2 bg-gradient-to-l from-indigo-600/20 to-transparent"></div>
                       <Button variant="ghost" size="icon" onClick={() => { setDrawerData(null); setIsDrawerLoading(false); }} className="absolute top-4 right-4 rounded-full hover:bg-white/10 text-white/70 hover:text-white z-10 transition-colors">
                          <X className="w-5 h-5" />
