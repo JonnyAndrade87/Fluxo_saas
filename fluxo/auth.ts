@@ -141,59 +141,19 @@ export const { auth, signIn, signOut, handlers: { GET, POST } } = NextAuth({
           where: { email }
         });
 
-        if (dbUser) {
-          // Linked account: update googleId if not present
-          if (!dbUser.googleId) {
-            await prisma.user.update({
-              where: { id: dbUser.id },
-              data: { googleId: account.providerAccountId }
-            });
-          }
-          return true;
+        if (!dbUser) {
+          // E-mail não cadastrado na plataforma — bloqueia o acesso
+          // O NextAuth redireciona para /login?error=AccountNotRegistered
+          return `/login?error=AccountNotRegistered`;
         }
 
-        // New Account -> Register with minimum required data
-        await prisma.$transaction(async (tx) => {
-          const companyName = user.name ? `${user.name} Workspace` : `Minha Empresa`;
-          const tenant = await tx.tenant.create({
-            data: {
-              name: companyName,
-              documentNumber: `TMP-GGL-${Date.now()}`,
-            }
+        // Usuário existente: vincula o googleId se ainda não estiver salvo
+        if (!dbUser.googleId) {
+          await prisma.user.update({
+            where: { id: dbUser.id },
+            data: { googleId: account.providerAccountId }
           });
-
-          const createdUser = await tx.user.create({
-            data: {
-              email,
-              fullName: user.name || "Google User",
-              googleId: account.providerAccountId,
-            }
-          });
-
-          await tx.tenantUser.create({
-            data: {
-              tenantId: tenant.id,
-              userId: createdUser.id,
-              role: 'admin'
-            }
-          });
-        });
-
-        // Enviar E-mail de Boas Vindas para o usuário recém-criado
-        // Await necessário pois serverless functions matam promises pendentes
-        const fallbackName = user.name || "Usuário";
-        const fallbackCompany = user.name ? `${user.name} Workspace` : `Sua Empresa`;
-        
-        await sendEmail({
-          to: email,
-          subject: 'Bem-vindo ao Fluxo',
-          html: buildWelcomeEmailHtml({
-            name: fallbackName,
-            companyName: fallbackCompany,
-            email,
-            loginUrl: `${process.env.NEXT_PUBLIC_APP_URL || 'https://fluxeer.com.br'}/onboarding`
-          }),
-        }).catch(err => console.error("Erro ao disparar welcome email (Google Oauth):", err));
+        }
 
         return true;
       }

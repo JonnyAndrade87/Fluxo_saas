@@ -1,6 +1,7 @@
 'use client';
 
 import { useActionState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { authenticate } from '@/actions/auth';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -9,8 +10,17 @@ import Link from 'next/link';
 import Image from 'next/image';
 import GoogleSignInButton from './GoogleSignInButton';
 
+const OAUTH_ERROR_MESSAGES: Record<string, string> = {
+  AccountNotRegistered: 'Este e-mail do Google não está cadastrado na plataforma. Crie uma conta primeiro ou entre em contato com o administrador.',
+  OAuthCallbackError: 'Ocorreu um erro ao autenticar com o Google. Tente novamente.',
+  OAuthSignin: 'Não foi possível iniciar o login com Google. Tente novamente.',
+};
+
 export default function LoginPage() {
   const [errorMessage, dispatch, isPending] = useActionState(authenticate, undefined);
+  const searchParams = useSearchParams();
+  const oauthError = searchParams.get('error');
+  const oauthErrorMessage = oauthError ? (OAUTH_ERROR_MESSAGES[oauthError] ?? 'Erro ao autenticar com Google.') : null;
 
   return (
     <div className="premium-card bg-white p-8 rounded-2xl shadow-xl border border-border/60 relative overflow-hidden">
@@ -56,6 +66,13 @@ export default function LoginPage() {
           <div className="flex items-center gap-2 text-sm text-rose-600 bg-rose-50 p-3 rounded-lg border border-rose-100 animate-in fade-in duration-300">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <p>{errorMessage}</p>
+          </div>
+        )}
+
+        {oauthErrorMessage && (
+          <div className="flex items-center gap-2 text-sm text-rose-600 bg-rose-50 p-3 rounded-lg border border-rose-100 animate-in fade-in duration-300">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <p>{oauthErrorMessage}</p>
           </div>
         )}
 
