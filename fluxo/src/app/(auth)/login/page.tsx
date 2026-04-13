@@ -14,6 +14,8 @@ const OAUTH_ERROR_MESSAGES: Record<string, string> = {
   AccountNotRegistered: 'Este e-mail do Google não está cadastrado na plataforma. Crie uma conta primeiro ou entre em contato com o administrador.',
   OAuthCallbackError: 'Ocorreu um erro ao autenticar com o Google. Tente novamente.',
   OAuthSignin: 'Não foi possível iniciar o login com Google. Tente novamente.',
+  EmailNotVerified: 'Sua conta ainda não foi verificada. Acesse seu e-mail e clique no link de ativação.',
+  AccountInactive: 'Sua conta está desativada. Entre em contato com o suporte.',
 };
 
 // Isolated to its own component so useSearchParams() is inside a Suspense boundary,

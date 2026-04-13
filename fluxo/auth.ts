@@ -57,6 +57,14 @@ export const { auth, signIn, signOut, handlers: { GET, POST } } = NextAuth({
             throw new Error('Password mismatch.');
           }
 
+          // ── Account gate — must be verified and active ────────────────────
+          if (!user.emailVerified) {
+            throw new Error('EMAIL_NOT_VERIFIED');
+          }
+          if (!user.isActive) {
+            throw new Error('ACCOUNT_INACTIVE');
+          }
+
           const tenantUser = user.tenants[0];
 
           const isSuperAdmin = !!process.env.SUPER_ADMIN_EMAILS && 
@@ -143,8 +151,15 @@ export const { auth, signIn, signOut, handlers: { GET, POST } } = NextAuth({
 
         if (!dbUser) {
           // E-mail não cadastrado na plataforma — bloqueia o acesso
-          // O NextAuth redireciona para /login?error=AccountNotRegistered
           return `/login?error=AccountNotRegistered`;
+        }
+
+        // ── Account gate — mesmas regras do login por credenciais ─────────
+        if (!dbUser.emailVerified) {
+          return `/login?error=EmailNotVerified`;
+        }
+        if (!dbUser.isActive) {
+          return `/login?error=AccountInactive`;
         }
 
         // Usuário existente: vincula o googleId se ainda não estiver salvo

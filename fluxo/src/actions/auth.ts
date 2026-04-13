@@ -39,9 +39,21 @@ export async function authenticate(
       switch (error.type) {
         case 'CredentialsSignin':
           return 'E-mail ou senha inválidos.';
-        default:
-          const causeMsg = error.cause ? (typeof error.cause === 'object' && 'err' in error.cause ? (error.cause as any).err.message : String(error.cause)) : '';
-          return `Erro de autenticação: ${causeMsg || error.message}`;
+        default: {
+          const causeMsg = error.cause
+            ? (typeof error.cause === 'object' && 'err' in error.cause
+                ? (error.cause as any).err.message
+                : String(error.cause))
+            : '';
+          const msg = causeMsg || error.message;
+          if (msg.includes('EMAIL_NOT_VERIFIED')) {
+            return 'Sua conta ainda não foi verificada. Acesse seu e-mail e clique no link de ativação.';
+          }
+          if (msg.includes('ACCOUNT_INACTIVE')) {
+            return 'Sua conta está desativada. Entre em contato com o suporte.';
+          }
+          return `Erro de autenticação: ${msg || error.message}`;
+        }
       }
     }
     if (error && typeof error === 'object' && 'message' in error && (error as any).message === 'NEXT_REDIRECT') throw error;
