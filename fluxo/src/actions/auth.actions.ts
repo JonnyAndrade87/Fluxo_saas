@@ -38,7 +38,7 @@ export async function requestPasswordReset(email: string) {
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://fluxeer.com.br';
     const resetUrl = `${baseUrl}/reset-password?token=${token}`;
 
-    await sendEmail({
+    const emailResult = await sendEmail({
       to: email,
       subject: 'Redefinição de Senha — Fluxo',
       html: buildPasswordResetEmailHtml({
@@ -47,6 +47,12 @@ export async function requestPasswordReset(email: string) {
       }),
       text: `Link de redefinição: ${resetUrl}`
     });
+
+    if (!emailResult.success) {
+      console.error('[AuthAction] Falha ao enviar e-mail de reset:', emailResult.error);
+      // Retorna erro amigável ao frontend, mantendo detalhes técnicos no log
+      return { error: 'O serviço de e-mail está instável. Tente novamente em alguns minutos.' };
+    }
 
     return { success: true };
   } catch (error: any) {
