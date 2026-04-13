@@ -14,6 +14,9 @@ export interface CreateTaskData {
 
 export async function createTask(data: CreateTaskData) {
   const ctx = await requireAuth();
+  if ((ctx.role as string) === 'viewer') {
+    throw new Error('Forbidden: Acesso somente leitura');
+  }
 
   // Validate Customer Ownership
   const customer = await prisma.customer.findFirst({
@@ -49,6 +52,9 @@ export async function createTask(data: CreateTaskData) {
 
 export async function completeTask(taskId: string) {
   const ctx = await requireAuth();
+  if ((ctx.role as string) === 'viewer') {
+    throw new Error('Forbidden: Acesso somente leitura');
+  }
 
   // Ensure task belongs to tenant - use findFirst with tenantId filter for better isolation
   const task = await prisma.task.findFirst({ 
@@ -72,6 +78,9 @@ export async function completeTask(taskId: string) {
 
 export async function cancelTask(taskId: string) {
   const ctx = await requireAuth();
+  if ((ctx.role as string) === 'viewer') {
+    throw new Error('Forbidden: Acesso somente leitura');
+  }
 
   // Ensure task belongs to tenant - use findFirst with tenantId filter for better isolation
   const task = await prisma.task.findFirst({ 

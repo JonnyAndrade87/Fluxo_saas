@@ -103,7 +103,9 @@ export async function getInvoices() {
 export async function markInvoiceAsPaid(id: string, amountPaid?: number) {
   const session = await auth();
   const tenantId = (session?.user as SessionUser)?.tenantId;
+  const role = (session?.user as SessionUser)?.role;
   if (!tenantId) throw new Error("Unauthorized");
+  if (role === 'viewer') throw new Error("Forbidden: Acesso somente leitura");
 
   const inv = await prisma.invoice.findFirst({
     where: { id, tenantId },
@@ -148,7 +150,9 @@ export async function markInvoiceAsPaid(id: string, amountPaid?: number) {
 export async function cancelInvoice(id: string, reason: string) {
   const session = await auth();
   const tenantId = (session?.user as SessionUser)?.tenantId;
+  const role = (session?.user as SessionUser)?.role;
   if (!tenantId) throw new Error("Unauthorized");
+  if (role === 'viewer') throw new Error("Forbidden: Acesso somente leitura");
 
   const inv = await prisma.invoice.findFirst({ where: { id, tenantId } });
   if (!inv) throw new Error("Invoice not found or access denied");
@@ -174,7 +178,9 @@ export async function cancelInvoice(id: string, reason: string) {
 export async function reopenInvoice(id: string) {
   const session = await auth();
   const tenantId = (session?.user as SessionUser)?.tenantId;
+  const role = (session?.user as SessionUser)?.role;
   if (!tenantId) throw new Error("Unauthorized");
+  if (role === 'viewer') throw new Error("Forbidden: Acesso somente leitura");
 
   const inv = await prisma.invoice.findFirst({ where: { id, tenantId } });
   if (!inv) throw new Error("Invoice not found or access denied");
@@ -204,8 +210,10 @@ export async function reopenInvoice(id: string) {
 export async function registerPromiseToPay(id: string, dateString: string) {
   const session = await auth();
   const tenantId = (session?.user as SessionUser)?.tenantId;
+  const role = (session?.user as SessionUser)?.role;
   let userId: string | undefined = (session?.user as SessionUser)?.id;
   if (!tenantId) throw new Error("Unauthorized");
+  if (role === 'viewer') throw new Error("Forbidden: Acesso somente leitura");
 
   // Fallback userId
   if (!userId) {
@@ -251,7 +259,9 @@ export async function registerPromiseToPay(id: string, dateString: string) {
 export async function deleteInvoice(id: string) {
   const session = await auth();
   const tenantId = (session?.user as SessionUser)?.tenantId;
+  const role = (session?.user as SessionUser)?.role;
   if (!tenantId) throw new Error("Unauthorized");
+  if (role === 'viewer') throw new Error("Forbidden: Acesso somente leitura");
 
   const inv = await prisma.invoice.findFirst({ where: { id, tenantId } });
   if (!inv) throw new Error("Invoice not found or access denied");
@@ -285,7 +295,9 @@ export async function createInvoice(data: {
 }) {
   const session = await auth();
   const tenantId = (session?.user as SessionUser)?.tenantId;
+  const role = (session?.user as SessionUser)?.role;
   if (!tenantId) throw new Error("Unauthorized");
+  if (role === 'viewer') throw new Error("Forbidden: Acesso somente leitura");
 
   // Validate ownership of the customer
   const customer = await prisma.customer.findFirst({
@@ -323,7 +335,9 @@ export async function updateInvoice(id: string, data: {
 }) {
   const session = await auth();
   const tenantId = (session?.user as SessionUser)?.tenantId;
+  const role = (session?.user as SessionUser)?.role;
   if (!tenantId) throw new Error("Unauthorized");
+  if (role === 'viewer') throw new Error("Forbidden: Acesso somente leitura");
 
   const inv = await prisma.invoice.findFirst({ where: { id, tenantId } });
   if (!inv) throw new Error("Invoice not found or access denied");
