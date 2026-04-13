@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useActionState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { authenticate } from '@/actions/auth';
@@ -7,7 +8,6 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import Link from 'next/link';
-import Image from 'next/image';
 import GoogleSignInButton from './GoogleSignInButton';
 
 const OAUTH_ERROR_MESSAGES: Record<string, string> = {
@@ -16,11 +16,27 @@ const OAUTH_ERROR_MESSAGES: Record<string, string> = {
   OAuthSignin: 'Não foi possível iniciar o login com Google. Tente novamente.',
 };
 
-export default function LoginPage() {
-  const [errorMessage, dispatch, isPending] = useActionState(authenticate, undefined);
+// Isolated to its own component so useSearchParams() is inside a Suspense boundary,
+// which is required by Next.js for static-compatible builds.
+function OAuthErrorBanner() {
   const searchParams = useSearchParams();
   const oauthError = searchParams.get('error');
-  const oauthErrorMessage = oauthError ? (OAUTH_ERROR_MESSAGES[oauthError] ?? 'Erro ao autenticar com Google.') : null;
+  const oauthErrorMessage = oauthError
+    ? (OAUTH_ERROR_MESSAGES[oauthError] ?? 'Erro ao autenticar com Google.')
+    : null;
+
+  if (!oauthErrorMessage) return null;
+
+  return (
+    <div className="flex items-start gap-3 text-sm font-medium text-rose-700 bg-rose-50/80 p-4 rounded-xl border border-rose-200/60 animate-in fade-in slide-in-from-top-2 duration-300">
+      <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 text-rose-500" />
+      <p className="leading-snug">{oauthErrorMessage}</p>
+    </div>
+  );
+}
+
+export default function LoginPage() {
+  const [errorMessage, dispatch, isPending] = useActionState(authenticate, undefined);
 
   return (
     <div className="w-full max-w-[440px] mx-auto py-8">
@@ -70,12 +86,10 @@ export default function LoginPage() {
           </div>
         )}
 
-        {oauthErrorMessage && (
-          <div className="flex items-start gap-3 text-sm font-medium text-rose-700 bg-rose-50/80 p-4 rounded-xl border border-rose-200/60 animate-in fade-in slide-in-from-top-2 duration-300">
-            <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 text-rose-500" />
-            <p className="leading-snug">{oauthErrorMessage}</p>
-          </div>
-        )}
+        {/* Suspense is required here because useSearchParams() suspends during SSR/static-gen */}
+        <Suspense fallback={null}>
+          <OAuthErrorBanner />
+        </Suspense>
 
         <div className="pt-2 animate-glow-in" style={{ animationDelay: '550ms' }}>
           <Button 
