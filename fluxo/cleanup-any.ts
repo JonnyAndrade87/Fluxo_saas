@@ -18,7 +18,7 @@ for (const relPath of filesToClean) {
   const absPath = path.resolve(relPath);
   if (!fs.existsSync(absPath)) continue;
   
-  let content = fs.readFileSync(absPath, 'utf8');
+  const content = fs.readFileSync(absPath, 'utf8');
   
   // Replace session user cast
   let newContent = content.replaceAll(/\(session\?\.user\s+as\s+any\)\?\.tenantId/g, 'session?.user?.tenantId');

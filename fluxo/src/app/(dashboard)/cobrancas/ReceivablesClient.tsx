@@ -47,7 +47,7 @@ export default function ReceivablesClient({ initialData, initialTotalPages = 1 }
     });
   }, [search, status, dateRange, sortBy, page]);
 
-  // eslint-disable-next-line
+   
   useEffect(() => {
     setPage(1);
   }, [search, status, dateRange, sortBy]);

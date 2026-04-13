@@ -14,7 +14,7 @@ interface Props {
 
 // Helpers for masking
 const maskDocument = (val: string) => {
-  let v = val.replace(/\D/g, '');
+  const v = val.replace(/\D/g, '');
   if (v.length <= 11) {
     // CPF Mask
     return v.replace(/(\d{3})(\d)/, '$1.$2')
@@ -31,7 +31,7 @@ const maskDocument = (val: string) => {
 };
 
 const maskPhone = (val: string) => {
-  let v = val.replace(/\D/g, '');
+  const v = val.replace(/\D/g, '');
   if (v.length <= 10) {
     // Landline: (11) 4000-1234
     return v.replace(/(\d{2})(\d)/, '($1) $2').replace(/(\d{4})(\d)/, '$1-$2');
