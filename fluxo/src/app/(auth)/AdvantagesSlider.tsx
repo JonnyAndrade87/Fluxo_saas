@@ -51,21 +51,30 @@ export function AdvantagesSlider() {
       <div className="flex items-center gap-4 relative z-10 w-full min-w-0">
         {/* Widget Card Icon Area */}
         <div className="w-[3.25rem] h-[3.75rem] rounded-2xl bg-white/[0.03] border border-white/10 flex flex-col items-center justify-center shrink-0 shadow-inner overflow-hidden relative transition-colors duration-500">
-          <div className={`absolute inset-0 bg-gradient-to-tr ${current.color} to-transparent transition-colors duration-500`} />
-          <div key={`icon-${currentIndex}`} className="animate-in zoom-in fade-in duration-300">
-            {current.icon}
-          </div>
+          <div className={`absolute inset-0 bg-gradient-to-tr ${current.color} to-transparent transition-colors duration-700`} />
+          {advantages.map((adv, idx) => (
+             <div key={idx} className={`absolute inset-0 flex items-center justify-center transition-all duration-700 ease-in-out ${idx === currentIndex ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`}>
+               {adv.icon}
+             </div>
+          ))}
         </div>
         {/* Text */}
-        <div className="flex flex-col justify-center min-w-0 flex-1 h-[4.5rem]">
+        <div className="flex flex-col justify-center min-w-0 flex-1 h-[4.5rem] relative">
           <div className="text-[9px] md:text-[10px] font-semibold tracking-widest text-emerald-400 uppercase mb-1 font-mono drop-shadow-sm truncate">
             Vantagens do SaaS
           </div>
-          <div key={`title-${currentIndex}`} className="text-[13px] md:text-sm font-medium text-white mb-0.5 animate-in slide-in-from-bottom-2 fade-in duration-300 truncate">
-            {current.title}
-          </div>
-          <div key={`desc-${currentIndex}`} className="text-[11px] md:text-[12px] text-gray-400 leading-snug line-clamp-2 pr-2 animate-in slide-in-from-bottom-2 fade-in duration-300 delay-75">
-            {current.desc}
+          
+          <div className="relative w-full h-full">
+            {advantages.map((adv, idx) => (
+              <div key={idx} className={`absolute top-0 left-0 w-full transition-all duration-700 ease-out flex flex-col justify-start ${idx === currentIndex ? 'opacity-100 translate-x-0 pointer-events-auto' : 'opacity-0 translate-x-4 pointer-events-none'}`}>
+                <div className="text-[13px] md:text-sm font-medium text-white mb-0.5 truncate drop-shadow-sm">
+                  {adv.title}
+                </div>
+                <div className="text-[11px] md:text-[12px] text-gray-400 leading-snug line-clamp-2 pr-2">
+                  {adv.desc}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>

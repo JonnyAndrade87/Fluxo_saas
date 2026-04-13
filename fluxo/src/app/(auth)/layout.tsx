@@ -36,7 +36,7 @@ export default function AuthLayout({
           <div className="relative z-10 flex flex-col h-full justify-between">
             {/* Top: Logo */}
             <div>
-              <Image src={logoLogin} alt="Fluxeer" className="object-contain h-7 w-auto" width={160} height={32} priority />
+              <Image src={logoLogin} alt="Fluxeer" className="object-contain h-[38px] w-auto" width={216} height={43} priority />
             </div>
 
             {/* Center: Typography */}
@@ -50,7 +50,7 @@ export default function AuthLayout({
                 </span>
               </h1>
               
-              <p className="mt-8 text-base lg:text-[17px] text-gray-400 max-w-md leading-relaxed font-sans font-medium">
+              <p className="mt-8 text-base lg:text-[17px] text-white/90 max-w-md leading-relaxed font-sans font-medium">
                 Transformamos a complexidade de recebíveis em inteligência unificada. Automação, visibilidade e conciliação para focar no crescimento da sua operação.
               </p>
             </div>
