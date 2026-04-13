@@ -11,9 +11,11 @@ export default function WelcomeModal() {
 
   useEffect(() => {
     if (searchParams.get('welcome') === '1') {
-      setOpen(true);
+      // Defer state update to avoid synchronous setState inside effect warning
+      const timer = setTimeout(() => setOpen(true), 0);
       // Limpa a query string da URL sem recarregar a página
       window.history.replaceState({}, '', '/');
+      return () => clearTimeout(timer);
     }
   }, [searchParams]);
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useTransition, useCallback } from 'react';
+import { useState, useEffect, useTransition } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,37 +28,34 @@ export default function ReceivablesClient({ initialData, initialTotalPages = 1 }
   const [totalPages, setTotalPages] = useState(initialTotalPages);
   const [isPending, startTransition] = useTransition();
 
-  // Filters State
-  const [search, setSearch] = useState('');
-  const [status, setStatus] = useState('all');
-  const [dateRange, setDateRange] = useState('all');
-  const [sortBy, setSortBy] = useState('date_asc');
+  // Filters State — wrappers reset page to 1 on change
+  const [search, setSearchRaw] = useState('');
+  const [status, setStatusRaw] = useState('all');
+  const [dateRange, setDateRangeRaw] = useState('all');
+  const [sortBy, setSortByRaw] = useState('date_asc');
+
+  const setSearch = (v: string) => { setSearchRaw(v); setPage(1); };
+  const setStatus = (v: string) => { setStatusRaw(v); setPage(1); };
+  const setDateRange = (v: string) => { setDateRangeRaw(v); setPage(1); };
+  const setSortBy = (v: string) => { setSortByRaw(v); setPage(1); };
 
   // UI State
   const [selectedInvoice, setSelectedInvoice] = useState<any | null>(null);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [invoiceTimeline, setInvoiceTimeline] = useState<TimelineEvent[]>([]);
 
-  const fetchInvoices = useCallback(() => {
-    startTransition(async () => {
-       const data = await getFilteredInvoices({ search, status, dateRange, sortBy, page });
-       setInvoices(data.invoices || []);
-       setTotalPages(data.totalPages || 1);
-    });
-  }, [search, status, dateRange, sortBy, page]);
-
-   
-  useEffect(() => {
-    setPage(1);
-  }, [search, status, dateRange, sortBy]);
 
   useEffect(() => {
-    // Debounce search
+    // Debounce fetch on any filter or page change
     const timer = setTimeout(() => {
-       fetchInvoices();
+      startTransition(async () => {
+        const data = await getFilteredInvoices({ search, status, dateRange, sortBy, page });
+        setInvoices(data.invoices || []);
+        setTotalPages(data.totalPages || 1);
+      });
     }, 400);
     return () => clearTimeout(timer);
-  }, [fetchInvoices]);
+  }, [search, status, dateRange, sortBy, page]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Actions
   const handleAction = async (actionFn: (...args: any[]) => Promise<any>, ...args: any[]) => {
