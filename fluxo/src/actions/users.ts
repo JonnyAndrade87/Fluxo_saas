@@ -87,11 +87,13 @@ export async function updateUserRole(tenantUserId: string, newRole: string) {
     return { error: 'Papel inválido.' };
   }
 
-  // Prevent downgrading yourself
+  // Authorize and prevent downgrading yourself
   const tu = await prisma.tenantUser.findUnique({
     where: { id: tenantUserId }
   });
-  if (!tu) return { error: 'Membro não encontrado.' };
+  if (!tu || tu.tenantId !== ctx.tenantId) {
+    return { error: 'Membro não encontrado ou sem permissão.' };
+  }
   if (tu.userId === ctx.userId) return { error: 'Você não pode alterar seu próprio papel.' };
 
   await prisma.tenantUser.update({
@@ -113,7 +115,9 @@ export async function removeTeamMember(tenantUserId: string) {
   const tu = await prisma.tenantUser.findUnique({
     where: { id: tenantUserId }
   });
-  if (!tu) return { error: 'Membro não encontrado.' };
+  if (!tu || tu.tenantId !== ctx.tenantId) {
+    return { error: 'Membro não encontrado ou sem permissão.' };
+  }
 
   // Cannot remove yourself
   if (tu.userId === ctx.userId) {
