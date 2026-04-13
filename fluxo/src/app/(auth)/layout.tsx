@@ -1,6 +1,7 @@
-import { CheckCircle2, ArrowRight } from "lucide-react";
+import { CheckCircle2, ArrowRight, TrendingUp } from "lucide-react";
 import Image from "next/image";
 import logoLogin from "../../assets/logo_dashboard.png";
+import textureBg from "../../assets/texture.webp";
 
 export default function AuthLayout({
   children,
@@ -19,66 +20,68 @@ export default function AuthLayout({
       </div>
 
       {/* Main Split Authentication Card */}
-      <div className="relative z-10 w-full max-w-[1280px] bg-white rounded-[2rem] shadow-2xl border border-border/50 overflow-hidden flex flex-col md:flex-row min-h-[760px]">
+      <div className="relative z-10 w-full max-w-[1280px] bg-white rounded-[2rem] shadow-2xl shadow-gray-200/50 border border-border/50 overflow-hidden flex flex-col md:flex-row min-h-[760px]">
         
-        {/* Left Side: Brand Panel - Dark Abstract Wavy Aesthetic */}
-        <div className="w-full md:w-[55%] lg:w-[60%] bg-[#0B101E] relative flex flex-col justify-between p-8 lg:p-14 border-r border-white/5 overflow-hidden flex-shrink-0">
+        {/* Left Side: Brand Panel - Textured SaaS Aesthetic */}
+        <div className="w-full md:w-[55%] lg:w-[60%] bg-[#0f1115] relative flex flex-col justify-between p-8 lg:p-14 border-r border-white/5 overflow-hidden flex-shrink-0">
           
-          {/* Abstract wavy background simulating the reference image */}
-          <div className="absolute inset-0 z-0 pointer-events-none opacity-60">
-            {/* Long sweeping gradient simulating a wave */}
-            <div className="absolute top-[10%] left-[-30%] w-[150%] h-[100%] bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-700/20 via-[#0B101E]/10 to-[#0B101E] transform -rotate-12 blur-[80px]" />
-            <div className="absolute bottom-[0%] right-[-20%] w-[120%] h-[80%] bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-900/20 via-[#0B101E]/0 to-[#0B101E] transform rotate-[15deg] blur-[100px]" />
-            <div className="absolute top-[40%] left-[20%] w-[100%] h-[40%] bg-gradient-to-r from-transparent via-slate-500/10 to-transparent transform -rotate-[5deg] blur-[60px]" />
+          {/* Actual Texture Background from Design System */}
+          <div className="absolute inset-0 z-0">
+            <Image src={textureBg} alt="Abstract Texture" className="opacity-60 mix-blend-overlay object-cover w-full h-full" priority placeholder="blur" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0f1115] via-transparent to-[#0f1115]/80 pointer-events-none" />
           </div>
 
           {/* Content Wrapper */}
           <div className="relative z-10 flex flex-col h-full justify-between">
             {/* Top: Logo */}
             <div>
-              <Image src={logoLogin} alt="Fluxeer" className="object-contain h-7 w-auto mix-blend-plus-lighter brightness-200 grayscale contrast-200" width={160} height={32} priority />
+              <Image src={logoLogin} alt="Fluxeer" className="object-contain h-7 w-auto" width={160} height={32} priority />
             </div>
 
-            {/* Center: Large Typography */}
+            {/* Center: Typography */}
             <div className="my-auto pt-16 pb-8">
-              <h1 className="text-[3.5rem] lg:text-[4.5rem] xl:text-[5rem] font-heading font-medium tracking-tighter leading-[1.05] text-white">
+              <h1 className="text-[2.75rem] lg:text-[3.5rem] xl:text-[4rem] font-heading font-medium tracking-tighter leading-[1.05] text-white">
                 Cobranças<br />
                 organizadas.<br />
-                <span className="text-white/40">
+                <span className="text-gray-400">
                   Caixa<br />
                   previsível.
                 </span>
               </h1>
+              
+              <p className="mt-8 text-base lg:text-[17px] text-gray-400 max-w-md leading-relaxed font-sans font-medium">
+                Transformamos a complexidade de recebíveis em inteligência unificada. Automação, visibilidade e conciliação para focar no crescimento da sua operação.
+              </p>
             </div>
 
-            {/* Bottom: Frosted Glass Widget */}
+            {/* Bottom: Frosted Glass SaaS Advantages Widget */}
             <div className="mt-auto flex justify-end">
-              <div className="bg-white/[0.04] backdrop-blur-2xl border border-white/[0.08] rounded-2xl p-4 flex items-center justify-between gap-6 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.8)] w-full max-w-[360px] relative overflow-hidden transition-all hover:bg-white/[0.06]">
+              <div className="bg-white/[0.04] backdrop-blur-2xl border border-white/10 rounded-3xl p-3 md:p-4 pr-5 flex items-center justify-between gap-6 shadow-[0_8px_32px_rgba(0,0,0,0.4)] w-full max-w-[420px] relative overflow-hidden transition-all hover:bg-white/[0.06]">
                 {/* subtle reflection */}
-                <div className="absolute inset-0 bg-gradient-to-br from-white/[0.04] to-transparent pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none opacity-50" />
                 
                 <div className="flex items-center gap-4 relative z-10">
-                  {/* Widget Icon Box */}
-                  <div className="w-12 h-12 rounded-[14px] bg-slate-900/50 border border-white/[0.06] flex items-center justify-center shrink-0 shadow-inner">
-                    <div className="w-6 h-6 rounded-md bg-white/10 flex items-center justify-center">
-                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,1)]" />
-                    </div>
+                  {/* Widget Card Icon Area */}
+                  <div className="w-[3.25rem] h-[3.75rem] rounded-2xl bg-white/[0.03] border border-white/10 flex flex-col items-center justify-center shrink-0 shadow-inner overflow-hidden relative">
+                    <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/20 to-transparent" />
+                    <TrendingUp className="w-5 h-5 text-emerald-400 relative z-10" />
                   </div>
                   {/* Text */}
-                  <div>
-                    <div className="text-[10px] font-medium tracking-[0.2em] text-white/40 uppercase mb-1">Status</div>
-                    <div className="text-sm font-medium text-white/90">Sistemas operacionais</div>
+                  <div className="flex flex-col justify-center">
+                    <div className="text-[9px] md:text-[10px] font-semibold tracking-widest text-emerald-400 uppercase mb-1 uppercase font-mono drop-shadow-sm">Vantagens do SaaS</div>
+                    <div className="text-[13px] md:text-sm font-medium text-white mb-0.5">Recebíveis em Tempo Real</div>
+                    <div className="text-[11px] md:text-[12px] text-gray-400 leading-snug line-clamp-2 pr-2">Monitore o caixa cruzando pagamentos com zero conciliação manual.</div>
                   </div>
                 </div>
                 
                 {/* Circular buttons like reference */}
-                <div className="flex gap-2 shrink-0 relative z-10">
-                   <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/60 hover:bg-white/20 transition-colors cursor-pointer">
-                     <ArrowRight className="w-4 h-4 rotate-180" />
-                   </div>
-                   <div className="w-8 h-8 rounded-full bg-white text-slate-900 flex items-center justify-center hover:bg-white/90 transition-colors cursor-pointer shadow-lg">
-                     <ArrowRight className="w-4 h-4" />
-                   </div>
+                <div className="flex gap-2 shrink-0 relative z-10 ml-2">
+                   <button type="button" className="w-[2.15rem] h-[2.15rem] rounded-full bg-white/10 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/20 transition-all cursor-pointer">
+                     <ArrowRight className="w-3.5 h-3.5 rotate-180" />
+                   </button>
+                   <button type="button" className="w-[2.15rem] h-[2.15rem] rounded-full bg-white text-black flex items-center justify-center hover:bg-gray-200 transition-all cursor-pointer shadow-lg hover:shadow-white/20">
+                     <ArrowRight className="w-3.5 h-3.5" />
+                   </button>
                 </div>
               </div>
             </div>
