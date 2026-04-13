@@ -15,6 +15,20 @@ export interface CreateTaskData {
 export async function createTask(data: CreateTaskData) {
   const ctx = await requireAuth();
 
+  // Validate Customer Ownership
+  const customer = await prisma.customer.findFirst({
+    where: { id: data.customerId, tenantId: ctx.tenantId }
+  });
+  if (!customer) throw new Error("Customer not found or invalid tenant");
+
+  // Validate Invoice Ownership if applicable
+  if (data.invoiceId) {
+    const invoice = await prisma.invoice.findFirst({
+      where: { id: data.invoiceId, tenantId: ctx.tenantId }
+    });
+    if (!invoice) throw new Error("Invoice not found or invalid tenant");
+  }
+
   const task = await prisma.task.create({
     data: {
       tenantId: ctx.tenantId,

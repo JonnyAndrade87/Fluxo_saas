@@ -287,6 +287,14 @@ export async function createInvoice(data: {
   const tenantId = (session?.user as SessionUser)?.tenantId;
   if (!tenantId) throw new Error("Unauthorized");
 
+  // Validate ownership of the customer
+  const customer = await prisma.customer.findFirst({
+    where: { id: data.customerId, tenantId }
+  });
+  if (!customer) {
+    throw new Error("Customer not found or invalid tenant");
+  }
+
   const invoiceNumber = `INV-${Math.floor(100000 + Math.random() * 900000)}`;
 
   const newInvoice = await prisma.invoice.create({

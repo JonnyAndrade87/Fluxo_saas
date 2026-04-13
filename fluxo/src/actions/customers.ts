@@ -212,6 +212,12 @@ export async function addCustomerNote(customerId: string, content: string) {
   const ctx = await requireAuth(); // any authenticated user can add notes
   const { tenantId, userId } = ctx;
 
+  // Validate ownership
+  const customer = await prisma.customer.findFirst({
+    where: { id: customerId, tenantId }
+  });
+  if (!customer) throw new Error("Customer not found or invalid tenant");
+
   const note = await prisma.customerNote.create({
     data: {
       tenantId,
@@ -232,6 +238,12 @@ export async function upsertFinancialContact(data: any) {
 
   const { id, customerId, name, email, phone, isPrimary } = data;
 
+  // Validate ownership of the customer
+  const customer = await prisma.customer.findFirst({
+    where: { id: customerId, tenantId }
+  });
+  if (!customer) throw new Error("Customer not found or invalid tenant");
+
   if (isPrimary) {
      await prisma.financialContact.updateMany({
         where: { customerId, tenantId },
@@ -241,6 +253,12 @@ export async function upsertFinancialContact(data: any) {
 
   let contact;
   if (id) {
+    // Validate ownership of the contact being updated
+    const existing = await prisma.financialContact.findFirst({
+      where: { id, tenantId }
+    });
+    if (!existing) throw new Error("Contact not found or invalid tenant");
+
     contact = await prisma.financialContact.update({
       where: { id },
       data: { name, email, phone, isPrimary }
