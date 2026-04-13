@@ -4,6 +4,10 @@ import { verifyResendSignature } from '@/lib/webhookVerify';
 
 export const dynamic = 'force-dynamic';
 
+function logAuthFailure(code?: string) {
+  console.warn(`[WEBHOOK/RESEND] Authentication failed (${code ?? 'unknown'})`);
+}
+
 // Simple in-memory rate limit store
 const webhookRateLimitStore = new Map<string, { count: number; resetAt: number }>();
 
@@ -46,8 +50,11 @@ export async function POST(request: Request) {
     // ── Signature verification (hardening) ──────────────────────────────────
     const verification = await verifyResendSignature(body, request.headers);
     if (!verification.valid) {
-      console.warn('[WEBHOOK/RESEND] Invalid signature:', verification.error);
-      return NextResponse.json({ error: 'Unauthorized: invalid webhook signature' }, { status: 401 });
+      logAuthFailure(verification.code);
+      return NextResponse.json(
+        { error: 'Unauthorized webhook request', code: verification.code },
+        { status: verification.status ?? 401 },
+      );
     }
 
     let event: any;
@@ -112,7 +119,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, updated: comm.id, status: updateData.status });
 
   } catch (err: any) {
-    console.error('[WEBHOOK/RESEND ERROR]', err);
+    console.error('[WEBHOOK/RESEND] Internal error');
     return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }
 }

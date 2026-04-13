@@ -1,111 +1,198 @@
 /**
- * Webhook Signature Verification — Message Engine Hardening
+ * Shared webhook authentication helpers.
  *
- * Resend: uses svix (install: npm install svix)
- *   Env: WEBHOOK_SECRET_RESEND=whsec_...
- *
- * Z-API: HMAC-SHA256 via Node.js crypto
- *   Env: ZAPI_WEBHOOK_SECRET=your-secret
- *
- * Both return { valid: boolean; error?: string }
+ * All verifiers are fail-closed:
+ * - Missing configuration -> invalid
+ * - Missing auth headers/token -> invalid
+ * - Signature mismatch -> invalid
  */
 
 import { createHmac, timingSafeEqual } from 'crypto';
+import { Webhook } from 'svix';
+
+type VerifyFailureCode =
+  | 'missing_config'
+  | 'missing_token'
+  | 'invalid_token'
+  | 'missing_signature'
+  | 'invalid_signature'
+  | 'invalid_mode';
 
 export interface VerifyResult {
   valid: boolean;
   error?: string;
+  code?: VerifyFailureCode;
+  status?: 401 | 403;
 }
 
-// ─── Resend / Svix ────────────────────────────────────────────────────────────
+function verified(): VerifyResult {
+  return { valid: true };
+}
 
-/**
- * Verifies a Resend webhook using the svix library.
- * Falls back to "valid=true" when WEBHOOK_SECRET_RESEND is not configured (dev mode).
- */
+function failed(
+  code: VerifyFailureCode,
+  error: string,
+  status: 401 | 403 = 401,
+): VerifyResult {
+  return {
+    valid: false,
+    code,
+    error,
+    status,
+  };
+}
+
+function getRequiredEnv(
+  envName: string,
+  status: 401 | 403 = 401,
+): { ok: true; value: string } | { ok: false; result: VerifyResult } {
+  const value = process.env[envName]?.trim();
+
+  if (!value) {
+    return {
+      ok: false,
+      result: failed('missing_config', `${envName} is not configured`, status),
+    };
+  }
+
+  return { ok: true, value };
+}
+
+function safeEqualStrings(left: string, right: string): boolean {
+  const leftBuffer = Buffer.from(left, 'utf8');
+  const rightBuffer = Buffer.from(right, 'utf8');
+
+  if (leftBuffer.length !== rightBuffer.length) {
+    return false;
+  }
+
+  return timingSafeEqual(leftBuffer, rightBuffer);
+}
+
+function extractBearerToken(value: string | null): string | null {
+  if (!value) return null;
+  return value.startsWith('Bearer ') ? value.slice(7).trim() : value.trim();
+}
+
+export function verifyWhatsAppChallenge(
+  mode: string | null,
+  token: string | null,
+): VerifyResult {
+  if (mode !== 'subscribe') {
+    return failed('invalid_mode', 'Invalid webhook challenge mode', 403);
+  }
+
+  const configuredToken = getRequiredEnv('WHATSAPP_WEBHOOK_VERIFY_TOKEN', 403);
+  if (!configuredToken.ok) {
+    return configuredToken.result;
+  }
+
+  if (!token) {
+    return failed('missing_token', 'Missing hub.verify_token', 403);
+  }
+
+  if (!safeEqualStrings(token, configuredToken.value)) {
+    return failed('invalid_token', 'Invalid webhook token', 403);
+  }
+
+  return verified();
+}
+
+export function verifyWhatsAppSignature(
+  body: string,
+  headers: Headers,
+): VerifyResult {
+  const appSecret = getRequiredEnv('WHATSAPP_WEBHOOK_APP_SECRET');
+  if (!appSecret.ok) {
+    return appSecret.result;
+  }
+
+  const receivedSignature = headers.get('x-hub-signature-256');
+  if (!receivedSignature) {
+    return failed('missing_signature', 'Missing x-hub-signature-256 header');
+  }
+
+  const expectedSignature = `sha256=${createHmac('sha256', appSecret.value)
+    .update(body)
+    .digest('hex')}`;
+
+  if (!safeEqualStrings(receivedSignature.toLowerCase(), expectedSignature.toLowerCase())) {
+    return failed('invalid_signature', 'WhatsApp signature mismatch');
+  }
+
+  return verified();
+}
+
 export async function verifyResendSignature(
   body: string,
-  headers: Headers
+  headers: Headers,
 ): Promise<VerifyResult> {
-  const secret = process.env.WEBHOOK_SECRET_RESEND;
-  if (!secret) {
-    console.warn('[WEBHOOK/RESEND] WEBHOOK_SECRET_RESEND not set — skipping signature check (dev mode)');
-    return { valid: true };
+  const secret = getRequiredEnv('WEBHOOK_SECRET_RESEND');
+  if (!secret.ok) {
+    return secret.result;
+  }
+
+  const svixId = headers.get('svix-id');
+  const svixTimestamp = headers.get('svix-timestamp');
+  const svixSignature = headers.get('svix-signature');
+
+  if (!svixId || !svixTimestamp || !svixSignature) {
+    return failed('missing_signature', 'Missing svix signature headers');
   }
 
   try {
-    // Dynamic import to avoid build errors if svix is not installed
-    const { Webhook } = await import('svix').catch(() => ({ Webhook: null }));
-    if (!Webhook) {
-      console.warn('[WEBHOOK/RESEND] svix not installed — install with: npm install svix');
-      return { valid: true };
-    }
-
-    const wh = new Webhook(secret);
-    const svixHeaders = {
-      'svix-id':        headers.get('svix-id') ?? '',
-      'svix-timestamp': headers.get('svix-timestamp') ?? '',
-      'svix-signature': headers.get('svix-signature') ?? '',
-    };
-
-    wh.verify(body, svixHeaders);
-    return { valid: true };
-  } catch (err: any) {
-    console.error('[WEBHOOK/RESEND] Signature verification failed:', err.message);
-    return { valid: false, error: err.message };
+    const webhook = new Webhook(secret.value);
+    webhook.verify(body, {
+      'svix-id': svixId,
+      'svix-timestamp': svixTimestamp,
+      'svix-signature': svixSignature,
+    });
+    return verified();
+  } catch {
+    return failed('invalid_signature', 'Resend signature verification failed');
   }
 }
 
-// ─── Z-API / HMAC-SHA256 ──────────────────────────────────────────────────────
-
-/**
- * Verifies Z-API webhook signature via HMAC-SHA256.
- * Header expected: x-zapi-signature: sha256=<hex>
- * Falls back to token check (existing behaviour) if ZAPI_WEBHOOK_SECRET is not set.
- */
 export function verifyZapiSignature(
   body: string,
-  headers: Headers
+  headers: Headers,
 ): VerifyResult {
-  const secret = process.env.ZAPI_WEBHOOK_SECRET;
-  const legacyToken = process.env.ZAPI_WEBHOOK_TOKEN;
+  const secret = process.env.ZAPI_WEBHOOK_SECRET?.trim();
+  const legacyToken = process.env.ZAPI_WEBHOOK_TOKEN?.trim();
 
-  // Legacy token check (existing behaviour — backward-compatible)
-  if (!secret && legacyToken) {
-    const token = headers.get('x-zapi-token') ?? headers.get('authorization');
-    const expected = legacyToken;
-    const tokenValid = token === expected || token === `Bearer ${expected}`;
-    return tokenValid
-      ? { valid: true }
-      : { valid: false, error: 'Invalid Z-API token' };
-  }
-
-  // HMAC-SHA256 verification
   if (secret) {
-    const receivedSig = headers.get('x-zapi-signature') ?? '';
-    if (!receivedSig) {
-      return { valid: false, error: 'Missing x-zapi-signature header' };
+    const receivedSignature = headers.get('x-zapi-signature');
+    if (!receivedSignature) {
+      return failed('missing_signature', 'Missing x-zapi-signature header');
     }
 
-    // Support "sha256=<hex>" or plain hex
-    const hexSig = receivedSig.startsWith('sha256=')
-      ? receivedSig.slice(7)
-      : receivedSig;
+    const expectedSignature = `sha256=${createHmac('sha256', secret).update(body).digest('hex')}`;
+    const normalizedReceived = receivedSignature.startsWith('sha256=')
+      ? receivedSignature
+      : `sha256=${receivedSignature}`;
 
-    const expectedHex = createHmac('sha256', secret).update(body).digest('hex');
-
-    try {
-      const valid = timingSafeEqual(
-        Buffer.from(hexSig, 'hex'),
-        Buffer.from(expectedHex, 'hex')
-      );
-      return valid ? { valid: true } : { valid: false, error: 'HMAC signature mismatch' };
-    } catch {
-      return { valid: false, error: 'Invalid signature format' };
+    if (!safeEqualStrings(normalizedReceived.toLowerCase(), expectedSignature.toLowerCase())) {
+      return failed('invalid_signature', 'Z-API signature mismatch');
     }
+
+    return verified();
   }
 
-  // Neither ZAPI_WEBHOOK_SECRET nor ZAPI_WEBHOOK_TOKEN configured — dev mode
-  console.warn('[WEBHOOK/ZAPI] No signature secret configured — skipping verification (dev mode)');
-  return { valid: true };
+  if (legacyToken) {
+    const providedToken = extractBearerToken(
+      headers.get('x-zapi-token') ?? headers.get('authorization'),
+    );
+
+    if (!providedToken) {
+      return failed('missing_token', 'Missing Z-API token');
+    }
+
+    if (!safeEqualStrings(providedToken, legacyToken)) {
+      return failed('invalid_token', 'Invalid Z-API token');
+    }
+
+    return verified();
+  }
+
+  return failed('missing_config', 'ZAPI webhook secret/token is not configured');
 }

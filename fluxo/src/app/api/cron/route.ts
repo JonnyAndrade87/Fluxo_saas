@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { enqueueAndSend } from '@/lib/queue';
+import { requireInternalEndpointAuth } from '@/lib/internalEndpointAuth';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,16 +35,10 @@ function isCronRateLimited(key: string, limit: number = 10, windowMs: number = 3
  * Fail-safe: if provider is unconfigured, Communication stays 'queued' — no false positives.
  */
 export async function GET(request: Request) {
-  // ── Security Guard ────────────────────────────────────────────────────────
-  const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret) {
-    const authHeader = request.headers.get('authorization');
-    if (authHeader !== `Bearer ${cronSecret}`) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized: invalid or missing CRON_SECRET header.' },
-        { status: 401 }
-      );
-    }
+  const auth = requireInternalEndpointAuth(request);
+  if (!auth.ok) {
+    console.warn('[CRON] Internal authentication rejected');
+    return auth.response;
   }
 
   // ── Rate limiting (prevent abuse) ──────────────────────────────────────
@@ -246,8 +241,8 @@ export async function GET(request: Request) {
     });
 
   } catch (error: any) {
-    console.error('[CRON ERROR]', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    console.error('[CRON] Internal execution error');
+    return NextResponse.json({ success: false, error: 'Internal error' }, { status: 500 });
   }
 }
 
