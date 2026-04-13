@@ -1,7 +1,8 @@
-import { CheckCircle2, ArrowRight, TrendingUp } from "lucide-react";
+import { CheckCircle2, ArrowRight } from "lucide-react";
 import Image from "next/image";
 import logoLogin from "../../assets/logo_dashboard.png";
 import textureBg from "../../assets/texture.webp";
+import { AdvantagesSlider } from "./AdvantagesSlider";
 
 export default function AuthLayout({
   children,
@@ -56,34 +57,7 @@ export default function AuthLayout({
 
             {/* Bottom: Frosted Glass SaaS Advantages Widget */}
             <div className="mt-auto flex justify-end">
-              <div className="bg-white/[0.04] backdrop-blur-2xl border border-white/10 rounded-3xl p-3 md:p-4 pr-5 flex items-center justify-between gap-6 shadow-[0_8px_32px_rgba(0,0,0,0.4)] w-full max-w-[420px] relative overflow-hidden transition-all hover:bg-white/[0.06]">
-                {/* subtle reflection */}
-                <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none opacity-50" />
-                
-                <div className="flex items-center gap-4 relative z-10">
-                  {/* Widget Card Icon Area */}
-                  <div className="w-[3.25rem] h-[3.75rem] rounded-2xl bg-white/[0.03] border border-white/10 flex flex-col items-center justify-center shrink-0 shadow-inner overflow-hidden relative">
-                    <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/20 to-transparent" />
-                    <TrendingUp className="w-5 h-5 text-emerald-400 relative z-10" />
-                  </div>
-                  {/* Text */}
-                  <div className="flex flex-col justify-center">
-                    <div className="text-[9px] md:text-[10px] font-semibold tracking-widest text-emerald-400 uppercase mb-1 uppercase font-mono drop-shadow-sm">Vantagens do SaaS</div>
-                    <div className="text-[13px] md:text-sm font-medium text-white mb-0.5">Recebíveis em Tempo Real</div>
-                    <div className="text-[11px] md:text-[12px] text-gray-400 leading-snug line-clamp-2 pr-2">Monitore o caixa cruzando pagamentos com zero conciliação manual.</div>
-                  </div>
-                </div>
-                
-                {/* Circular buttons like reference */}
-                <div className="flex gap-2 shrink-0 relative z-10 ml-2">
-                   <button type="button" className="w-[2.15rem] h-[2.15rem] rounded-full bg-white/10 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/20 transition-all cursor-pointer">
-                     <ArrowRight className="w-3.5 h-3.5 rotate-180" />
-                   </button>
-                   <button type="button" className="w-[2.15rem] h-[2.15rem] rounded-full bg-white text-black flex items-center justify-center hover:bg-gray-200 transition-all cursor-pointer shadow-lg hover:shadow-white/20">
-                     <ArrowRight className="w-3.5 h-3.5" />
-                   </button>
-                </div>
-              </div>
+              <AdvantagesSlider />
             </div>
           </div>
         </div>
