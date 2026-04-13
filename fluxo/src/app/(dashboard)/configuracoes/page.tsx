@@ -13,7 +13,7 @@ export default async function ConfiguracoesPage() {
 
   return (
     <div className="space-y-0">
-      <ReguaClient />
+      {isAdmin && <ReguaClient />}
       {isAdmin && <TeamClient members={members} />}
     </div>
   );

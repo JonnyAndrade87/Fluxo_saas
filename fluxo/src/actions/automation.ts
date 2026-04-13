@@ -2,6 +2,7 @@
 
 import prisma from '@/lib/prisma';
 import { auth } from '../../auth';
+import { requireAuth } from '@/lib/permissions';
 
 const DEFAULT_FLOW_CONFIG = {
   stages: [
@@ -75,12 +76,11 @@ const DEFAULT_FLOW_CONFIG = {
 };
 
 export async function saveBillingFlow(rulesData: any) {
-  const session = await auth();
-  const tenantId = session?.user?.tenantId;
-
-  if (!tenantId) {
-    throw new Error('Unauthorized');
+  const ctx = await requireAuth();
+  if ((ctx.role as string) !== 'admin') {
+    throw new Error('Forbidden: Apenas administradores podem alterar a régua de cobrança');
   }
+  const tenantId = ctx.tenantId;
 
   const existingFlow = await prisma.billingFlow.findFirst({
     where: { tenantId }

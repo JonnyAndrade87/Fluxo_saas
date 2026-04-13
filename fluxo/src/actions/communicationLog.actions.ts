@@ -2,6 +2,7 @@
 
 import prisma from '@/lib/prisma';
 import { auth } from '../../auth';
+import { requireAuth } from '@/lib/permissions';
 import { generateCollectionLogs } from '@/services/communication/communicationService';
 
 // ── Type helpers ───────────────────────────────────────────────────────────────
@@ -48,9 +49,11 @@ export async function triggerCollectionLogs(): Promise<{
   errors?: string[];
   error?: string;
 }> {
-  const session = await auth();
-  const tenantId = session?.user?.tenantId;
-  if (!tenantId) return { success: false, error: 'Unauthorized' };
+  const ctx = await requireAuth();
+  if ((ctx.role as string) === 'viewer') {
+    return { success: false, error: 'Forbidden: Acesso somente leitura' };
+  }
+  const tenantId = ctx.tenantId;
 
   try {
     const tenant = await prisma.tenant.findUnique({
@@ -131,9 +134,9 @@ export async function getCommunicationLogs(
 // ── 3. Mark log as sent ────────────────────────────────────────────────────────
 
 export async function markLogSent(id: string): Promise<{ success: boolean }> {
-  const session = await auth();
-  const tenantId = session?.user?.tenantId;
-  if (!tenantId) return { success: false };
+  const ctx = await requireAuth();
+  if ((ctx.role as string) === 'viewer') return { success: false };
+  const tenantId = ctx.tenantId;
 
   await prisma.communicationLog.updateMany({
     where: { id, tenantId },
@@ -146,9 +149,9 @@ export async function markLogSent(id: string): Promise<{ success: boolean }> {
 // ── 4. Mark log as skipped ────────────────────────────────────────────────────
 
 export async function markLogSkipped(id: string): Promise<{ success: boolean }> {
-  const session = await auth();
-  const tenantId = session?.user?.tenantId;
-  if (!tenantId) return { success: false };
+  const ctx = await requireAuth();
+  if ((ctx.role as string) === 'viewer') return { success: false };
+  const tenantId = ctx.tenantId;
 
   await prisma.communicationLog.updateMany({
     where: { id, tenantId },
