@@ -62,14 +62,21 @@ describe('Governança do Modelo Unificado de Roles', () => {
     });
   });
 
-  describe('Context Sanitizer: requireAuth fallback', () => {
-    it('sanitiza uma role inválida vinda do JWT para o Fallback default "operator"', async () => {
+  describe('Context Sanitizer e Reject de Fallback Permissivo', () => {
+    it('REJEITA role inválida ou legada ("financeiro") ao invés de usar fallback de "operator"', async () => {
+      vi.mocked(auth).mockResolvedValue({
+        user: { id: '1', tenantId: 't-1', role: 'financeiro' }
+      } as any);
+
+      await expect(requireAuth()).rejects.toThrow(/FORBIDDEN: Papel inválido ou legado detectado/);
+    });
+
+    it('REJEITA roles completamente inexistentes prevenindo Privilege Escalation pelo Gateway', async () => {
       vi.mocked(auth).mockResolvedValue({
         user: { id: '1', tenantId: 't-1', role: 'ceo_invalid_role' }
       } as any);
 
-      const ctx = await requireAuth();
-      expect(ctx.role).toBe('operator'); // Foi devidamente sanitizada
+      await expect(requireAuth()).rejects.toThrow(/FORBIDDEN: Papel inválido ou legado detectado/);
     });
 
     it('mantém o role válido sem alterar', async () => {

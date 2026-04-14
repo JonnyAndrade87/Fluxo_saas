@@ -29,15 +29,15 @@ export async function requireAuth(): Promise<AuthContext> {
     throw new Error('UNAUTHORIZED: No active session or tenant.');
   }
 
-  const rawRole = user.role ?? 'operator';
-  const role: UserRole = ['admin', 'operator', 'viewer'].includes(rawRole) 
-    ? (rawRole as UserRole)
-    : 'operator'; // Trata qualquer inconsistência ou fallback
+  const rawRole = user.role;
+  if (!rawRole || !['admin', 'operator', 'viewer'].includes(rawRole)) {
+    throw new Error(`FORBIDDEN: Papel inválido ou legado detectado ('${rawRole}'). Acesso bloqueado por segurança.`);
+  }
 
   return {
     userId: user.id ?? user.sub ?? '',
     tenantId: user.tenantId,
-    role,
+    role: rawRole as UserRole,
   };
 }
 
