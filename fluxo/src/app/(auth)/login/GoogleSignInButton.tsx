@@ -1,16 +1,18 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react';
+import { useSearchParams } from 'next/navigation';
 
 export default function GoogleSignInButton() {
-  const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams?.get('callbackUrl') || '/cobrancas';
 
   return (
     <Button
       variant="outline"
       type="button"
-      onClick={() => router.push('/api/auth/signin/google')}
+      onClick={() => signIn('google', { callbackUrl })}
       className="w-full h-12 text-sm font-semibold text-obsidian tracking-wide border-border/60 hover:bg-slate-50 flex items-center justify-center gap-3"
     >
       <svg width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">

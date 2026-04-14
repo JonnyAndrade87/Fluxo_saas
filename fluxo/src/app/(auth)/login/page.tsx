@@ -18,6 +18,12 @@ const OAUTH_ERROR_MESSAGES: Record<string, string> = {
   AccountInactive: 'Sua conta está desativada. Entre em contato com o suporte.',
 };
 
+function CallbackInput() {
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get('callbackUrl') || '/cobrancas';
+  return <input type="hidden" name="callbackUrl" value={callbackUrl} />;
+}
+
 // Isolated to its own component so useSearchParams() is inside a Suspense boundary,
 // which is required by Next.js for static-compatible builds.
 function OAuthErrorBanner() {
@@ -52,6 +58,10 @@ export default function LoginPage() {
       </div>
 
       <form action={dispatch} className="space-y-6">
+        <Suspense fallback={null}>
+          <CallbackInput />
+        </Suspense>
+        
         <div className="space-y-5">
           <div className="space-y-2 animate-glow-in" style={{ animationDelay: '250ms' }}>
             <label className="text-sm tracking-wide font-bold text-obsidian select-none" htmlFor="email">Email</label>
@@ -119,7 +129,9 @@ export default function LoginPage() {
       </div>
 
       <div className="animate-glow-in" style={{ animationDelay: '650ms' }}>
-        <GoogleSignInButton />
+        <Suspense fallback={null}>
+          <GoogleSignInButton />
+        </Suspense>
       </div>
 
       <div className="text-center text-[14px] mt-10 animate-glow-in" style={{ animationDelay: '700ms' }}>

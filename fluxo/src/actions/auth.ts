@@ -30,9 +30,12 @@ export async function authenticate(
 ) {
   try {
     const data = Object.fromEntries(formData);
+    const callbackUrl = formData.get('callbackUrl') as string | null;
+    const redirectTo = callbackUrl || '/cobrancas';
+    
     await signIn('credentials', {
       ...data,
-      redirectTo: '/cobrancas',
+      redirectTo,
     });
   } catch (error: any) {
     if (error instanceof AuthError) {
