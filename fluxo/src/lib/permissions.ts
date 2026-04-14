@@ -1,15 +1,15 @@
 /**
  * FOCO 4 — Permissões Multiusuário
- * Sistema simplificado de controle de acesso por perfil
+ * Sistema simplificado de controle de acesso por perfil (Roles Unification)
  *
- * Perfis: admin | financeiro | cobrança | gestor
+ * Perfis oficiais consolidados: admin | operator | viewer
  * - Sem RBAC granular, apenas controle por módulo e ação crítica
  * - Auditoria básica integrada
  */
 
 import { auth } from '../../auth';
 
-export type UserRole = 'admin' | 'financeiro' | 'cobrança' | 'gestor';
+export type UserRole = 'admin' | 'operator' | 'viewer';
 
 export interface AuthContext {
   userId: string;
@@ -29,10 +29,15 @@ export async function requireAuth(): Promise<AuthContext> {
     throw new Error('UNAUTHORIZED: No active session or tenant.');
   }
 
+  const rawRole = user.role ?? 'operator';
+  const role: UserRole = ['admin', 'operator', 'viewer'].includes(rawRole) 
+    ? (rawRole as UserRole)
+    : 'operator'; // Trata qualquer inconsistência ou fallback
+
   return {
     userId: user.id ?? user.sub ?? '',
     tenantId: user.tenantId,
-    role: (user.role ?? 'gestor') as UserRole,
+    role,
   };
 }
 
@@ -52,57 +57,57 @@ export function requireRole(allowed: UserRole[], ctx: AuthContext): void {
 }
 
 /**
- * Matriz de Permissões Simplificada
+ * Matriz de Permissões Simplificada e Unificada (admin | operator | viewer)
  * 
- * ┌─────────────┬───────────┬──────────┬────────┬─────────┐
- * │ Módulo      │ Admin     │ Financ.  │ Cobran │ Gestor  │
- * ├─────────────┼───────────┼──────────┼────────┼─────────┤
- * │ Dashboard   │ ✅ Leitura│ ✅ Leitura│ ❌     │ ✅ Leitura
- * │ Clientes    │ ✅ CRUD   │ ✅ Leitura│ ✅ R   │ ✅ Leitura
- * │ Faturas     │ ✅ CRUD   │ ✅ Criar │ ✅ R   │ ✅ Leitura
- * │ Relatórios  │ ✅ Todos  │ ✅ Financ│ ✅ Cobr│ ✅ Leitura
- * │ Cobranças   │ ✅ Gerenc │ ❌       │ ✅ Exec│ ❌
- * │ Configurar  │ ✅ Sim    │ ❌       │ ❌     │ ❌
- * │ Auditoria   │ ✅ Sim    │ ❌       │ ❌     │ ❌
- * └─────────────┴───────────┴──────────┴────────┴─────────┘
+ * ┌─────────────┬───────────┬──────────┬────────┐
+ * │ Módulo      │ Admin     │ Operator │ Viewer │
+ * ├─────────────┼───────────┼──────────┼────────┤
+ * │ Dashboard   │ ✅ Leitura│ ✅ Leitura│ ✅ Leit│
+ * │ Clientes    │ ✅ CRUD   │ ✅ CRU   │ ✅ Leit│
+ * │ Faturas     │ ✅ CRUD   │ ✅ CRU   │ ✅ Leit│
+ * │ Relatórios  │ ✅ Todos  │ ✅ Todos │ ✅ Leit│
+ * │ Cobranças   │ ✅ Gerenc │ ✅ Exec  │ ✅ Leit│
+ * │ Configurar  │ ✅ Sim    │ ❌       │ ❌     │
+ * │ Auditoria   │ ✅ Sim    │ ❌       │ ❌     │
+ * └─────────────┴───────────┴──────────┴────────┘
  */
 export const PERMISSIONS_MATRIX = {
   // Dashboard
-  'dashboard:view': ['admin', 'financeiro', 'gestor'],
+  'dashboard:view': ['admin', 'operator', 'viewer'],
 
   // Clientes
-  'customers:read': ['admin', 'financeiro', 'cobrança', 'gestor'],
-  'customers:create': ['admin'],
-  'customers:update': ['admin'],
+  'customers:read': ['admin', 'operator', 'viewer'],
+  'customers:create': ['admin', 'operator'],
+  'customers:update': ['admin', 'operator'],
   'customers:delete': ['admin'],
 
   // Faturas
-  'invoices:read': ['admin', 'financeiro', 'cobrança', 'gestor'],
-  'invoices:create': ['admin', 'financeiro'],
-  'invoices:update': ['admin'],
+  'invoices:read': ['admin', 'operator', 'viewer'],
+  'invoices:create': ['admin', 'operator'],
+  'invoices:update': ['admin', 'operator'],
   'invoices:delete': ['admin'],
-  'invoices:export': ['admin', 'financeiro', 'gestor'],
+  'invoices:export': ['admin', 'operator', 'viewer'],
 
   // Relatórios
-  'reports:read': ['admin', 'financeiro', 'cobrança', 'gestor'],
-  'reports:export': ['admin', 'financeiro', 'gestor'],
+  'reports:read': ['admin', 'operator', 'viewer'],
+  'reports:export': ['admin', 'operator', 'viewer'],
 
   // Previsão de Caixa
-  'forecast:read': ['admin', 'financeiro', 'gestor'],
+  'forecast:read': ['admin', 'operator', 'viewer'],
 
   // Cobranças (tarefas, comunicações)
-  'collections:read': ['admin', 'cobrança'],
-  'collections:create': ['admin', 'cobrança'],
-  'collections:update': ['admin', 'cobrança'],
-  'collections:execute': ['admin', 'cobrança'], // Enviar mensagens, fazer promessas
+  'collections:read': ['admin', 'operator', 'viewer'],
+  'collections:create': ['admin', 'operator'],
+  'collections:update': ['admin', 'operator'],
+  'collections:execute': ['admin', 'operator'], // Enviar mensagens, fazer promessas
   'collections:delete': ['admin'],
 
   // Automação
-  'automation:read': ['admin', 'financeiro'],
+  'automation:read': ['admin', 'operator', 'viewer'],
   'automation:configure': ['admin'],
 
   // Configurações
-  'settings:read': ['admin'],
+  'settings:read': ['admin', 'operator', 'viewer'],
   'settings:update': ['admin'],
 
   // Auditoria
@@ -116,13 +121,12 @@ export const PERMISSIONS_MATRIX = {
 } as const;
 
 /**
- * Descrições de Responsabilidades por Perfil
+ * Descrições de Responsabilidades por Perfil Unificado
  */
 export const ROLE_DESCRIPTIONS: Record<UserRole, string> = {
-  admin: 'Gerenciador completo • Acesso irrestrito a todas as funcionalidades',
-  financeiro: 'Gestor financeiro • Criação de faturas, relatórios e previsões',
-  cobrança: 'Operador de cobranças • Execução de cobranças e comunicações',
-  gestor: 'Gestor executivo • Visão de dashboard e relatórios de gestão',
+  admin: 'Proprietário/Gestor • Acesso irrestrito a todas as funcionalidades estratégicas, de equipe e de remoção',
+  operator: 'Operador Diário • Criação de faturas, recebimentos, clientes e relatórios financeiros (Sem acesso para deletar entidades críticas)',
+  viewer: 'Cosultor / Leitor • Acesso estrito somente leitura (não pode alterar, criar ou enviar cobranças)',
 };
 
 /**
