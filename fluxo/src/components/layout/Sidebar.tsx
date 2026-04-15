@@ -193,34 +193,6 @@ export function Sidebar({ user }: SidebarProps) {
           </Link>
         )}
         
-        {/* User Card Miniature */}
-        <div 
-          onClick={handleLogout}
-          className={cn(
-             "mt-4 p-3 bg-[#112740] border border-white/5 rounded-xl shadow-sm hover:border-rose-400/50 hover:bg-rose-500/10 transition-colors cursor-pointer group flex items-center",
-             isCollapsed ? "justify-center" : "justify-between"
-          )}
-          title="Sair do sistema"
-        >
-          {isCollapsed ? (
-             <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#00D2C8]/20 to-[#00D2C8]/10 border border-[#00D2C8]/30 flex items-center justify-center shrink-0">
-               <LogOut className="w-4 h-4 text-rose-400 group-hover:scale-110 transition-transform" />
-             </div>
-          ) : (
-            <>
-              <div className="flex items-center gap-3 overflow-hidden pr-2">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#00D2C8]/20 to-[#00D2C8]/10 border border-[#00D2C8]/30 flex items-center justify-center shrink-0">
-                  <span className="text-xs font-bold text-[#00D2C8]">{initials}</span>
-                </div>
-                <div className="flex flex-col min-w-0">
-                  <span className="text-sm font-semibold text-white leading-none truncate">{displayName}</span>
-                  <span className="text-[10px] text-white/50 mt-1 truncate">{displayRole}</span>
-                </div>
-              </div>
-              <LogOut className="w-4 h-4 text-white/30 group-hover:text-rose-400 transition-colors shrink-0" />
-            </>
-          )}
-        </div>
       </div>
     </aside>
   )
