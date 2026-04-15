@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
-import { auth, signOut } from "../../../auth";
-import { LogOut } from "lucide-react";
+import { auth } from "../../../auth";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -19,42 +18,31 @@ export default async function SuperAdminLayout({
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
       {/* Top Navbar specifically for Super Admin */}
-      <header className="bg-obsidian border-b border-white/10 text-white sticky top-0 z-50">
+      <header className="bg-[#1A3A5F] border-b border-white/10 text-white sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="bg-white/5 p-1.5 rounded-lg flex items-center justify-center border border-white/10">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center justify-center">
               <Image 
-                src="/logo_fluxeer_icone.png" 
-                alt="Fluxo Logo" 
-                width={32} 
+                src="/logo_dashboard.png" 
+                alt="Fluxeer Logo" 
+                width={120} 
                 height={32} 
-                className="w-6 h-6 object-contain"
+                className="h-8 w-auto object-contain"
               />
             </div>
-            <div>
-              <h1 className="font-heading font-black text-lg tracking-tight">Fluxo</h1>
-              <p className="text-[10px] font-mono text-rose-300 uppercase tracking-widest leading-none">
+            <div className="pl-4 border-l border-white/20">
+              <p className="text-xs font-mono text-rose-300 font-bold uppercase tracking-widest leading-none">
                 Super Admin
               </p>
             </div>
           </div>
-          
           <div className="flex items-center gap-4 text-sm font-medium">
-             <span className="text-slate-400 font-mono text-xs hidden sm:inline-block">
+             <span className="text-white/60 font-mono text-[11px] hidden sm:inline-block">
                {session.user.email}
              </span>
-             <Link href="/" className="text-slate-300 hover:text-white transition-colors">
-               Ir para Tenant Normal
+             <Link href="/" className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold py-2 px-4 rounded-lg transition-colors ml-2">
+               Voltar ao Dashboard
              </Link>
-             {/* Using a form for server action signOut since we are in a server component layout */}
-             <form action={async () => {
-               "use server";
-               await signOut();
-             }}>
-               <button type="submit" className="flex items-center gap-2 text-rose-400 hover:text-rose-300 transition-colors ml-4 border-l border-white/10 pl-4">
-                 <LogOut className="w-4 h-4" /> Sair
-               </button>
-             </form>
           </div>
         </div>
       </header>
