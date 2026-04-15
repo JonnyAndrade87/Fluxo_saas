@@ -39,6 +39,8 @@ export const navGroups = [
     items: [
       { name: "Relatórios", href: "/relatorios", icon: BarChart3 },
       { name: "Monitor de Fila", href: "/fila", icon: Layers },
+      { name: "Planos e Billing", href: "/planos", icon: CreditCard },
+      { name: "Configurações", href: "/configuracoes", icon: Settings },
     ]
   }
 ]
@@ -59,10 +61,6 @@ export function Sidebar({ user }: SidebarProps) {
   const displayName = user?.name || "Usuário";
   const initials = displayName.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase();
   const displayRole = user?.role === 'admin' ? 'Administrador' : 'Operador';
-
-  const handleLogout = () => {
-    signOut({ callbackUrl: '/login' });
-  };
 
   return (
     <aside 

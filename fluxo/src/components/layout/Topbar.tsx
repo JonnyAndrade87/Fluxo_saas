@@ -1,8 +1,9 @@
 'use client';
 
-import { Bell, Search, Command, X, CheckCircle2, AlertTriangle, Clock } from "lucide-react";
+import { Bell, Search, Command, X, CheckCircle2, AlertTriangle, Clock, LogOut } from "lucide-react";
 import { MobileSidebar } from "./MobileSidebar";
 import { useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
 
 const QUICK_LINKS = [
@@ -179,6 +180,18 @@ export function Topbar({
               </div>
             </div>
           )}
+          
+          {/* User Profile / Logout */}
+          <button
+            onClick={() => signOut({ callbackUrl: '/login' })}
+            className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-obsidian border border-border hover:bg-slate-200 transition-all shadow-sm group relative"
+            title="Sair do sistema"
+          >
+            <span className="text-sm font-bold tracking-tight group-hover:opacity-0 transition-opacity">
+              {user?.name ? user.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'US'}
+            </span>
+            <LogOut className="w-4 h-4 text-rose-500 absolute opacity-0 group-hover:opacity-100 transition-opacity" />
+          </button>
         </div>
       </header>
 
