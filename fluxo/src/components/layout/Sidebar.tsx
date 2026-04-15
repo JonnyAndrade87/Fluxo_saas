@@ -15,10 +15,10 @@ import {
   Inbox,
   Layers,
   MessageCircle,
-  ShieldAlert
+  ShieldAlert,
+  CreditCard
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import Image from "next/image"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { useState } from "react"
 
@@ -153,14 +153,31 @@ export function Sidebar({ user }: SidebarProps) {
           {!isCollapsed && <span>Suporte</span>}
         </a>
         <Link 
-          href="/configuracoes" 
-          title={isCollapsed ? "Configurações" : undefined}
+          href="/planos" 
+          title={isCollapsed ? "Planos e Billing" : undefined}
           className={cn(
-            "group flex items-center gap-3 py-2.5 rounded-lg text-sm font-medium text-white/60 hover:bg-[#234b7a]/50 hover:text-white transition-all duration-300",
+            "group flex items-center gap-3 py-2.5 rounded-lg text-sm font-medium",
+            pathname === "/planos" 
+              ? "bg-[#00D2C8] text-obsidian shadow-sm font-semibold" 
+              : "text-white/60 hover:bg-[#234b7a]/50 hover:text-white transition-all duration-300",
             isCollapsed ? "justify-center px-0" : "px-3"
           )}
         >
-          <Settings className="w-5 h-5 group-hover:text-[#00D2C8] transition-colors" />
+          <CreditCard className={cn("w-5 h-5 transition-colors", pathname === "/planos" ? "text-obsidian" : "group-hover:text-[#00D2C8]")} />
+          {!isCollapsed && <span>Planos e Billing</span>}
+        </Link>
+        <Link 
+          href="/configuracoes" 
+          title={isCollapsed ? "Configurações" : undefined}
+          className={cn(
+            "group flex items-center gap-3 py-2.5 rounded-lg text-sm font-medium",
+            pathname === "/configuracoes" 
+              ? "bg-[#00D2C8] text-obsidian shadow-sm font-semibold" 
+              : "text-white/60 hover:bg-[#234b7a]/50 hover:text-white transition-all duration-300",
+            isCollapsed ? "justify-center px-0" : "px-3"
+          )}
+        >
+          <Settings className={cn("w-5 h-5 transition-colors", pathname === "/configuracoes" ? "text-obsidian" : "group-hover:text-[#00D2C8]")} />
           {!isCollapsed && <span>Configurações</span>}
         </Link>
         

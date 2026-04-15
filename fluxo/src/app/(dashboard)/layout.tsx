@@ -1,7 +1,9 @@
 import { Sidebar } from "@/components/layout/Sidebar"
 import { Topbar } from "@/components/layout/Topbar"
 import NewInvoiceModal from "@/components/finance/NewInvoiceModal"
+import { cookies } from 'next/headers'
 import prisma from "@/lib/prisma"
+import { getBillingE2EFixture } from '@/lib/e2e-billing'
 import { requireTenant } from '@/lib/safe-auth'
 
 // Force dynamic rendering - cannot cache dashboard with user-specific data
@@ -14,20 +16,26 @@ export default async function DashboardLayout({
 }) {
   // Protect dashboard routes - require authenticated user with tenant
   const { user, tenantId } = await requireTenant();
+  const cookieStore = await cookies();
+  const e2eFixture = getBillingE2EFixture(cookieStore);
 
   // Extract tenant name
   let tenantName = "Sua Empresa";
 
-  try {
-    const tenant = await prisma.tenant.findUnique({
-      where: { id: tenantId },
-      select: { name: true }
-    });
-    if (tenant?.name) {
-      tenantName = tenant.name;
+  if (e2eFixture) {
+    tenantName = e2eFixture.tenantName;
+  } else {
+    try {
+      const tenant = await prisma.tenant.findUnique({
+        where: { id: tenantId },
+        select: { name: true }
+      });
+      if (tenant?.name) {
+        tenantName = tenant.name;
+      }
+    } catch (e) {
+      console.error("Error fetching tenant name:", e);
     }
-  } catch (e) {
-    console.error("Error fetching tenant name:", e);
   }
 
   return (

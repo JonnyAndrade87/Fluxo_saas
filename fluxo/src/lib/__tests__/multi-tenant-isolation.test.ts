@@ -11,12 +11,14 @@ import { addCustomerNote, upsertFinancialContact } from '@/actions/customers';
 import { createTask } from '@/actions/tasks';
 import prisma from '@/lib/prisma';
 import { auth } from '../../../auth';
-import { requireAuth, requireAuthFresh, requireRole } from '@/lib/permissions';
+import { requireAuth, requireAuthFresh } from '@/lib/permissions';
 
 vi.mock('@/lib/prisma', () => ({
   default: {
-    customer: { findFirst: vi.fn() },
-    invoice: { findFirst: vi.fn(), create: vi.fn() },
+    tenant: { findUnique: vi.fn() },
+    tenantUser: { count: vi.fn() },
+    customer: { findFirst: vi.fn(), count: vi.fn() },
+    invoice: { findFirst: vi.fn(), count: vi.fn(), create: vi.fn() },
     financialContact: { findFirst: vi.fn(), updateMany: vi.fn(), create: vi.fn(), update: vi.fn() },
     customerNote: { create: vi.fn() },
     task: { create: vi.fn() },
@@ -33,11 +35,28 @@ vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }));
 describe('Multi-Tenant Data Isolation em Associação de Entidades', () => {
   const mockTenantId = 'tenant-A';
   const mockUserId = 'user-1';
+  const authMock = auth as unknown as ReturnType<typeof vi.fn>;
+  const tenantMock = {
+    id: mockTenantId,
+    plan: 'pro',
+    maxUsers: 3,
+    maxCustomers: 2000,
+    maxInvoices: 10000,
+  } as Awaited<ReturnType<typeof prisma.tenant.findUnique>>;
+  const tenantOwnedCustomer = {
+    id: 'valid-customer',
+    tenantId: mockTenantId,
+  } as Awaited<ReturnType<typeof prisma.customer.findFirst>>;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(auth).mockResolvedValue({ user: { tenantId: mockTenantId, id: mockUserId, role: 'operator' } } as any);
-    vi.mocked(requireAuth).mockResolvedValue({ tenantId: mockTenantId, userId: mockUserId, role: 'admin', isSuperAdmin: false }); vi.mocked(requireAuthFresh).mockResolvedValue({ tenantId: mockTenantId, userId: mockUserId, role: 'admin', isSuperAdmin: false });
+    authMock.mockResolvedValue({ user: { tenantId: mockTenantId, id: mockUserId, role: 'operator' } });
+    vi.mocked(requireAuth).mockResolvedValue({ tenantId: mockTenantId, userId: mockUserId, role: 'admin' });
+    vi.mocked(requireAuthFresh).mockResolvedValue({ tenantId: mockTenantId, userId: mockUserId, role: 'admin', mfaEnabled: false });
+    vi.mocked(prisma.tenant.findUnique).mockResolvedValue(tenantMock);
+    vi.mocked(prisma.tenantUser.count).mockResolvedValue(1);
+    vi.mocked(prisma.customer.count).mockResolvedValue(1);
+    vi.mocked(prisma.invoice.count).mockResolvedValue(1);
   });
 
   describe('createInvoice', () => {
@@ -75,7 +94,7 @@ describe('Multi-Tenant Data Isolation em Associação de Entidades', () => {
 
     it('bloqueia o update de um financialContact cuja origem é de outro tenant', async () => {
       // Simula que o Customer pertence ao usuário, MAS o Contato pertence a outro tenant (IDOR modificado)
-      vi.mocked(prisma.customer.findFirst).mockResolvedValue({ id: 'valid-customer', tenantId: mockTenantId } as any);
+      vi.mocked(prisma.customer.findFirst).mockResolvedValue(tenantOwnedCustomer);
       // Checagem do próprio contato falha validando tenantId:
       vi.mocked(prisma.financialContact.findFirst).mockResolvedValue(null);
 
@@ -89,7 +108,7 @@ describe('Multi-Tenant Data Isolation em Associação de Entidades', () => {
   describe('createTask', () => {
     it('bloqueia criação de tarefa se for informado um invoiceId de um tenant externo', async () => {
       // O Customer é dele:
-      vi.mocked(prisma.customer.findFirst).mockResolvedValue({ id: 'valid-customer', tenantId: mockTenantId } as any);
+      vi.mocked(prisma.customer.findFirst).mockResolvedValue(tenantOwnedCustomer);
       // A Fatura informada é roubada de outro tenant:
       vi.mocked(prisma.invoice.findFirst).mockResolvedValue(null);
 

@@ -2,7 +2,9 @@
 
 import type { TenantPlan } from '@prisma/client';
 
+import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
+import { getBillingE2EFixture } from '@/lib/e2e-billing';
 import { requireAuthFresh, requireRole } from '@/lib/permissions';
 import {
   createStripeCheckoutSessionForTenant,
@@ -15,9 +17,22 @@ type BillingActionResult = {
   error?: string;
 };
 
+async function getE2EBillingFixtureForAction() {
+  try {
+    const cookieStore = await cookies();
+    return getBillingE2EFixture(cookieStore);
+  } catch {
+    return null;
+  }
+}
+
 export async function createSubscriptionCheckoutSession(
   plan: TenantPlan,
 ): Promise<BillingActionResult> {
+  if (await getE2EBillingFixtureForAction()) {
+    return { url: `/configuracoes?billing=mock-checkout-${plan}#billing` };
+  }
+
   const ctx = await requireAuthFresh();
   requireRole(['admin'], ctx);
 
@@ -46,6 +61,10 @@ export async function createSubscriptionCheckoutSession(
 }
 
 export async function createCustomerPortalSession(): Promise<BillingActionResult> {
+  if (await getE2EBillingFixtureForAction()) {
+    return { url: '/configuracoes?billing=mock-portal#billing' };
+  }
+
   const ctx = await requireAuthFresh();
   requireRole(['admin'], ctx);
 

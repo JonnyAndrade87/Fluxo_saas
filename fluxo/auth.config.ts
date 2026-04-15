@@ -1,11 +1,13 @@
 import type { NextAuthConfig } from 'next-auth';
+import { getBillingE2EScenario, isBillingE2EModeEnabled } from './src/lib/e2e-billing';
 
 export const authConfig = {
   pages: {
     signIn: '/login',
   },
   callbacks: {
-    authorized({ auth, request: { nextUrl } }) {
+    authorized({ auth, request }) {
+      const { nextUrl } = request;
       const isLoggedIn = !!auth?.user;
       const isPublicRoute =
         nextUrl.pathname === '/login' ||
@@ -17,6 +19,10 @@ export const authConfig = {
 
       // Allow access to public routes
       if (isPublicRoute) {
+        return true;
+      }
+
+      if (isBillingE2EModeEnabled() && getBillingE2EScenario(request.cookies)) {
         return true;
       }
 

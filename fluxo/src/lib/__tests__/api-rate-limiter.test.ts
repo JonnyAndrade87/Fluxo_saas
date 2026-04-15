@@ -13,29 +13,54 @@ vi.mock('@/lib/prisma', () => ({
 }));
 
 describe('API Rate Limiter', () => {
-  let enforceRateLimit: any;
+  type RateLimitRecord = {
+    key: string;
+    count: number;
+    resetAt: Date;
+  };
 
-  let mockDb: Map<string, any>;
+  const prismaMock = prisma as unknown as {
+    rateLimit: {
+      findUnique: ReturnType<typeof vi.fn>;
+      create: ReturnType<typeof vi.fn>;
+      update: ReturnType<typeof vi.fn>;
+    };
+  };
+
+  let enforceRateLimit: typeof import('../api-rate-limiter').enforceRateLimit;
+
+  let mockDb: Map<string, RateLimitRecord>;
 
   beforeEach(async () => {
     vi.useFakeTimers();
     vi.clearAllMocks();
     mockDb = new Map();
     
-    vi.mocked(prisma.rateLimit.findUnique).mockImplementation(async (args: any) => mockDb.get(args.where.key) || null);
+    prismaMock.rateLimit.findUnique.mockImplementation(
+      async (args: { where: { key: string } }) => mockDb.get(args.where.key) ?? null,
+    );
     
-    vi.mocked(prisma.rateLimit.create).mockImplementation(async (args: any) => {
+    prismaMock.rateLimit.create.mockImplementation(async (args: { data: RateLimitRecord }) => {
       mockDb.set(args.data.key, args.data);
       return args.data;
     });
 
-    vi.mocked(prisma.rateLimit.update).mockImplementation(async (args: any) => {
+    prismaMock.rateLimit.update.mockImplementation(async (args: {
+      where: { key: string };
+      data: { count: { increment: number } | number; resetAt?: Date };
+    }) => {
       const existing = mockDb.get(args.where.key);
-      if (args.data.count?.increment) {
+      if (!existing) {
+        throw new Error(`Missing rate limit record for ${args.where.key}`);
+      }
+
+      if (typeof args.data.count === 'object') {
         existing.count += args.data.count.increment;
       } else {
         existing.count = args.data.count;
-        existing.resetAt = args.data.resetAt;
+        if (args.data.resetAt) {
+          existing.resetAt = args.data.resetAt;
+        }
       }
       mockDb.set(args.where.key, existing);
       return existing;

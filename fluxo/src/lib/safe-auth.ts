@@ -5,10 +5,21 @@
  */
 
 import { auth as getAuth } from '../../auth';
+import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { getBillingE2EFixture } from '@/lib/e2e-billing';
 
 export async function getSessionSafe() {
   try {
+    const cookieStore = await cookies();
+    const e2eFixture = getBillingE2EFixture(cookieStore);
+    if (e2eFixture) {
+      return {
+        user: e2eFixture.sessionUser,
+        expires: '2999-01-01T00:00:00.000Z',
+      };
+    }
+
     // Check if AUTH_SECRET is set first
     // This prevents calling auth() with missing SECRET
     if (!process.env.AUTH_SECRET) {

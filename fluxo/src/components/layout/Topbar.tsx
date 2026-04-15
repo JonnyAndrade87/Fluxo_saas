@@ -10,22 +10,35 @@ const QUICK_LINKS = [
   { label: "Cobranças / Faturas", href: "/cobrancas", description: "Nova fatura ou historico de cobranças" },
   { label: "Histórico", href: "/historico", description: "Timeline de ações e tarefas" },
   { label: "Relatórios", href: "/relatorios", description: "Exportar e analisar dados" },
-  { label: "Configurações", href: "/configuracoes", description: "Réguas, canais e integrações" },
+  { label: "Configurações e Plano", href: "/configuracoes#billing", description: "Plano, assinatura, Stripe e configurações administrativas" },
   { label: "Importar dados", href: "/importar", description: "Importar planilhas de clientes e faturas" },
 ];
+
+type TopbarUser = {
+  name?: string | null;
+};
+
+type NotificationItem = {
+  id: string;
+  type: 'alert' | 'warning' | 'success';
+  title: string;
+  description: string;
+  time: string;
+  href: string;
+};
 
 export function Topbar({ 
   tenantName = "Sua Empresa",
   user
 }: { 
   tenantName?: string;
-  user?: any;
+  user?: TopbarUser;
 }) {
   const router = useRouter();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [notifOpen, setNotifOpen] = useState(false);
-  const [notifications, setNotifications] = useState<any[]>([]); // Real notifications go here
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]); // Real notifications go here
   const [hasUnread, setHasUnread] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);

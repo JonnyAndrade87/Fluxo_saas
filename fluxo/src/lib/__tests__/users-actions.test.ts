@@ -8,7 +8,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { inviteUser, updateUserRole, removeTeamMember } from '@/actions/users';
 import prisma from '@/lib/prisma';
-import { requireAuth, requireAuthFresh } from '@/lib/permissions';
+import { requireAuth, requireAuthFresh, type AuthContext } from '@/lib/permissions';
 
 // Mocks automáticos do Vitest
 vi.mock('@/lib/prisma', () => ({
@@ -49,16 +49,21 @@ vi.mock('next/cache', () => ({
 }));
 
 describe('Isolamento Multi-Tenant: Gestão de Equipe', () => {
-  const mockCtx = {
+  const mockCtx: AuthContext = {
     userId: 'admin-user',
     tenantId: 'tenant-A',
     role: 'admin',
-    isSuperAdmin: false,
+  };
+
+  const mockFreshCtx = {
+    ...mockCtx,
+    mfaEnabled: false,
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(requireAuth).mockResolvedValue(mockCtx); vi.mocked(requireAuthFresh).mockResolvedValue(mockCtx);
+    vi.mocked(requireAuth).mockResolvedValue(mockCtx);
+    vi.mocked(requireAuthFresh).mockResolvedValue(mockFreshCtx);
   });
 
   describe('updateUserRole (Alteração de Cargo)', () => {
@@ -70,7 +75,6 @@ describe('Isolamento Multi-Tenant: Gestão de Equipe', () => {
         userId: 'other-user',
         role: 'operator',
         createdAt: new Date(),
-        updatedAt: new Date(),
       });
 
       const result = await updateUserRole('target-tu-id', 'admin');
@@ -88,7 +92,6 @@ describe('Isolamento Multi-Tenant: Gestão de Equipe', () => {
         userId: 'other-user',
         role: 'operator',
         createdAt: new Date(),
-        updatedAt: new Date(),
       });
 
       const result = await updateUserRole('target-tu-id', 'admin');
@@ -107,7 +110,16 @@ describe('Isolamento Multi-Tenant: Gestão de Equipe', () => {
       vi.mocked(prisma.user.findUnique).mockResolvedValue({
         id: 'existing-user',
         email: 'member@tenant.com',
-      } as any);
+        fullName: 'Existing Member',
+        password: 'hash',
+        googleId: null,
+        emailVerified: true,
+        isActive: true,
+        mfaEnabled: false,
+        mfaSecret: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
       vi.mocked(prisma.tenantUser.findUnique).mockResolvedValue(null);
       vi.mocked(prisma.tenant.findUnique).mockResolvedValue({
         id: 'tenant-A',
@@ -115,7 +127,7 @@ describe('Isolamento Multi-Tenant: Gestão de Equipe', () => {
         maxUsers: 1,
         maxCustomers: 300,
         maxInvoices: 1000,
-      } as any);
+      } as Awaited<ReturnType<typeof prisma.tenant.findUnique>>);
       vi.mocked(prisma.tenantUser.count).mockResolvedValue(1);
 
       const formData = new FormData();
@@ -140,7 +152,6 @@ describe('Isolamento Multi-Tenant: Gestão de Equipe', () => {
         userId: 'other-user',
         role: 'operator',
         createdAt: new Date(),
-        updatedAt: new Date(),
       });
 
       const result = await removeTeamMember('target-tu-id');
@@ -156,7 +167,6 @@ describe('Isolamento Multi-Tenant: Gestão de Equipe', () => {
         userId: 'other-user',
         role: 'operator',
         createdAt: new Date(),
-        updatedAt: new Date(),
       });
 
       // Simular contagem de admins que sobrevive se necessário na action

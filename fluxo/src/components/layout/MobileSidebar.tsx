@@ -144,12 +144,12 @@ export function MobileSidebar({ user }: MobileSidebarProps) {
                 <span>Suporte</span>
               </a>
               <Link
-                href="/configuracoes"
+                href="/configuracoes#billing"
                 onClick={() => setOpen(false)}
                 className="group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white/60 hover:bg-[#234b7a]/50 hover:text-white transition-all duration-200"
               >
                 <Settings className="w-5 h-5 group-hover:text-[#00D2C8] transition-colors shrink-0" />
-                <span>Configurações</span>
+                <span>Configurações e Plano</span>
               </Link>
 
               {user?.isSuperAdmin && (
