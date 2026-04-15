@@ -2,6 +2,7 @@ import { auth } from '../../../../auth';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import PlanosClient from './PlanosClient';
+import { getBillingE2EFixture } from '@/lib/e2e-billing';
 
 export const metadata = { title: 'Planos e Assinatura — Fluxo' };
 
@@ -10,14 +11,15 @@ type DashboardSessionUser = {
   tenantId?: string | null;
 };
 
-// Se o fixture de E2E ainda for necessário para os planos, vamos tentar importá-lo:
-// (Envolver em try-catch na importação não funciona bem em build, então faremos a importação do lib local)
-import { getBillingE2EFixture } from '@/lib/e2e-billing';
-
-export default async function PlanosPage() {
+export default async function PlanosPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ billing?: string }>;
+}) {
+  const { billing: billingParam } = await searchParams;
   const cookieStore = await cookies();
   const e2eFixture = getBillingE2EFixture(cookieStore);
-  
+
   const session = e2eFixture ? { user: e2eFixture.sessionUser } : await auth();
   const sessionUser = session?.user as DashboardSessionUser | undefined;
   const isAdmin = sessionUser?.role === 'admin';
@@ -83,5 +85,6 @@ export default async function PlanosPage() {
     },
   };
 
-  return <PlanosClient billing={billing} />;
+  return <PlanosClient billing={billing} billingFeedbackParam={billingParam} />;
 }
+

@@ -6,6 +6,7 @@ import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { getBillingE2EFixture } from '@/lib/e2e-billing';
 import { requireAuthFresh, requireRole } from '@/lib/permissions';
+import type { BillingCycle } from '@/lib/billing/stripe';
 import {
   createStripeCheckoutSessionForTenant,
   createStripePortalSessionForTenant,
@@ -26,11 +27,25 @@ async function getE2EBillingFixtureForAction() {
   }
 }
 
+/**
+ * Creates a Stripe Checkout Session for a paid plan subscription.
+ *
+ * Security:
+ * - Plan and cycle are validated server-side. The client never sends a priceId.
+ * - Starter plan is blocked explicitly — no Stripe checkout.
+ * - tenantId is always derived from the authenticated session, never from the client.
+ */
 export async function createSubscriptionCheckoutSession(
   plan: TenantPlan,
+  billingCycle: BillingCycle = 'monthly',
 ): Promise<BillingActionResult> {
+  // Starter is free — never goes through Stripe.
+  if (plan === 'starter') {
+    return { error: 'O plano Starter é gratuito e não requer assinatura Stripe.' };
+  }
+
   if (await getE2EBillingFixtureForAction()) {
-    return { url: `/configuracoes?billing=mock-checkout-${plan}#billing` };
+    return { url: `/planos?billing=mock-checkout-${plan}-${billingCycle}` };
   }
 
   const ctx = await requireAuthFresh();
@@ -45,6 +60,7 @@ export async function createSubscriptionCheckoutSession(
     const session = await createStripeCheckoutSessionForTenant({
       tenantId: ctx.tenantId,
       plan,
+      billingCycle,
       customerEmail: user?.email ?? null,
     });
 
@@ -60,9 +76,13 @@ export async function createSubscriptionCheckoutSession(
   }
 }
 
+/**
+ * Opens a Stripe Billing Portal session for the authenticated tenant.
+ * Requires an existing stripeCustomerId on the tenant.
+ */
 export async function createCustomerPortalSession(): Promise<BillingActionResult> {
   if (await getE2EBillingFixtureForAction()) {
-    return { url: '/configuracoes?billing=mock-portal#billing' };
+    return { url: '/planos?billing=mock-portal' };
   }
 
   const ctx = await requireAuthFresh();

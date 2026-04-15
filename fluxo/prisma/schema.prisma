@@ -45,6 +45,8 @@ model Tenant {
   subscriptionStatus   SubscriptionStatus @default(trialing) @map("subscription_status")
   stripeCustomerId     String?            @unique @map("stripe_customer_id")
   stripeSubscriptionId String?            @unique @map("stripe_subscription_id")
+  stripePriceId        String?            @map("stripe_price_id")           // Active Stripe price ID
+  currentPeriodEnd     DateTime?          @map("current_period_end")         // Subscription renewal date
   maxUsers             Int                @default(1) @map("max_users")
   maxCustomers         Int                @default(300) @map("max_customers")
   maxInvoices          Int                @default(1000) @map("max_invoices")
@@ -488,3 +490,18 @@ model RateLimit {
   @@index([resetAt])
   @@map("rate_limits")
 }
+
+// ==========================================
+// STRIPE WEBHOOK IDEMPOTENCY
+// ==========================================
+
+/// Stores processed Stripe event IDs to prevent duplicate webhook processing.
+/// An event is safe to process only once — if the id already exists here, skip it.
+model StripeEvent {
+  id          String   @id                          // Stripe event id (evt_...)
+  type        String                                // e.g. checkout.session.completed
+  processedAt DateTime @default(now()) @map("processed_at")
+
+  @@map("stripe_events")
+}
+

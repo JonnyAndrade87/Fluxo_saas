@@ -5,11 +5,41 @@ import prisma from '@/lib/prisma';
 import { getStripe } from '@/lib/stripe';
 import { getTenantPlanSnapshot, isTenantPlan } from '@/lib/billing/plans';
 
-const STRIPE_PRICE_ENV_BY_PLAN: Record<TenantPlan, string> = {
-  starter: 'STRIPE_PRICE_ID_STARTER',
-  pro: 'STRIPE_PRICE_ID_PRO',
-  scale: 'STRIPE_PRICE_ID_SCALE',
+// ── Billing Cycle ──────────────────────────────────────────────────────────────
+// The `launch` cycle is a private price available only to early subscribers.
+// It is fully resolved server-side and NEVER exposed to the frontend UI by default.
+// To offer a launch price, pass billingCycle: 'launch' from a controlled internal path.
+//
+// NOTE (future): Auto-migration from launch → monthly after 12 months via Stripe
+// Subscription Schedules is NOT implemented yet. When ready, implement it inside
+// `createStripeCheckoutSessionForTenant` by attaching a `phases` array that
+// transitions the subscription to the regular monthly price after the launch period.
+// See: https://stripe.com/docs/billing/subscriptions/subscription-schedules
+export type BillingCycle = 'monthly' | 'yearly' | 'launch';
+export type PaidPlan = Exclude<TenantPlan, 'starter'>;
+
+// Central price ID config — server-side only.
+// All price IDs are resolved from env vars, never hardcoded.
+const STRIPE_PRICE_ENV: Record<PaidPlan, Record<BillingCycle, string>> = {
+  pro: {
+    monthly: 'STRIPE_PRICE_ID_PRO_MONTHLY',
+    yearly: 'STRIPE_PRICE_ID_PRO_YEARLY',
+    launch: 'STRIPE_PRICE_ID_PRO_LAUNCH',
+  },
+  scale: {
+    monthly: 'STRIPE_PRICE_ID_SCALE_MONTHLY',
+    yearly: 'STRIPE_PRICE_ID_SCALE_YEARLY',
+    launch: 'STRIPE_PRICE_ID_SCALE_LAUNCH',
+  },
 };
+
+// Minimum required env vars (monthly cycle; yearly is optional for now).
+const REQUIRED_STRIPE_ENV = [
+  'STRIPE_SECRET_KEY',
+  'STRIPE_WEBHOOK_SECRET',
+  'STRIPE_PRICE_ID_PRO_MONTHLY',
+  'STRIPE_PRICE_ID_SCALE_MONTHLY',
+];
 
 export class StripeBillingConfigurationError extends Error {
   readonly name = 'StripeBillingConfigurationError';
@@ -27,36 +57,36 @@ export function isStripeBillingConfigurationError(
 }
 
 export function getStripeBillingMissingEnv(): string[] {
-  const requiredEnv = ['STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET'];
-
-  for (const envName of Object.values(STRIPE_PRICE_ENV_BY_PLAN)) {
-    requiredEnv.push(envName);
-  }
-
-  return requiredEnv.filter((envName) => !process.env[envName]?.trim());
+  return REQUIRED_STRIPE_ENV.filter((envName) => !process.env[envName]?.trim());
 }
 
 export function getStripeBillingConfiguration() {
   const missingEnv = getStripeBillingMissingEnv();
-
-  return {
-    configured: missingEnv.length === 0,
-    missingEnv,
-  };
+  return { configured: missingEnv.length === 0, missingEnv };
 }
 
 function ensureStripeBillingConfigured(): void {
   const missingEnv = getStripeBillingMissingEnv();
-
   if (missingEnv.length > 0) {
     throw new StripeBillingConfigurationError(missingEnv);
   }
 }
 
-function getStripePriceIdForPlan(plan: TenantPlan): string {
-  const envName = STRIPE_PRICE_ENV_BY_PLAN[plan];
-  const priceId = process.env[envName]?.trim();
+/**
+ * Resolves the Stripe price ID for a given paid plan + billing cycle.
+ * Starter is explicitly blocked — it has no Stripe price.
+ */
+export function getStripePriceId(plan: TenantPlan, cycle: BillingCycle): string {
+  if (plan === 'starter') {
+    throw new Error('O plano Starter é gratuito e não requer checkout Stripe.');
+  }
 
+  const envName = STRIPE_PRICE_ENV[plan as PaidPlan]?.[cycle];
+  if (!envName) {
+    throw new StripeBillingConfigurationError([`STRIPE_PRICE_ID_${plan.toUpperCase()}_${cycle.toUpperCase()}`]);
+  }
+
+  const priceId = process.env[envName]?.trim();
   if (!priceId) {
     throw new StripeBillingConfigurationError([envName]);
   }
@@ -64,16 +94,39 @@ function getStripePriceIdForPlan(plan: TenantPlan): string {
   return priceId;
 }
 
+/**
+ * Reverse-lookup: given a Stripe price ID, returns the matching TenantPlan.
+ * Scans all plans and cycles (including launch).
+ */
 export function resolvePlanFromStripePriceId(priceId: string | null | undefined): TenantPlan | null {
-  if (!priceId) {
-    return null;
+  if (!priceId) return null;
+
+  for (const [plan, cycles] of Object.entries(STRIPE_PRICE_ENV) as Array<[PaidPlan, Record<BillingCycle, string>]>) {
+    for (const envName of Object.values(cycles)) {
+      if (process.env[envName]?.trim() === priceId) {
+        return plan;
+      }
+    }
   }
 
-  const match = (Object.entries(STRIPE_PRICE_ENV_BY_PLAN) as Array<[TenantPlan, string]>).find(
-    ([, envName]) => process.env[envName]?.trim() === priceId,
-  );
+  return null;
+}
 
-  return match?.[0] ?? null;
+/**
+ * Reverse-lookup: given a Stripe price ID, returns the billing cycle.
+ */
+export function resolveCycleFromStripePriceId(priceId: string | null | undefined): BillingCycle | null {
+  if (!priceId) return null;
+
+  for (const cycles of Object.values(STRIPE_PRICE_ENV) as Array<Record<BillingCycle, string>>) {
+    for (const [cycle, envName] of Object.entries(cycles) as Array<[BillingCycle, string]>) {
+      if (process.env[envName]?.trim() === priceId) {
+        return cycle;
+      }
+    }
+  }
+
+  return null;
 }
 
 export function mapStripeSubscriptionStatus(
@@ -113,20 +166,14 @@ function buildAppUrl(path: string, params?: Record<string, string>): string {
 function normalizeStripeCustomerId(
   customer: string | Stripe.Customer | Stripe.DeletedCustomer | null,
 ): string | null {
-  if (!customer) {
-    return null;
-  }
-
+  if (!customer) return null;
   return typeof customer === 'string' ? customer : customer.id;
 }
 
 function normalizeStripeSubscriptionId(
   subscription: string | Stripe.Subscription | null,
 ): string | null {
-  if (!subscription) {
-    return null;
-  }
-
+  if (!subscription) return null;
   return typeof subscription === 'string' ? subscription : subscription.id;
 }
 
@@ -134,9 +181,7 @@ function resolvePlanFromSubscription(subscription: Stripe.Subscription): TenantP
   const priceId = subscription.items.data[0]?.price?.id;
   const mappedPlan = resolvePlanFromStripePriceId(priceId);
 
-  if (mappedPlan) {
-    return mappedPlan;
-  }
+  if (mappedPlan) return mappedPlan;
 
   const metadataPlan = subscription.metadata.fluxeerPlan;
   if (metadataPlan && isTenantPlan(metadataPlan)) {
@@ -153,18 +198,14 @@ async function findTenantForStripeSync(params: {
 }) {
   if (params.tenantId) {
     const tenant = await prisma.tenant.findUnique({ where: { id: params.tenantId } });
-    if (tenant) {
-      return tenant;
-    }
+    if (tenant) return tenant;
   }
 
   if (params.stripeSubscriptionId) {
     const tenant = await prisma.tenant.findFirst({
       where: { stripeSubscriptionId: params.stripeSubscriptionId },
     });
-    if (tenant) {
-      return tenant;
-    }
+    if (tenant) return tenant;
   }
 
   if (params.stripeCustomerId) {
@@ -199,9 +240,7 @@ export async function ensureStripeCustomerForTenant(params: {
   ensureStripeBillingConfigured();
 
   const stripe = getStripe();
-  if (!stripe) {
-    throw new StripeBillingConfigurationError(['STRIPE_SECRET_KEY']);
-  }
+  if (!stripe) throw new StripeBillingConfigurationError(['STRIPE_SECRET_KEY']);
 
   if (params.stripeCustomerId) {
     await stripe.customers.update(params.stripeCustomerId, {
@@ -209,7 +248,6 @@ export async function ensureStripeCustomerForTenant(params: {
       email: params.customerEmail ?? undefined,
       metadata: { tenantId: params.tenantId },
     });
-
     return params.stripeCustomerId;
   }
 
@@ -230,14 +268,17 @@ export async function ensureStripeCustomerForTenant(params: {
 export async function createStripeCheckoutSessionForTenant(params: {
   tenantId: string;
   plan: TenantPlan;
+  billingCycle: BillingCycle;
   customerEmail?: string | null;
 }) {
+  if (params.plan === 'starter') {
+    throw new Error('O plano Starter é gratuito e não requer checkout Stripe.');
+  }
+
   ensureStripeBillingConfigured();
 
   const stripe = getStripe();
-  if (!stripe) {
-    throw new StripeBillingConfigurationError(['STRIPE_SECRET_KEY']);
-  }
+  if (!stripe) throw new StripeBillingConfigurationError(['STRIPE_SECRET_KEY']);
 
   const tenant = await prisma.tenant.findUnique({
     where: { id: params.tenantId },
@@ -250,9 +291,7 @@ export async function createStripeCheckoutSessionForTenant(params: {
     },
   });
 
-  if (!tenant) {
-    throw new Error('Tenant not found');
-  }
+  if (!tenant) throw new Error('Tenant not found');
 
   if (tenant.stripeSubscriptionId && tenant.subscriptionStatus !== 'canceled') {
     throw new Error('Sua assinatura já existe. Use o portal do cliente para gerenciar ou alterar o plano.');
@@ -265,21 +304,26 @@ export async function createStripeCheckoutSessionForTenant(params: {
     stripeCustomerId: tenant.stripeCustomerId,
   });
 
+  // Resolve priceId server-side. Frontend never sends a priceId directly.
+  const priceId = getStripePriceId(params.plan, params.billingCycle);
+
   const session = await stripe.checkout.sessions.create({
     mode: 'subscription',
     customer: customerId,
     client_reference_id: tenant.id,
-    success_url: buildAppUrl('/configuracoes', { billing: 'success' }),
-    cancel_url: buildAppUrl('/configuracoes', { billing: 'canceled' }),
-    line_items: [{ price: getStripePriceIdForPlan(params.plan), quantity: 1 }],
+    success_url: buildAppUrl('/planos', { billing: 'success' }),
+    cancel_url: buildAppUrl('/planos', { billing: 'canceled' }),
+    line_items: [{ price: priceId, quantity: 1 }],
     metadata: {
       tenantId: tenant.id,
       fluxeerPlan: params.plan,
+      billingCycle: params.billingCycle,
     },
     subscription_data: {
       metadata: {
         tenantId: tenant.id,
         fluxeerPlan: params.plan,
+        billingCycle: params.billingCycle,
       },
     },
   });
@@ -295,18 +339,14 @@ export async function createStripePortalSessionForTenant(tenantId: string) {
   ensureStripeBillingConfigured();
 
   const stripe = getStripe();
-  if (!stripe) {
-    throw new StripeBillingConfigurationError(['STRIPE_SECRET_KEY']);
-  }
+  if (!stripe) throw new StripeBillingConfigurationError(['STRIPE_SECRET_KEY']);
 
   const tenant = await prisma.tenant.findUnique({
     where: { id: tenantId },
     select: { stripeCustomerId: true },
   });
 
-  if (!tenant) {
-    throw new Error('Tenant not found');
-  }
+  if (!tenant) throw new Error('Tenant not found');
 
   if (!tenant.stripeCustomerId) {
     throw new Error('Nenhum cliente Stripe foi encontrado para este tenant.');
@@ -314,7 +354,7 @@ export async function createStripePortalSessionForTenant(tenantId: string) {
 
   return stripe.billingPortal.sessions.create({
     customer: tenant.stripeCustomerId,
-    return_url: buildAppUrl('/configuracoes', { billing: 'portal' }),
+    return_url: buildAppUrl('/planos', { billing: 'portal' }),
   });
 }
 
@@ -341,12 +381,21 @@ export async function syncTenantBillingFromSubscription(
   const subscriptionStatus = mapStripeSubscriptionStatus(subscription.status);
   const billingSnapshot = getTenantPlanSnapshot(plan, subscriptionStatus);
 
+  // Resolve active price metadata
+  const activePriceId = subscription.items.data[0]?.price?.id ?? null;
+  // current_period_end is available on the Stripe Subscription object at runtime.
+  // Use type assertion for SDK version compatibility.
+  const rawPeriodEnd = (subscription as unknown as Record<string, unknown>)['current_period_end'] as number | undefined;
+  const currentPeriodEnd = rawPeriodEnd ? new Date(rawPeriodEnd * 1000) : null;
+
   await prisma.tenant.update({
     where: { id: tenant.id },
     data: {
       ...billingSnapshot,
       stripeCustomerId,
       stripeSubscriptionId: subscription.id,
+      stripePriceId: activePriceId,
+      currentPeriodEnd,
     },
   });
 
@@ -367,9 +416,7 @@ export async function syncTenantBillingFromStripeReferences(params: {
   ensureStripeBillingConfigured();
 
   const stripe = getStripe();
-  if (!stripe) {
-    throw new StripeBillingConfigurationError(['STRIPE_SECRET_KEY']);
-  }
+  if (!stripe) throw new StripeBillingConfigurationError(['STRIPE_SECRET_KEY']);
 
   if (params.stripeSubscriptionId) {
     const subscription = await stripe.subscriptions.retrieve(params.stripeSubscriptionId);
@@ -412,11 +459,7 @@ export async function syncTenantBillingFromCheckoutSession(session: Stripe.Check
   const stripeSubscriptionId = normalizeStripeSubscriptionId(session.subscription);
 
   if (tenantId) {
-    await persistStripeReferences({
-      tenantId,
-      stripeCustomerId,
-      stripeSubscriptionId,
-    });
+    await persistStripeReferences({ tenantId, stripeCustomerId, stripeSubscriptionId });
   }
 
   return syncTenantBillingFromStripeReferences({
