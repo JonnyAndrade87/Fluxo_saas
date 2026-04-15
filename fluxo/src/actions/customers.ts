@@ -7,6 +7,7 @@ import { requireAuthFresh, requireRole, AUDIT_ACTIONS } from '@/lib/permissions'
 import { getRiskScoreForCustomer } from './risk-score';
 import { isInvoiceOverdue } from '@/lib/invoice-utils';
 import { logAudit } from '@/lib/audit';
+import { createTenantLimitGuard } from '@/lib/billing/limits';
 
 interface SessionUser {
   tenantId: string | null;
@@ -197,9 +198,13 @@ export async function upsertCustomer(data: CustomerInput) {
       data: { name, documentNumber, email, phone, status, tags, address, notes, assignedUserId }
     });
   } else {
+    const limitGuard = await createTenantLimitGuard(tenantId, ['customers']);
+    limitGuard.assertCanCreateCustomer();
+
     customer = await prisma.customer.create({
       data: { tenantId, name, documentNumber, email, phone, status, tags, address, notes, assignedUserId }
     });
+    limitGuard.registerCreatedCustomer();
     
     // Auto-create a primary financial contact if email/phone was provided
     if (email || phone) {
@@ -295,4 +300,3 @@ export async function upsertFinancialContact(data: FinancialContactInput) {
   revalidatePath(`/clientes/${customerId}`);
   return contact;
 }
-

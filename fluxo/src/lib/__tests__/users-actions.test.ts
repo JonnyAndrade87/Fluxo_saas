@@ -6,21 +6,26 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { updateUserRole, removeTeamMember } from '@/actions/users';
+import { inviteUser, updateUserRole, removeTeamMember } from '@/actions/users';
 import prisma from '@/lib/prisma';
-import { requireAuth, requireAuthFresh, requireRole } from '@/lib/permissions';
+import { requireAuth, requireAuthFresh } from '@/lib/permissions';
 
 // Mocks automáticos do Vitest
 vi.mock('@/lib/prisma', () => ({
   default: {
     tenantUser: {
       findUnique: vi.fn(),
+      create: vi.fn(),
       update: vi.fn(),
       delete: vi.fn(),
       count: vi.fn(),
     },
+    tenant: {
+      findUnique: vi.fn(),
+    },
     user: {
       findUnique: vi.fn(),
+      create: vi.fn(),
     },
   },
 }));
@@ -94,6 +99,36 @@ describe('Isolamento Multi-Tenant: Gestão de Equipe', () => {
         where: { id: 'target-tu-id' },
         data: { role: 'admin' },
       });
+    });
+  });
+
+  describe('inviteUser (Limite de Plano)', () => {
+    it('retorna erro amigável quando o tenant já atingiu o limite de usuários', async () => {
+      vi.mocked(prisma.user.findUnique).mockResolvedValue({
+        id: 'existing-user',
+        email: 'member@tenant.com',
+      } as any);
+      vi.mocked(prisma.tenantUser.findUnique).mockResolvedValue(null);
+      vi.mocked(prisma.tenant.findUnique).mockResolvedValue({
+        id: 'tenant-A',
+        plan: 'starter',
+        maxUsers: 1,
+        maxCustomers: 300,
+        maxInvoices: 1000,
+      } as any);
+      vi.mocked(prisma.tenantUser.count).mockResolvedValue(1);
+
+      const formData = new FormData();
+      formData.set('email', 'member@tenant.com');
+      formData.set('fullName', 'Member');
+      formData.set('role', 'operator');
+
+      const result = await inviteUser(formData);
+
+      expect(result).toEqual({
+        error: 'Limite do plano atingido: seu plano starter permite até 1 usuário na equipe. Ajuste o plano ou reduza o volume atual para continuar.',
+      });
+      expect(prisma.tenantUser.create).not.toHaveBeenCalled();
     });
   });
 

@@ -5,6 +5,7 @@ import bcrypt from 'bcryptjs';
 import { revalidatePath } from 'next/cache';
 import { requireAuth, requireAuthFresh, requireRole, AUDIT_ACTIONS } from '@/lib/permissions';
 import { logAudit } from '@/lib/audit';
+import { createTenantLimitGuard, isBillingLimitExceededError } from '@/lib/billing/limits';
 
 /**
  * List all team members for the current tenant.
@@ -53,44 +54,60 @@ export async function inviteUser(formData: FormData) {
   // Check if already in this tenant
   const existingUser = await prisma.user.findUnique({ where: { email } });
 
-  if (existingUser) {
-    const alreadyMember = await prisma.tenantUser.findUnique({
-      where: { tenantId_userId: { tenantId: ctx.tenantId, userId: existingUser.id } }
-    });
-    if (alreadyMember) return { error: 'Este usuário já é membro da equipe.' };
+  try {
+    if (existingUser) {
+      const alreadyMember = await prisma.tenantUser.findUnique({
+        where: { tenantId_userId: { tenantId: ctx.tenantId, userId: existingUser.id } }
+      });
+      if (alreadyMember) return { error: 'Este usuário já é membro da equipe.' };
 
-    await prisma.tenantUser.create({
-      data: { tenantId: ctx.tenantId, userId: existingUser.id, role }
-    });
+      const limitGuard = await createTenantLimitGuard(ctx.tenantId, ['users']);
+      limitGuard.assertCanCreateUser();
 
-    await logAudit({
-      tenantId: ctx.tenantId,
-      userId: ctx.userId,
-      userRole: ctx.role,
-      action: AUDIT_ACTIONS.USER_CREATED,
-      entityType: 'USER',
-      entityId: existingUser.id,
-      metadata: { email, role, fullName, status: 'added_existing' }
-    });
-  } else {
-    // Create new user with temp password (they'll need to reset it)
-    const tempPassword = await bcrypt.hash(`fluxo@${Date.now()}`, 10);
-    const newUser = await prisma.user.create({
-      data: { email, fullName, password: tempPassword }
-    });
-    await prisma.tenantUser.create({
-      data: { tenantId: ctx.tenantId, userId: newUser.id, role }
-    });
+      await prisma.tenantUser.create({
+        data: { tenantId: ctx.tenantId, userId: existingUser.id, role }
+      });
+      limitGuard.registerCreatedUser();
 
-    await logAudit({
-      tenantId: ctx.tenantId,
-      userId: ctx.userId,
-      userRole: ctx.role,
-      action: AUDIT_ACTIONS.USER_CREATED,
-      entityType: 'USER',
-      entityId: newUser.id,
-      metadata: { email, role, fullName, status: 'created_new' }
-    });
+      await logAudit({
+        tenantId: ctx.tenantId,
+        userId: ctx.userId,
+        userRole: ctx.role,
+        action: AUDIT_ACTIONS.USER_CREATED,
+        entityType: 'USER',
+        entityId: existingUser.id,
+        metadata: { email, role, fullName, status: 'added_existing' }
+      });
+    } else {
+      const limitGuard = await createTenantLimitGuard(ctx.tenantId, ['users']);
+      limitGuard.assertCanCreateUser();
+
+      // Create new user with temp password (they'll need to reset it)
+      const tempPassword = await bcrypt.hash(`fluxo@${Date.now()}`, 10);
+      const newUser = await prisma.user.create({
+        data: { email, fullName, password: tempPassword }
+      });
+      await prisma.tenantUser.create({
+        data: { tenantId: ctx.tenantId, userId: newUser.id, role }
+      });
+      limitGuard.registerCreatedUser();
+
+      await logAudit({
+        tenantId: ctx.tenantId,
+        userId: ctx.userId,
+        userRole: ctx.role,
+        action: AUDIT_ACTIONS.USER_CREATED,
+        entityType: 'USER',
+        entityId: newUser.id,
+        metadata: { email, role, fullName, status: 'created_new' }
+      });
+    }
+  } catch (error) {
+    if (isBillingLimitExceededError(error)) {
+      return { error: error.message };
+    }
+
+    throw error;
   }
 
   revalidatePath('/configuracoes');

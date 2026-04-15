@@ -40,6 +40,10 @@ export const PLAN_CONFIG = {
 export const DEFAULT_TENANT_PLAN: TenantPlan = 'starter';
 export const DEFAULT_SUBSCRIPTION_STATUS: SubscriptionStatus = 'trialing';
 
+export function isTenantPlan(value: string): value is TenantPlan {
+  return Object.prototype.hasOwnProperty.call(PLAN_CONFIG, value);
+}
+
 export type TenantBillingSnapshot = PlanConfig & {
   plan: TenantPlan;
   subscriptionStatus: SubscriptionStatus;

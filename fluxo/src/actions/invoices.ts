@@ -2,6 +2,7 @@ import prisma from '@/lib/prisma';
 import { auth } from '../../auth';
 import { logAudit } from '@/lib/audit';
 import { AUDIT_ACTIONS, requireAuthFresh, type UserRole } from '@/lib/permissions';
+import { createTenantLimitGuard } from '@/lib/billing/limits';
 
 // Lazy import to prevent next/cache from being included in client component module graphs
 async function revalidatePath(path: string): Promise<void> {
@@ -321,6 +322,9 @@ export async function createInvoice(data: {
     throw new Error("Customer not found or invalid tenant");
   }
 
+  const limitGuard = await createTenantLimitGuard(tenantId, ['invoices']);
+  limitGuard.assertCanCreateInvoice();
+
   const invoiceNumber = `INV-${Math.floor(100000 + Math.random() * 900000)}`;
 
   const newInvoice = await prisma.invoice.create({
@@ -334,6 +338,7 @@ export async function createInvoice(data: {
       status: 'OPEN',
     }
   });
+  limitGuard.registerCreatedInvoice();
 
   revalidatePath('/historico');
   revalidatePath('/');

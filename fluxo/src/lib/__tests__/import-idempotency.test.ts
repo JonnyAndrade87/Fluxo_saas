@@ -10,12 +10,20 @@ import { auth } from '../../../auth';
 // Mock prisma
 vi.mock('@/lib/prisma', () => ({
   default: {
+    tenant: {
+      findUnique: vi.fn(),
+    },
+    tenantUser: {
+      count: vi.fn(),
+    },
     invoice: {
       findFirst: vi.fn(),
+      count: vi.fn(),
       create: vi.fn(),
     },
     customer: {
       findFirst: vi.fn(),
+      count: vi.fn(),
       create: vi.fn(),
     },
     financialContact: {
@@ -24,6 +32,10 @@ vi.mock('@/lib/prisma', () => ({
   },
 }));
 import prisma from '@/lib/prisma';
+
+vi.mock('@/lib/api-rate-limiter', () => ({
+  enforceRateLimit: vi.fn().mockResolvedValue(undefined),
+}));
 
 const mockSession = { user: { tenantId: 'tenant-A', role: 'admin' } };
 
@@ -44,6 +56,16 @@ describe('Importação Idempotente e Resiliente de Faturas', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(auth).mockResolvedValue(mockSession as any);
+    vi.mocked(prisma.tenant.findUnique).mockResolvedValue({
+      id: 'tenant-A',
+      plan: 'starter',
+      maxUsers: 1,
+      maxCustomers: 300,
+      maxInvoices: 1000,
+    } as any);
+    vi.mocked(prisma.tenantUser.count).mockResolvedValue(1);
+    vi.mocked(prisma.customer.count).mockResolvedValue(1);
+    vi.mocked(prisma.invoice.count).mockResolvedValue(1);
     vi.mocked(prisma.customer.findFirst).mockResolvedValue({ id: 'cust-1' } as any);
     vi.mocked(prisma.invoice.findFirst).mockResolvedValue(null); // No existing invoice
     vi.mocked(prisma.invoice.create).mockResolvedValue({} as any);
@@ -139,6 +161,40 @@ describe('Importação Idempotente e Resiliente de Faturas', () => {
 
     expect(result.success).toBe(false);
     expect(result.error).toMatch(/Unauthorized/);
+    expect(prisma.invoice.create).not.toHaveBeenCalled();
+  });
+
+  it('retorna erro amigável por linha quando o limite de faturas foi atingido', async () => {
+    vi.mocked(prisma.invoice.count).mockResolvedValue(1000);
+
+    const result = await importReceivables([validRow]);
+
+    expect(result.success).toBe(true);
+    expect(result.created).toBe(0);
+    expect(result.errors).toEqual([
+      {
+        row: 1,
+        reason: 'Limite do plano atingido: seu plano starter permite até 1000 faturas. Ajuste o plano ou reduza o volume atual para continuar.',
+      },
+    ]);
+    expect(prisma.invoice.create).not.toHaveBeenCalled();
+  });
+
+  it('retorna erro amigável por linha quando precisa criar cliente mas o limite foi atingido', async () => {
+    vi.mocked(prisma.customer.findFirst).mockResolvedValue(null);
+    vi.mocked(prisma.customer.count).mockResolvedValue(300);
+
+    const result = await importReceivables([validRow]);
+
+    expect(result.success).toBe(true);
+    expect(result.created).toBe(0);
+    expect(result.errors).toEqual([
+      {
+        row: 1,
+        reason: 'Limite do plano atingido: seu plano starter permite até 300 clientes. Ajuste o plano ou reduza o volume atual para continuar.',
+      },
+    ]);
+    expect(prisma.customer.create).not.toHaveBeenCalled();
     expect(prisma.invoice.create).not.toHaveBeenCalled();
   });
 });

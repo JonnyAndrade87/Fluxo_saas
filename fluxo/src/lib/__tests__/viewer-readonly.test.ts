@@ -18,8 +18,10 @@ import { requireAuth, requireAuthFresh } from '@/lib/permissions';
 
 vi.mock('@/lib/prisma', () => ({
   default: {
-    customer: { findFirst: vi.fn() },
-    invoice: { findFirst: vi.fn(), create: vi.fn(), update: vi.fn(), delete: vi.fn() },
+    tenant: { findUnique: vi.fn() },
+    tenantUser: { count: vi.fn() },
+    customer: { findFirst: vi.fn(), count: vi.fn() },
+    invoice: { findFirst: vi.fn(), count: vi.fn(), create: vi.fn(), update: vi.fn(), delete: vi.fn() },
     task: { findFirst: vi.fn(), create: vi.fn(), update: vi.fn() },
     communication: { create: vi.fn() }
   }
@@ -129,6 +131,16 @@ describe('Enforcement de Somente Leitura (Viewer) no Backend', () => {
       vi.mocked(prisma.task.findFirst).mockResolvedValue({ id: 'valid-task1', tenantId: mockTenantId } as any);
 
       // Limpar métodos de create/update para retornar definidos
+      vi.mocked(prisma.tenant.findUnique).mockResolvedValue({
+        id: mockTenantId,
+        plan: 'pro',
+        maxUsers: 3,
+        maxCustomers: 2000,
+        maxInvoices: 10000,
+      } as any);
+      vi.mocked(prisma.tenantUser.count).mockResolvedValue(1);
+      vi.mocked(prisma.customer.count).mockResolvedValue(1);
+      vi.mocked(prisma.invoice.count).mockResolvedValue(1);
       vi.mocked(prisma.invoice.create).mockResolvedValue({ id: 'new-inv1' } as any);
       vi.mocked(prisma.invoice.update).mockResolvedValue({ id: 'valid-inv1' } as any);
       vi.mocked(prisma.task.create).mockResolvedValue({ id: 'new-task1' } as any);

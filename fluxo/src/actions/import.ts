@@ -3,6 +3,11 @@
 import prisma from '@/lib/prisma';
 import { auth } from '../../auth';
 import { enforceRateLimit } from '@/lib/api-rate-limiter';
+import {
+  createTenantLimitGuard,
+  isBillingLimitExceededError,
+  type TenantLimitGuard,
+} from '@/lib/billing/limits';
 
 export type ParsedReceivable = {
   customerName: string;
@@ -74,12 +79,22 @@ export async function importReceivables(data: ParsedReceivable[]): Promise<Impor
 
   try {
     await enforceRateLimit('import-csv', tenantId, { limit: 10, windowMs: 60 * 60 * 1000 });
-  } catch (err: any) {
-    return { success: false, created: 0, skipped: 0, errors: [], error: err.message || 'Muitas tentativas' };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Muitas tentativas';
+    return { success: false, created: 0, skipped: 0, errors: [], error: message };
   }
 
   if (!data || data.length === 0) {
     return { success: false, created: 0, skipped: 0, errors: [], error: 'O arquivo CSV está vazio ou o mapeamento falhou.' };
+  }
+
+  let limitGuard: TenantLimitGuard;
+
+  try {
+    limitGuard = await createTenantLimitGuard(tenantId, ['customers', 'invoices']);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Falha ao validar os limites do plano.';
+    return { success: false, created: 0, skipped: 0, errors: [], error: message };
   }
 
   let created = 0;
@@ -133,10 +148,20 @@ export async function importReceivables(data: ParsedReceivable[]): Promise<Impor
       }
 
       // ── Upsert Customer ────────────────────────────────────────────────────────
-      let customer = await prisma.customer.findFirst({
+      const existingCustomer = await prisma.customer.findFirst({
         where: { tenantId, documentNumber: cleanDocument },
         select: { id: true }
       });
+
+      const shouldCreateCustomer = !existingCustomer;
+
+      if (shouldCreateCustomer) {
+        limitGuard.assertCanCreateCustomer();
+      }
+
+      limitGuard.assertCanCreateInvoice();
+
+      let customer = existingCustomer;
 
       if (!customer) {
         customer = await prisma.customer.create({
@@ -160,6 +185,8 @@ export async function importReceivables(data: ParsedReceivable[]): Promise<Impor
             }
           });
         }
+
+        limitGuard.registerCreatedCustomer();
       }
 
       // ── Create Invoice ─────────────────────────────────────────────────────────
@@ -184,12 +211,16 @@ export async function importReceivables(data: ParsedReceivable[]): Promise<Impor
           externalReferenceId: row.description?.trim() || 'Importado via CSV'
         }
       });
+      limitGuard.registerCreatedInvoice();
 
       created++;
     } catch (rowError: unknown) {
       const msg = rowError instanceof Error ? rowError.message : 'Erro desconhecido.';
       console.error(`[IMPORT] Erro na linha ${rowNum}:`, msg);
-      errors.push({ row: rowNum, reason: `Erro interno: ${msg}` });
+      errors.push({
+        row: rowNum,
+        reason: isBillingLimitExceededError(rowError) ? msg : `Erro interno: ${msg}`,
+      });
     }
   }
 
