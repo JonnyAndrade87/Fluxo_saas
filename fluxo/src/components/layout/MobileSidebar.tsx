@@ -4,13 +4,13 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
-import { Menu, X, LogOut, LifeBuoy, Settings } from 'lucide-react';
+import { Menu, X, LogOut, LifeBuoy, Settings, ShieldAlert } from 'lucide-react';
 import { cn } from '@/lib/utils';
 // ► Single source of truth: reuses the same navGroups as the desktop Sidebar
 import { navGroups } from './Sidebar';
 
 interface MobileSidebarProps {
-  user?: { name?: string | null; email?: string | null; role?: string | null } | null;
+  user?: { name?: string | null; email?: string | null; role?: string | null; isSuperAdmin?: boolean | null } | null;
 }
 
 export function MobileSidebar({ user }: MobileSidebarProps) {
@@ -151,6 +151,17 @@ export function MobileSidebar({ user }: MobileSidebarProps) {
                 <Settings className="w-5 h-5 group-hover:text-[#00D2C8] transition-colors shrink-0" />
                 <span>Configurações</span>
               </Link>
+
+              {user?.isSuperAdmin && (
+                <Link
+                  href="/superadmin"
+                  onClick={() => setOpen(false)}
+                  className="group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-white/60 hover:bg-rose-500/20 hover:text-rose-400 transition-all duration-200"
+                >
+                  <ShieldAlert className="w-5 h-5 group-hover:text-rose-400 transition-colors shrink-0" />
+                  <span>Painel Super Admin</span>
+                </Link>
+              )}
 
               {/* User card / logout — identical to desktop Sidebar footer */}
               <div

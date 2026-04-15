@@ -14,7 +14,8 @@ import {
   CloudUpload,
   Inbox,
   Layers,
-  MessageCircle
+  MessageCircle,
+  ShieldAlert
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
@@ -47,6 +48,7 @@ interface SidebarProps {
     name?: string | null;
     email?: string | null;
     role?: string | null;
+    isSuperAdmin?: boolean | null;
   } | null
 }
 
@@ -161,6 +163,20 @@ export function Sidebar({ user }: SidebarProps) {
           <Settings className="w-5 h-5 group-hover:text-[#00D2C8] transition-colors" />
           {!isCollapsed && <span>Configurações</span>}
         </Link>
+        
+        {user?.isSuperAdmin && (
+          <Link 
+            href="/superadmin" 
+            title={isCollapsed ? "Painel Super Admin" : undefined}
+            className={cn(
+              "group flex items-center gap-3 py-2.5 rounded-lg text-sm font-medium text-white/60 hover:bg-rose-500/20 hover:text-rose-400 transition-all duration-300",
+              isCollapsed ? "justify-center px-0" : "px-3"
+            )}
+          >
+            <ShieldAlert className="w-5 h-5 group-hover:text-rose-400 transition-colors" />
+            {!isCollapsed && <span>Painel Super Admin</span>}
+          </Link>
+        )}
         
         {/* User Card Miniature */}
         <div 
