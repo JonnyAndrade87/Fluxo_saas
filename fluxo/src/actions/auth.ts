@@ -9,6 +9,7 @@ import { sendEmail, buildActivationEmailHtml } from '@/lib/messaging/email';
 import { getClientIp, enforceRateLimit } from '@/lib/api-rate-limiter';
 import { logAudit } from '@/lib/audit';
 import { AUDIT_ACTIONS } from '@/lib/permissions';
+import { DEFAULT_TENANT_PLAN, getTenantPlanSnapshot } from '@/lib/billing/plans';
 
 // ─── Validação de Senha Forte ─────────────────────────────────────────────────
 function validatePassword(password: string): string | null {
@@ -143,7 +144,11 @@ export async function register(prevState: { error?: string; success?: boolean } 
     let newUser: { id: string; email: string } | undefined;
     await prisma.$transaction(async (tx) => {
       const tenant = await tx.tenant.create({
-        data: { name: companyName, documentNumber: cnpj },
+        data: {
+          name: companyName,
+          documentNumber: cnpj,
+          ...getTenantPlanSnapshot(DEFAULT_TENANT_PLAN),
+        },
       });
       newUser = await tx.user.create({
         data: {

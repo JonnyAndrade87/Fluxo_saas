@@ -60,7 +60,7 @@ describe('Rota Legada de Registro e Fluxo Oficial', () => {
 
       vi.mocked(prisma.user.findUnique).mockResolvedValue(null); // No existing user
       vi.mocked(prisma.$transaction).mockImplementation(async (fn) => fn(prisma as any));
-      vi.mocked(prisma.tenant.create).mockResolvedValue({ id: 'tenant-1', name: 'Empresa A', documentNumber: '12345678000100', planType: 'starter', createdAt: new Date(), updatedAt: new Date() });
+      vi.mocked(prisma.tenant.create).mockResolvedValue({ id: 'tenant-1', name: 'Empresa A', documentNumber: '12345678000100', plan: 'starter', subscriptionStatus: 'trialing', stripeCustomerId: null, stripeSubscriptionId: null, maxUsers: 1, maxCustomers: 300, maxInvoices: 1000, supportLevel: 'standard', onboardingTier: 'basic', createdAt: new Date(), updatedAt: new Date() });
       vi.mocked(prisma.user.create).mockResolvedValue({ id: 'user-1', email: 'oficial@a.com', fullName: 'Jan', password: 'h', googleId: null, emailVerified: false, isActive: false, createdAt: new Date(), updatedAt: new Date() });
       vi.mocked(prisma.tenantUser.create).mockResolvedValue({} as any);
       vi.mocked(prisma.emailVerificationToken.deleteMany).mockResolvedValue({ count: 0 });
@@ -115,7 +115,7 @@ describe('Rota Legada de Registro e Fluxo Oficial', () => {
       const prisma = (await import('@/lib/prisma')).default;
       vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
       vi.mocked(prisma.$transaction).mockImplementation(async (fn) => fn(prisma as any));
-      vi.mocked(prisma.tenant.create).mockResolvedValue({ id: 't1', name: 'Y', documentNumber: '111', planType: 'starter', createdAt: new Date(), updatedAt: new Date() });
+      vi.mocked(prisma.tenant.create).mockResolvedValue({ id: 't1', name: 'Y', documentNumber: '111', plan: 'starter', subscriptionStatus: 'trialing', stripeCustomerId: null, stripeSubscriptionId: null, maxUsers: 1, maxCustomers: 300, maxInvoices: 1000, supportLevel: 'standard', onboardingTier: 'basic', createdAt: new Date(), updatedAt: new Date() });
       vi.mocked(prisma.user.create).mockResolvedValue({ id: 'u1', email: 'x@y.com', fullName: 'X', password: 'h', googleId: null, emailVerified: false, isActive: false, createdAt: new Date(), updatedAt: new Date() });
       vi.mocked(prisma.tenantUser.create).mockResolvedValue({} as any);
       vi.mocked(prisma.emailVerificationToken.deleteMany).mockResolvedValue({ count: 0 });
