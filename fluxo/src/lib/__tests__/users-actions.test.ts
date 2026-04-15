@@ -8,7 +8,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { updateUserRole, removeTeamMember } from '@/actions/users';
 import prisma from '@/lib/prisma';
-import { requireAuth, requireRole } from '@/lib/permissions';
+import { requireAuth, requireAuthFresh, requireRole } from '@/lib/permissions';
 
 // Mocks automáticos do Vitest
 vi.mock('@/lib/prisma', () => ({
@@ -19,12 +19,24 @@ vi.mock('@/lib/prisma', () => ({
       delete: vi.fn(),
       count: vi.fn(),
     },
+    user: {
+      findUnique: vi.fn(),
+    },
   },
 }));
 
 vi.mock('@/lib/permissions', () => ({
-  requireAuth: vi.fn(),
+  requireAuth: vi.fn(), requireAuthFresh: vi.fn(),
   requireRole: vi.fn(),
+  AUDIT_ACTIONS: {
+    USER_CREATED: 'USER_CREATED',
+    USER_UPDATED: 'USER_UPDATED',
+    USER_DELETED: 'USER_DELETED',
+  },
+}));
+
+vi.mock('@/lib/audit', () => ({
+  logAudit: vi.fn(),
 }));
 
 vi.mock('next/cache', () => ({
@@ -41,7 +53,7 @@ describe('Isolamento Multi-Tenant: Gestão de Equipe', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(requireAuth).mockResolvedValue(mockCtx);
+    vi.mocked(requireAuth).mockResolvedValue(mockCtx); vi.mocked(requireAuthFresh).mockResolvedValue(mockCtx);
   });
 
   describe('updateUserRole (Alteração de Cargo)', () => {

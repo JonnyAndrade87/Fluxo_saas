@@ -11,7 +11,7 @@ import { addCustomerNote, upsertFinancialContact } from '@/actions/customers';
 import { createTask } from '@/actions/tasks';
 import prisma from '@/lib/prisma';
 import { auth } from '../../../auth';
-import { requireAuth, requireRole } from '@/lib/permissions';
+import { requireAuth, requireAuthFresh, requireRole } from '@/lib/permissions';
 
 vi.mock('@/lib/prisma', () => ({
   default: {
@@ -25,7 +25,7 @@ vi.mock('@/lib/prisma', () => ({
 
 vi.mock('../../../auth', () => ({ auth: vi.fn() }));
 vi.mock('@/lib/permissions', () => ({
-  requireAuth: vi.fn(),
+  requireAuth: vi.fn(), requireAuthFresh: vi.fn(),
   requireRole: vi.fn(),
 }));
 vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }));
@@ -37,7 +37,7 @@ describe('Multi-Tenant Data Isolation em Associação de Entidades', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(auth).mockResolvedValue({ user: { tenantId: mockTenantId, id: mockUserId, role: 'operator' } } as any);
-    vi.mocked(requireAuth).mockResolvedValue({ tenantId: mockTenantId, userId: mockUserId, role: 'admin', isSuperAdmin: false });
+    vi.mocked(requireAuth).mockResolvedValue({ tenantId: mockTenantId, userId: mockUserId, role: 'admin', isSuperAdmin: false }); vi.mocked(requireAuthFresh).mockResolvedValue({ tenantId: mockTenantId, userId: mockUserId, role: 'admin', isSuperAdmin: false });
   });
 
   describe('createInvoice', () => {

@@ -14,7 +14,7 @@ import {
 import { createTask, completeTask, cancelTask } from '@/actions/tasks';
 import prisma from '@/lib/prisma';
 import { auth } from '../../../auth';
-import { requireAuth } from '@/lib/permissions';
+import { requireAuth, requireAuthFresh } from '@/lib/permissions';
 
 vi.mock('@/lib/prisma', () => ({
   default: {
@@ -25,7 +25,18 @@ vi.mock('@/lib/prisma', () => ({
   }
 }));
 vi.mock('../../../auth', () => ({ auth: vi.fn() }));
-vi.mock('@/lib/permissions', () => ({ requireAuth: vi.fn(), requireRole: vi.fn() }));
+vi.mock('@/lib/permissions', () => ({ 
+  requireAuth: vi.fn(), requireAuthFresh: vi.fn(), 
+  requireRole: vi.fn(),
+  AUDIT_ACTIONS: {
+    INVOICE_CREATED: 'INVOICE_CREATED',
+    INVOICE_UPDATED: 'INVOICE_UPDATED',
+    INVOICE_DELETED: 'INVOICE_DELETED',
+  }
+}));
+vi.mock('@/lib/audit', () => ({
+  logAudit: vi.fn(),
+}));
 vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }));
 
 describe('Enforcement de Somente Leitura (Viewer) no Backend', () => {
@@ -40,9 +51,12 @@ describe('Enforcement de Somente Leitura (Viewer) no Backend', () => {
   describe('Faturas (Invoices Mutações)', () => {
     beforeEach(() => {
       // Simula uma sessão ativa válida onde a pessoa é STRICTLY "viewer"
-      vi.mocked(auth).mockResolvedValue({ 
-        user: { tenantId: mockTenantId, id: mockUserId, role: 'viewer' } 
-      } as any);
+      const mockViewerSession = { user: { tenantId: mockTenantId, id: mockUserId, role: 'viewer' } } as any;
+      const mockViewerCtx = { tenantId: mockTenantId, userId: mockUserId, role: 'viewer', isSuperAdmin: false } as any;
+      
+      vi.mocked(auth).mockResolvedValue(mockViewerSession);
+      vi.mocked(requireAuth).mockResolvedValue(mockViewerCtx);
+      vi.mocked(requireAuthFresh).mockResolvedValue(mockViewerCtx);
     });
 
     it('bloqueia createInvoice para viewer', async () => {
@@ -79,9 +93,9 @@ describe('Enforcement de Somente Leitura (Viewer) no Backend', () => {
   describe('Tarefas (Tasks Mutações)', () => {
     beforeEach(() => {
       // Simula context de requireAuth() com role "viewer"
-      vi.mocked(requireAuth).mockResolvedValue({ 
-        tenantId: mockTenantId, userId: mockUserId, role: 'viewer', isSuperAdmin: false 
-      } as any);
+      const mockViewerCtx = { tenantId: mockTenantId, userId: mockUserId, role: 'viewer', isSuperAdmin: false } as any;
+      vi.mocked(requireAuth).mockResolvedValue(mockViewerCtx);
+      vi.mocked(requireAuthFresh).mockResolvedValue(mockViewerCtx);
     });
 
     it('bloqueia createTask para viewer', async () => {
@@ -105,9 +119,9 @@ describe('Enforcement de Somente Leitura (Viewer) no Backend', () => {
         user: { tenantId: mockTenantId, id: mockUserId, role: 'operator' } 
       } as any);
 
-      vi.mocked(requireAuth).mockResolvedValue({ 
-        tenantId: mockTenantId, userId: mockUserId, role: 'operator', isSuperAdmin: false 
-      } as any);
+      const mockOperatorCtx = { tenantId: mockTenantId, userId: mockUserId, role: 'operator', isSuperAdmin: false } as any;
+      vi.mocked(requireAuth).mockResolvedValue(mockOperatorCtx);
+      vi.mocked(requireAuthFresh).mockResolvedValue(mockOperatorCtx);
 
       // Simular recursos no banco, assim a ação passa o check de ownership e segue sem erro
       vi.mocked(prisma.customer.findFirst).mockResolvedValue({ id: 'valid-c1', tenantId: mockTenantId } as any);
