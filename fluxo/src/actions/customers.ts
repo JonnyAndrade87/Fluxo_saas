@@ -3,15 +3,38 @@
 import prisma from '@/lib/prisma';
 import { auth } from '../../auth';
 import { revalidatePath } from 'next/cache';
-import { requireAuth, requireRole } from '@/lib/permissions';
+import { requireAuthFresh, requireRole, AUDIT_ACTIONS } from '@/lib/permissions';
 import { getRiskScoreForCustomer } from './risk-score';
 import { isInvoiceOverdue } from '@/lib/invoice-utils';
+import { logAudit } from '@/lib/audit';
 
 interface SessionUser {
   tenantId: string | null;
   id: string;
   email: string;
-  role: string;
+  role: 'admin' | 'operator' | 'viewer';
+}
+
+export interface CustomerInput {
+  id?: string;
+  name: string;
+  documentNumber: string;
+  email?: string;
+  phone?: string;
+  status?: string;
+  tags?: string;
+  address?: string;
+  notes?: string;
+  assignedUserId?: string;
+}
+
+export interface FinancialContactInput {
+  id?: string;
+  customerId: string;
+  name: string;
+  email: string;
+  phone?: string;
+  isPrimary?: boolean;
 }
 
 export async function getCustomersList(search?: string, riskFilter?: string) {
@@ -22,7 +45,7 @@ export async function getCustomersList(search?: string, riskFilter?: string) {
     throw new Error("Unauthorized Access: No active B2B Tenant found.");
   }
 
-  const whereClause: Record<string, any> = { tenantId };
+  const whereClause: import('@prisma/client').Prisma.CustomerWhereInput = { tenantId };
   if (search && search.trim() !== '') {
     whereClause.OR = [
       { name: { contains: search } },
@@ -160,10 +183,10 @@ export async function getCustomerDetails(customerId: string) {
   };
 }
 
-export async function upsertCustomer(data: any) {
-  const ctx = await requireAuth();
+export async function upsertCustomer(data: CustomerInput) {
+  const ctx = await requireAuthFresh();
   requireRole(['admin'], ctx);
-  const { tenantId, userId } = ctx; // requireAuth() guarantees both are non-empty strings
+  const { tenantId, userId } = ctx; // requireAuthFresh() guarantees both are non-empty strings
 
   const { id, name, documentNumber, email, phone, status, tags, address, notes, assignedUserId } = data;
 
@@ -193,15 +216,15 @@ export async function upsertCustomer(data: any) {
     }
   }
 
-  // Log activity
-  await prisma.activityLog.create({
-    data: {
-      tenantId,
-      userId,
-      action: id ? 'CUSTOMER_UPDATED' : 'CUSTOMER_CREATED',
-      entityType: 'customer',
-      entityId: customer.id
-    }
+  // Log activity using the new robust audit utility
+  await logAudit({
+    tenantId,
+    userId,
+    userRole: ctx.role,
+    action: id ? AUDIT_ACTIONS.CUSTOMER_UPDATED : AUDIT_ACTIONS.CUSTOMER_CREATED,
+    entityType: 'customer',
+    entityId: customer.id,
+    metadata: { name: customer.name, documentNumber: customer.documentNumber }
   });
 
   revalidatePath('/clientes');
@@ -209,7 +232,7 @@ export async function upsertCustomer(data: any) {
 }
 
 export async function addCustomerNote(customerId: string, content: string) {
-  const ctx = await requireAuth(); // any authenticated user can add notes
+  const ctx = await requireAuthFresh(); // any authenticated user can add notes
   const { tenantId, userId } = ctx;
 
   // Validate ownership
@@ -231,8 +254,8 @@ export async function addCustomerNote(customerId: string, content: string) {
   return note;
 }
 
-export async function upsertFinancialContact(data: any) {
-  const ctx = await requireAuth();
+export async function upsertFinancialContact(data: FinancialContactInput) {
+  const ctx = await requireAuthFresh();
   requireRole(['admin'], ctx);
   const { tenantId } = ctx;
 

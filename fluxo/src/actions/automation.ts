@@ -2,7 +2,8 @@
 
 import prisma from '@/lib/prisma';
 import { auth } from '../../auth';
-import { requireAuth } from '@/lib/permissions';
+import { requireAuthFresh } from '@/lib/permissions';
+import { enforceRateLimit } from '@/lib/api-rate-limiter';
 
 const DEFAULT_FLOW_CONFIG = {
   stages: [
@@ -75,13 +76,23 @@ const DEFAULT_FLOW_CONFIG = {
   presetType: "friendly"
 };
 
-export async function saveBillingFlow(rulesData: any) {
-  const ctx = await requireAuth();
+export async function saveBillingFlow(rulesData: unknown) {
+  const ctx = await requireAuthFresh();
+  
+  // ── Proteção: Apenas Admin pode editar a régua de cobrança
   if ((ctx.role as string) !== 'admin') {
     throw new Error('Forbidden: Apenas administradores podem alterar a régua de cobrança');
   }
+  
   const tenantId = ctx.tenantId;
 
+  try {
+    await enforceRateLimit('save-billing', tenantId, { limit: 20, windowMs: 60 * 60 * 1000 }); // 20/hr
+  } catch (err: unknown) {
+    throw new Error(err instanceof Error ? err.message : 'Muitas tentativas de salvar o fluxo de cobrança.');
+  }
+
+  // Find existing config or create if none
   const existingFlow = await prisma.billingFlow.findFirst({
     where: { tenantId }
   });

@@ -5,7 +5,6 @@ import { authConfig } from './auth.config';
 import { z } from 'zod';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
-import { sendEmail, buildWelcomeEmailHtml } from '@/lib/messaging/email';
 
 export const { auth, signIn, signOut, handlers: { GET, POST } } = NextAuth({
   ...authConfig,
@@ -38,8 +37,8 @@ export const { auth, signIn, signOut, handlers: { GET, POST } } = NextAuth({
                 }
               }
             });
-          } catch (dbErr: any) {
-            throw new Error(`Prisma Crash: ${dbErr?.message}`);
+          } catch (dbErr: unknown) {
+            throw new Error(`Prisma Crash: ${dbErr instanceof Error ? dbErr.message : String(dbErr)}`);
           }
 
           if (!user || !user.password) {
@@ -49,8 +48,8 @@ export const { auth, signIn, signOut, handlers: { GET, POST } } = NextAuth({
           let passwordsMatch = false;
           try {
             passwordsMatch = await bcrypt.compare(password, user.password);
-          } catch (bcryptErr: any) {
-            throw new Error(`Bcrypt Crash: ${bcryptErr?.message}`);
+          } catch (bcryptErr: unknown) {
+            throw new Error(`Bcrypt Crash: ${bcryptErr instanceof Error ? bcryptErr.message : String(bcryptErr)}`);
           }
 
           if (!passwordsMatch) {
@@ -80,10 +79,12 @@ export const { auth, signIn, signOut, handlers: { GET, POST } } = NextAuth({
             tenantId: tenantUser?.tenantId ?? null,
             role: tenantUser?.role ?? 'operator',
             isSuperAdmin,
+            mfaEnabled: user.mfaEnabled,
           };
-        } catch (error: any) {
-          console.error('AUTHORIZE CRASH:', error.message);
-          throw new Error(`[AUTHORIZE_FATAL] ${error.message}`);
+        } catch (error: unknown) {
+          const msg = error instanceof Error ? error.message : String(error);
+          console.error('AUTHORIZE CRASH:', msg);
+          throw new Error(`[AUTHORIZE_FATAL] ${msg}`);
         }
       },
     }),
@@ -127,9 +128,10 @@ export const { auth, signIn, signOut, handlers: { GET, POST } } = NextAuth({
             tenantId: tenantUser?.tenantId ?? null,
             role: tenantUser?.role ?? 'admin',
             isSuperAdmin,
+            mfaEnabled: user.mfaEnabled,
           };
-        } catch (err: any) {
-          console.error('[ACTIVATION-TOKEN] Error:', err.message);
+        } catch (err: unknown) {
+          console.error('[ACTIVATION-TOKEN] Error:', err instanceof Error ? err.message : String(err));
           return null;
         }
       },
@@ -176,9 +178,8 @@ export const { auth, signIn, signOut, handlers: { GET, POST } } = NextAuth({
       return true; // Credentials fallback allows sign-in naturally
     },
     async jwt({ token, user, account }) {
-      // Setup payload based on the Provider logic
+      // ── Initial population (runs once at login) ──────────────────────────
       if (account?.provider === 'google' && user?.email) {
-        // Needs to fetch DB user manually because Oauth lacks custom authorization returns
         const dbUser = await prisma.user.findUnique({
           where: { email: user.email },
           include: { tenants: { take: 1, select: { tenantId: true, role: true } } }
@@ -189,21 +190,63 @@ export const { auth, signIn, signOut, handlers: { GET, POST } } = NextAuth({
           token.tenantId = dbUser.tenants[0]?.tenantId ?? null;
           token.role = dbUser.tenants[0]?.role ?? 'operator';
 
-          const isSuperAdmin = !!process.env.SUPER_ADMIN_EMAILS && 
+          const isSuperAdmin = !!process.env.SUPER_ADMIN_EMAILS &&
             process.env.SUPER_ADMIN_EMAILS
               .split(',')
               .map(e => e.trim().toLowerCase())
               .includes(dbUser.email.toLowerCase());
-              
+
           token.isSuperAdmin = isSuperAdmin;
+          token.mfaEnabled = dbUser.mfaEnabled;
+          token.lastDbCheck = Date.now();
         }
       } else if (user) {
-        // Credentials provider injects values directly from authorize() step
         token.id = user.id;
         token.tenantId = user.tenantId;
         token.role = user.role;
         token.isSuperAdmin = user.isSuperAdmin;
+        token.mfaEnabled = user.mfaEnabled;
+        token.lastDbCheck = Date.now();
       }
+
+      // ── Periodic DB revalidation (every 5 minutes) ────────────────────────
+      // Purpose: keep session fresh for navigation decisions.
+      // Note: requireAuthFresh() in server actions is the enforcement layer.
+      const CHECK_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+      const lastCheck = (token.lastDbCheck as number) ?? 0;
+      const userId = token.id as string;
+
+      if (userId && Date.now() - lastCheck > CHECK_INTERVAL_MS) {
+        try {
+          const fresh = await prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+              isActive: true,
+              mfaEnabled: true,
+              tenants: {
+                where: { tenantId: token.tenantId as string },
+                select: { role: true },
+                take: 1,
+              },
+            },
+          });
+
+          if (!fresh || !fresh.isActive) {
+            // Account deactivated — nullify token to force logout
+            return null;
+          }
+
+          // Refresh role and mfaEnabled from DB
+          const liveRole = fresh.tenants[0]?.role;
+          if (liveRole) token.role = liveRole;
+          token.mfaEnabled = fresh.mfaEnabled;
+          token.lastDbCheck = Date.now();
+        } catch {
+          // DB probe failed — do not nullify, keep existing token (fail-open for navigation)
+          // requireAuthFresh() in actions remains the hard enforcement.
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {
@@ -212,6 +255,7 @@ export const { auth, signIn, signOut, handlers: { GET, POST } } = NextAuth({
         session.user.tenantId = token.tenantId as string | null;
         session.user.role = token.role as string;
         session.user.isSuperAdmin = !!token.isSuperAdmin;
+        session.user.mfaEnabled = !!token.mfaEnabled;
       }
       return session;
     }

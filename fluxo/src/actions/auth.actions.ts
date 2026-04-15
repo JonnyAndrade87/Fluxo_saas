@@ -4,6 +4,7 @@ import prisma from '@/lib/prisma';
 import { sendEmail, buildPasswordResetEmailHtml } from '@/lib/messaging/email';
 import { randomUUID } from 'crypto';
 import bcrypt from 'bcryptjs';
+import { getClientIp, enforceRateLimit } from '@/lib/api-rate-limiter';
 
 /**
  * Solicita a criação do Token e o envio do Link Mágico pro email do cara!
@@ -11,6 +12,9 @@ import bcrypt from 'bcryptjs';
  */
 export async function requestPasswordReset(email: string) {
   try {
+    const ip = await getClientIp();
+    await enforceRateLimit('req-reset', ip, { limit: 3, windowMs: 60 * 60 * 1000 }); // 3 per hour
+
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
       // Retornar success mesmo se não achar o email previne brute-force scraping
@@ -55,7 +59,7 @@ export async function requestPasswordReset(email: string) {
     }
 
     return { success: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Erro no fluxo do reset:", error);
     return { error: 'Ocorreu um erro interno. Tente de novo.' };
   }
@@ -66,6 +70,9 @@ export async function requestPasswordReset(email: string) {
  */
 export async function resetPassword(token: string, newPasswordRaw: string) {
   try {
+    const ip = await getClientIp();
+    await enforceRateLimit('apply-reset', ip, { limit: 5, windowMs: 60 * 60 * 1000 }); // 5 attempts per hr
+
     const record = await prisma.passwordResetToken.findUnique({
       where: { token }
     });
@@ -99,8 +106,8 @@ export async function resetPassword(token: string, newPasswordRaw: string) {
 
     return { success: true };
     
-  } catch (error: any) {
-    console.error("Erro redefinindo credencial:", error.message);
+  } catch (error: unknown) {
+    console.error("Erro redefinindo credencial:", error instanceof Error ? error.message : String(error));
     return { error: 'Falha durante o processo de Reset.' };
   }
 }

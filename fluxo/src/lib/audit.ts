@@ -11,7 +11,7 @@ export interface LogAuditParams {
   userId: string | null;
   userRole: UserRole | null;
   action: AuditAction;
-  entityType: string; // 'invoice', 'customer', 'user', etc
+  entityType: string;
   entityId: string;
   description?: string;
   metadata?: Record<string, unknown>;
@@ -19,15 +19,29 @@ export interface LogAuditParams {
 
 /**
  * Registrar uma ação na trilha de auditoria
- * Apenas registra ações críticas (shouldAudit)
+ * Integra automaticamente contexto de rede (IP / User-Agent)
  */
 export async function logAudit(params: LogAuditParams): Promise<void> {
-  // Apenas log ações críticas para não sobrecarregar o banco
   if (!shouldAudit(params.action)) {
     return;
   }
 
   try {
+    // Dynamic import of next/headers to prevent inclusion in client component module graphs
+    const { headers } = await import('next/headers');
+    const headerList = await headers();
+    const userAgent = headerList.get('user-agent');
+    const ip = headerList.get('x-forwarded-for') || headerList.get('x-real-ip');
+
+    const metadata = {
+      ...params.metadata,
+      context: {
+        ip,
+        userAgent,
+      },
+      description: params.description,
+    };
+
     await prisma.activityLog.create({
       data: {
         tenantId: params.tenantId,
@@ -35,11 +49,10 @@ export async function logAudit(params: LogAuditParams): Promise<void> {
         action: params.action,
         entityType: params.entityType,
         entityId: params.entityId,
-        metadata: params.metadata ? JSON.stringify(params.metadata) : null,
+        metadata: metadata as import('@prisma/client').Prisma.InputJsonValue,
       },
     });
   } catch (error) {
-    // Não falhar a operação principal se a auditoria falhar
     console.error('[AUDIT ERROR]', error);
   }
 }
@@ -81,7 +94,7 @@ export async function getAuditLogs(
     actionLabel: formatAuditAction(log.action as AuditAction),
     entity: log.entityType,
     entityId: log.entityId,
-    details: log.metadata ? JSON.parse(log.metadata) : null,
+    details: log.metadata as Record<string, unknown> | null,
   }));
 }
 

@@ -4,8 +4,9 @@
  */
 
 import { auth } from '../../auth';
+import type { Session } from 'next-auth';
 
-export async function withAuth<T>(callback: (session: any) => Promise<T>, fallbackValue: T): Promise<T> {
+export async function withAuth<T>(callback: (session: Session) => Promise<T>, fallbackValue: T): Promise<T> {
   try {
     const session = await auth();
     if (!session?.user) {

@@ -1,8 +1,18 @@
-'use server';
-
 import prisma from '@/lib/prisma';
 import { auth } from '../../auth';
-import { revalidatePath } from 'next/cache';
+import { logAudit } from '@/lib/audit';
+import { AUDIT_ACTIONS, requireAuthFresh, type UserRole } from '@/lib/permissions';
+
+// Lazy import to prevent next/cache from being included in client component module graphs
+async function revalidatePath(path: string): Promise<void> {
+  try {
+    const { revalidatePath: rv } = await import('next/cache');
+    rv(path);
+  } catch {
+    // Swallow invariant errors thrown by Next.js when outside a request context (e.g., Vitest)
+  }
+}
+
 
 interface SessionUser {
   tenantId: string | null;
@@ -101,10 +111,7 @@ export async function getInvoices() {
 // FIX: added tenant isolation + Communication event so payment appears in /historico
 
 export async function markInvoiceAsPaid(id: string, amountPaid?: number) {
-  const session = await auth();
-  const tenantId = (session?.user as SessionUser)?.tenantId;
-  const role = (session?.user as SessionUser)?.role;
-  if (!tenantId) throw new Error("Unauthorized");
+  const { tenantId, role, userId } = await requireAuthFresh();
   if (role === 'viewer') throw new Error("Forbidden: Acesso somente leitura");
 
   const inv = await prisma.invoice.findFirst({
@@ -137,10 +144,18 @@ export async function markInvoiceAsPaid(id: string, amountPaid?: number) {
     }
   });
 
-  revalidatePath('/cobrancas');
-  revalidatePath('/clientes');
   revalidatePath('/historico');
   revalidatePath('/');
+
+  await logAudit({
+    tenantId,
+    userId,
+    userRole: role as UserRole | null,
+    action: AUDIT_ACTIONS.INVOICE_UPDATED,
+    entityType: 'INVOICE',
+    entityId: id,
+    metadata: { status: 'PAID', amount: finalPaidAmount, invoiceNumber: inv.invoiceNumber }
+  });
 
   return { success: true, invoice: updated };
 }
@@ -148,10 +163,7 @@ export async function markInvoiceAsPaid(id: string, amountPaid?: number) {
 // ── cancelInvoice ───────────────────────────────────────────────────────────────
 
 export async function cancelInvoice(id: string, reason: string) {
-  const session = await auth();
-  const tenantId = (session?.user as SessionUser)?.tenantId;
-  const role = (session?.user as SessionUser)?.role;
-  if (!tenantId) throw new Error("Unauthorized");
+  const { tenantId, role, userId } = await requireAuthFresh();
   if (role === 'viewer') throw new Error("Forbidden: Acesso somente leitura");
 
   const inv = await prisma.invoice.findFirst({ where: { id, tenantId } });
@@ -168,18 +180,25 @@ export async function cancelInvoice(id: string, reason: string) {
     }
   });
 
-  revalidatePath('/cobrancas');
   revalidatePath('/historico');
+
+  await logAudit({
+    tenantId,
+    userId,
+    userRole: role as UserRole | null,
+    action: AUDIT_ACTIONS.INVOICE_UPDATED,
+    entityType: 'INVOICE',
+    entityId: id,
+    metadata: { status: 'CANCELED', reason, invoiceNumber: inv.invoiceNumber }
+  });
+
   return { success: true, invoice: updated };
 }
 
 // ── reopenInvoice ───────────────────────────────────────────────────────────────
 
 export async function reopenInvoice(id: string) {
-  const session = await auth();
-  const tenantId = (session?.user as SessionUser)?.tenantId;
-  const role = (session?.user as SessionUser)?.role;
-  if (!tenantId) throw new Error("Unauthorized");
+  const { tenantId, role } = await requireAuthFresh();
   if (role === 'viewer') throw new Error("Forbidden: Acesso somente leitura");
 
   const inv = await prisma.invoice.findFirst({ where: { id, tenantId } });
@@ -208,18 +227,8 @@ export async function reopenInvoice(id: string) {
 // instead of mutating the invoice's dueDate (which was wrong)
 
 export async function registerPromiseToPay(id: string, dateString: string) {
-  const session = await auth();
-  const tenantId = (session?.user as SessionUser)?.tenantId;
-  const role = (session?.user as SessionUser)?.role;
-  let userId: string | undefined = (session?.user as SessionUser)?.id;
-  if (!tenantId) throw new Error("Unauthorized");
+  const { tenantId, role, userId } = await requireAuthFresh();
   if (role === 'viewer') throw new Error("Forbidden: Acesso somente leitura");
-
-  // Fallback userId
-  if (!userId) {
-    const tUser = await prisma.tenantUser.findFirst({ where: { tenantId } });
-    userId = tUser?.userId;
-  }
 
   const inv = await prisma.invoice.findFirst({ where: { id, tenantId } });
   if (!inv) throw new Error("Invoice not found or access denied");
@@ -257,10 +266,7 @@ export async function registerPromiseToPay(id: string, dateString: string) {
 // ── deleteInvoice ──────────────────────────────────────────────────────────────
 
 export async function deleteInvoice(id: string) {
-  const session = await auth();
-  const tenantId = (session?.user as SessionUser)?.tenantId;
-  const role = (session?.user as SessionUser)?.role;
-  if (!tenantId) throw new Error("Unauthorized");
+  const { tenantId, role, userId } = await requireAuthFresh();
   if (role === 'viewer') throw new Error("Forbidden: Acesso somente leitura");
 
   const inv = await prisma.invoice.findFirst({ where: { id, tenantId } });
@@ -268,6 +274,17 @@ export async function deleteInvoice(id: string) {
   if (inv.tenantId !== tenantId) throw new Error("Invoice not found or access denied");
 
   await prisma.invoice.delete({ where: { id } });
+
+  await logAudit({
+    tenantId,
+    userId,
+    userRole: role as UserRole | null,
+    action: AUDIT_ACTIONS.INVOICE_DELETED,
+    entityType: 'INVOICE',
+    entityId: id,
+    metadata: { invoiceNumber: inv.invoiceNumber, amount: inv.amount }
+  });
+
   revalidatePath('/cobrancas');
   revalidatePath('/historico');
   revalidatePath('/');
@@ -293,10 +310,7 @@ export async function createInvoice(data: {
   dueDate: string;
   description?: string;
 }) {
-  const session = await auth();
-  const tenantId = (session?.user as SessionUser)?.tenantId;
-  const role = (session?.user as SessionUser)?.role;
-  if (!tenantId) throw new Error("Unauthorized");
+  const { tenantId, role, userId } = await requireAuthFresh();
   if (role === 'viewer') throw new Error("Forbidden: Acesso somente leitura");
 
   // Validate ownership of the customer
@@ -321,10 +335,19 @@ export async function createInvoice(data: {
     }
   });
 
-  revalidatePath('/cobrancas');
-  revalidatePath('/clientes');
   revalidatePath('/historico');
   revalidatePath('/');
+
+  await logAudit({
+    tenantId,
+    userId,
+    userRole: role as UserRole | null,
+    action: AUDIT_ACTIONS.INVOICE_CREATED,
+    entityType: 'INVOICE',
+    entityId: newInvoice.id,
+    metadata: { invoiceNumber, amount: data.amount, customerId: data.customerId }
+  });
+
   return { success: true, invoice: newInvoice };
 }
 
@@ -333,10 +356,7 @@ export async function updateInvoice(id: string, data: {
   dueDate: string;
   description?: string;
 }) {
-  const session = await auth();
-  const tenantId = (session?.user as SessionUser)?.tenantId;
-  const role = (session?.user as SessionUser)?.role;
-  if (!tenantId) throw new Error("Unauthorized");
+  const { tenantId, role } = await requireAuthFresh();
   if (role === 'viewer') throw new Error("Forbidden: Acesso somente leitura");
 
   const inv = await prisma.invoice.findFirst({ where: { id, tenantId } });
