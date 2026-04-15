@@ -7,6 +7,12 @@ const { prismaMock, queueMock } = vi.hoisted(() => ({
     billingFlow: {
       findMany: vi.fn(),
     },
+    rateLimit: {
+      deleteMany: vi.fn(),
+    },
+    activityLog: {
+      deleteMany: vi.fn(),
+    },
   },
   queueMock: {
     enqueueAndSend: vi.fn(),
@@ -25,6 +31,8 @@ import { GET } from './route';
 
 beforeEach(() => {
   prismaMock.billingFlow.findMany.mockResolvedValue([]);
+  prismaMock.rateLimit.deleteMany.mockResolvedValue({ count: 0 });
+  prismaMock.activityLog.deleteMany.mockResolvedValue({ count: 0 });
   queueMock.enqueueAndSend.mockResolvedValue({ sent: false });
 });
 

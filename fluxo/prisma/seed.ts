@@ -1,5 +1,6 @@
 import prisma from '../src/lib/prisma'
 import bcrypt from 'bcryptjs'
+import { getTenantPlanSnapshot } from '../src/lib/billing/plans'
 
 async function main() {
   console.log('🌱 Iniciando Seeding do Banco B2B Fluxo...');
@@ -12,7 +13,7 @@ async function main() {
     data: {
       name: 'TechCorp Solutions',
       documentNumber: '12.345.678/0001-90',
-      planType: 'enterprise',
+      ...getTenantPlanSnapshot('scale'),
       users: {
         create: [
           {

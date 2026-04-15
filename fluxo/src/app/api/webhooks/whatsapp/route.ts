@@ -39,7 +39,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    let body: any;
+    interface WhatsAppWebhookBody {
+      object: string;
+      entry?: Array<{
+        changes?: Array<{
+          value?: {
+            statuses?: Array<{
+              id: string;
+              status: string;
+            }>;
+          };
+        }>;
+      }>;
+    }
+    let body: WhatsAppWebhookBody;
     try {
       body = JSON.parse(rawBody);
     } catch {
@@ -47,8 +60,9 @@ export async function POST(req: NextRequest) {
     }
 
     if (body.object === 'whatsapp_business_account') {
-      if (body.entry && body.entry[0].changes && body.entry[0].changes[0].value.statuses) {
-        const statuses = body.entry[0].changes[0].value.statuses;
+      const firstChange = body.entry?.[0]?.changes?.[0];
+      if (firstChange?.value?.statuses) {
+        const statuses = firstChange.value.statuses;
         for (const status of statuses) {
           const wamid = status.id;
           const msgStatus = status.status; // 'sent', 'delivered', 'read', 'failed'
@@ -58,7 +72,7 @@ export async function POST(req: NextRequest) {
                where: { externalId: wamid },
                data: { status: msgStatus }
               });
-              if (result.count > 0) {
+              if (result && result.count > 0) {
                   console.log(`[WEBHOOK/WHATSAPP] Updated message status to ${msgStatus}`);
               }
            }
@@ -68,8 +82,8 @@ export async function POST(req: NextRequest) {
     } else {
       return NextResponse.json({ error: 'Not a WhatsApp API event' }, { status: 404 });
     }
-  } catch (error) {
-    console.error('[WEBHOOK/WHATSAPP] Internal error');
+  } catch (error: unknown) {
+    console.error('[WEBHOOK/WHATSAPP] Internal error:', error);
     return NextResponse.json({ success: false }, { status: 500 });
   }
 }

@@ -1,13 +1,5 @@
-/**
- * FOCO 4 — Permissões Multiusuário
- * Sistema simplificado de controle de acesso por perfil (Roles Unification)
- *
- * Perfis oficiais consolidados: admin | operator | viewer
- * - Sem RBAC granular, apenas controle por módulo e ação crítica
- * - Auditoria básica integrada
- */
-
 import { auth } from '../../auth';
+import prisma from '@/lib/prisma';
 
 export type UserRole = 'admin' | 'operator' | 'viewer';
 
@@ -19,11 +11,13 @@ export interface AuthContext {
 
 /**
  * Asserts the request is authenticated and returns the auth context.
- * Throws if no valid session is found.
+ * Reads role and tenantId from the JWT token (fast path).
+ * Use requireAuthFresh() for any sensitive mutation.
  */
 export async function requireAuth(): Promise<AuthContext> {
   const session = await auth();
-  const user = session?.user as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const user = session?.user as any;
 
   if (!user?.tenantId) {
     throw new Error('UNAUTHORIZED: No active session or tenant.');
@@ -40,6 +34,71 @@ export async function requireAuth(): Promise<AuthContext> {
     role: rawRole as UserRole,
   };
 }
+
+/**
+ * requireAuthFresh — always reads the database.
+ *
+ * Use this for EVERY sensitive mutation (write, delete, role-gated action).
+ * Never trusts stale JWT values for isActive, role, or mfaEnabled.
+ *
+ * Divergence behavior:
+ *   - isActive=false  → throws ACCOUNT_INACTIVE immediately (no allowance)
+ *   - role changed    → returns live DB role (not the stale token value)
+ *   - mfaEnabled changed → reflected in the returned context
+ *
+ * Does NOT replace JWT refresh — the JWT callback still revalidates periodically
+ * for navigation. requireAuthFresh() is the enforcement layer for actions.
+ */
+export async function requireAuthFresh(): Promise<AuthContext & { mfaEnabled: boolean }> {
+  const session = await auth();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const user = session?.user as any;
+
+  if (!user?.id) {
+    throw new Error('UNAUTHORIZED: No active session.');
+  }
+
+  // Always read from the database — never trust the JWT for sensitive mutations
+  const dbUser = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: {
+      isActive: true,
+      mfaEnabled: true,
+      tenants: {
+        where: { tenantId: user.tenantId },
+        select: { role: true, tenantId: true },
+        take: 1,
+      },
+    },
+  });
+
+  if (!dbUser) {
+    throw new Error('UNAUTHORIZED: User not found in database.');
+  }
+
+  // Immediate denial — account was deactivated after session was issued
+  if (!dbUser.isActive) {
+    throw new Error('ACCOUNT_INACTIVE: This account has been deactivated. Access denied.');
+  }
+
+  const tenantUser = dbUser.tenants[0];
+  if (!tenantUser) {
+    throw new Error('UNAUTHORIZED: User is not a member of the requested tenant.');
+  }
+
+  const liveRole = tenantUser.role as UserRole;
+  if (!['admin', 'operator', 'viewer'].includes(liveRole)) {
+    throw new Error(`FORBIDDEN: Role '${liveRole}' is not recognized.`);
+  }
+
+  return {
+    userId: user.id,
+    tenantId: tenantUser.tenantId,
+    role: liveRole,
+    mfaEnabled: !!dbUser.mfaEnabled,
+  };
+}
+
 
 /**
  * Asserts the authenticated user has one of the required roles.
@@ -193,6 +252,13 @@ export const AUDIT_ACTIONS = {
 
   // Configuração
   SETTINGS_CHANGED: 'SETTINGS_CHANGED',
+
+  // Segurança & Auth
+  AUTH_LOGIN_SUCCESS: 'AUTH_LOGIN_SUCCESS',
+  AUTH_LOGIN_FAILURE: 'AUTH_LOGIN_FAILURE',
+  AUTH_MFA_SETUP: 'AUTH_MFA_SETUP',
+  AUTH_MFA_VERIFIED: 'AUTH_MFA_VERIFIED',
+  AUTH_MFA_FAILED: 'AUTH_MFA_FAILED',
 } as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[keyof typeof AUDIT_ACTIONS];
@@ -228,6 +294,11 @@ export function shouldAudit(action: AuditAction): boolean {
     AUDIT_ACTIONS.REPORT_EXPORTED,
     AUDIT_ACTIONS.DATA_EXPORTED,
     AUDIT_ACTIONS.SETTINGS_CHANGED,
+    AUDIT_ACTIONS.AUTH_LOGIN_SUCCESS,
+    AUDIT_ACTIONS.AUTH_LOGIN_FAILURE,
+    AUDIT_ACTIONS.AUTH_MFA_SETUP,
+    AUDIT_ACTIONS.AUTH_MFA_VERIFIED,
+    AUDIT_ACTIONS.AUTH_MFA_FAILED,
   ];
   return criticalActions.includes(action);
 }
@@ -251,6 +322,11 @@ export function formatAuditAction(action: AuditAction): string {
     USER_UPDATED: 'Usuário atualizado',
     USER_DELETED: '🗑️ Usuário deletado',
     SETTINGS_CHANGED: '⚙️ Configurações alteradas',
+    AUTH_LOGIN_SUCCESS: '🔐 Login bem-sucedido',
+    AUTH_LOGIN_FAILURE: '❌ Falha de login local',
+    AUTH_MFA_SETUP: '🛡️ MFA Configurado',
+    AUTH_MFA_VERIFIED: '✅ MFA Verificado',
+    AUTH_MFA_FAILED: '⚠️ Falha no MFA',
   };
   return labels[action] || action;
 }

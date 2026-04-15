@@ -8,17 +8,50 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum TenantPlan {
+  starter
+  pro
+  scale
+}
+
+enum SubscriptionStatus {
+  trialing
+  active
+  past_due
+  canceled
+}
+
+enum SupportLevel {
+  standard
+  priority
+  vip
+}
+
+enum OnboardingTier {
+  basic
+  assisted
+  concierge
+}
+
 // ==========================================
 // CORE & IDENTITY (MULTI-TENANT FOUNDATION)
 // ==========================================
 
 model Tenant {
-  id              String   @id @default(uuid())
-  name            String
-  documentNumber  String   @unique @map("document_number")
-  planType        String   @default("starter") @map("plan_type")
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
+  id                   String             @id @default(uuid())
+  name                 String
+  documentNumber       String             @unique @map("document_number")
+  plan                 TenantPlan         @default(starter) @map("plan_type")
+  subscriptionStatus   SubscriptionStatus @default(trialing) @map("subscription_status")
+  stripeCustomerId     String?            @unique @map("stripe_customer_id")
+  stripeSubscriptionId String?            @unique @map("stripe_subscription_id")
+  maxUsers             Int                @default(1) @map("max_users")
+  maxCustomers         Int                @default(300) @map("max_customers")
+  maxInvoices          Int                @default(1000) @map("max_invoices")
+  supportLevel         SupportLevel       @default(standard) @map("support_level")
+  onboardingTier       OnboardingTier     @default(basic) @map("onboarding_tier")
+  createdAt            DateTime           @default(now()) @map("created_at")
+  updatedAt            DateTime           @updatedAt @map("updated_at")
 
   // Relationships
   users              TenantUser[]
@@ -44,6 +77,11 @@ model User {
   googleId        String?  @unique @map("google_id") // Standardized Google ID
   emailVerified   Boolean  @default(false) @map("email_verified")
   isActive        Boolean  @default(false) @map("is_active") // becomes true after email verification
+  
+  // ── MFA Settings ──────────────────────────────────────────────────
+  mfaEnabled      Boolean  @default(false) @map("mfa_enabled")
+  mfaSecret       String?  @map("mfa_secret")
+  
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
@@ -326,7 +364,7 @@ model ActivityLog {
   action     String   // INVOICE_CREATED, PAYMENT_REGISTERED, FLOW_ACTIVATED
   entityType String   @map("entity_type") // invoice, customer, settings
   entityId   String   @map("entity_id")
-  metadata   String?  // String in SQLite representing before/after JSON payload
+  metadata   Json?    // Contextual information (IP, User-Agent, state changes)
   createdAt  DateTime @default(now()) @map("created_at")
 
   // Foreign Keys
@@ -435,4 +473,18 @@ model EmailVerificationToken {
 
   @@index([email])
   @@map("email_verification_tokens")
+}
+
+// ==========================================
+// DISTRIBUTED RATE LIMITER
+// ==========================================
+model RateLimit {
+  key       String   @id
+  count     Int      @default(1)
+  resetAt   DateTime @map("reset_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([resetAt])
+  @@map("rate_limits")
 }

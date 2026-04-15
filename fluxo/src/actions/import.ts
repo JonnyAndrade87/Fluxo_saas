@@ -2,6 +2,7 @@
 
 import prisma from '@/lib/prisma';
 import { auth } from '../../auth';
+import { enforceRateLimit } from '@/lib/api-rate-limiter';
 
 export type ParsedReceivable = {
   customerName: string;
@@ -69,6 +70,12 @@ export async function importReceivables(data: ParsedReceivable[]): Promise<Impor
 
   if (!tenantId) {
     return { success: false, created: 0, skipped: 0, errors: [], error: 'Unauthorized: No active session or tenant.' };
+  }
+
+  try {
+    await enforceRateLimit('import-csv', tenantId, { limit: 10, windowMs: 60 * 60 * 1000 });
+  } catch (err: any) {
+    return { success: false, created: 0, skipped: 0, errors: [], error: err.message || 'Muitas tentativas' };
   }
 
   if (!data || data.length === 0) {

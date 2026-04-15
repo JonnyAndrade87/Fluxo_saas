@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { getTenantPlanSnapshot } from '../src/lib/billing/plans';
 
 const prisma = new PrismaClient();
 
@@ -16,7 +17,7 @@ async function main() {
       data: {
         name: 'Fluxeer Prime Hub',
         documentNumber: '00.000.000/0001-00',
-        planType: 'pro'
+        ...getTenantPlanSnapshot('pro')
       }
     });
     console.log('Created missing tenant:', tenant.id);

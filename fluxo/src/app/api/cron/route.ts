@@ -62,6 +62,19 @@ export async function GET(request: Request) {
       where: { isActive: true }
     });
 
+    // ── Garbage Collection: Rate Limits ──────────────────────────────────────
+    const deletedLimitRecords = await prisma.rateLimit.deleteMany({
+      where: { resetAt: { lt: new Date() } }
+    });
+    console.log(`[CRON] GC cleared ${deletedLimitRecords.count} expired rate limits.`);
+
+    // ── Garbage Collection: Audit Logs (90-day retention) ────────────────────
+    const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
+    const deletedAuditRecords = await prisma.activityLog.deleteMany({
+      where: { createdAt: { lt: ninetyDaysAgo } }
+    });
+    console.log(`[CRON] GC cleared ${deletedAuditRecords.count} audit logs older than 90 days.`);
+
     let sentMessages = 0;
     let queuedMessages = 0;
     let processedInvoices = 0;

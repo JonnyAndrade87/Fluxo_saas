@@ -3,7 +3,8 @@
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { revalidatePath } from 'next/cache';
-import { requireAuth, requireRole } from '@/lib/permissions';
+import { requireAuth, requireAuthFresh, requireRole, AUDIT_ACTIONS } from '@/lib/permissions';
+import { logAudit } from '@/lib/audit';
 
 /**
  * List all team members for the current tenant.
@@ -39,7 +40,7 @@ export async function getTeamMembers() {
  * If not, creates a new User with a temp password they must reset.
  */
 export async function inviteUser(formData: FormData) {
-  const ctx = await requireAuth();
+  const ctx = await requireAuthFresh();
   requireRole(['admin'], ctx);
 
   const email = (formData.get('email') as string)?.toLowerCase().trim();
@@ -61,6 +62,16 @@ export async function inviteUser(formData: FormData) {
     await prisma.tenantUser.create({
       data: { tenantId: ctx.tenantId, userId: existingUser.id, role }
     });
+
+    await logAudit({
+      tenantId: ctx.tenantId,
+      userId: ctx.userId,
+      userRole: ctx.role,
+      action: AUDIT_ACTIONS.USER_CREATED,
+      entityType: 'USER',
+      entityId: existingUser.id,
+      metadata: { email, role, fullName, status: 'added_existing' }
+    });
   } else {
     // Create new user with temp password (they'll need to reset it)
     const tempPassword = await bcrypt.hash(`fluxo@${Date.now()}`, 10);
@@ -69,6 +80,16 @@ export async function inviteUser(formData: FormData) {
     });
     await prisma.tenantUser.create({
       data: { tenantId: ctx.tenantId, userId: newUser.id, role }
+    });
+
+    await logAudit({
+      tenantId: ctx.tenantId,
+      userId: ctx.userId,
+      userRole: ctx.role,
+      action: AUDIT_ACTIONS.USER_CREATED,
+      entityType: 'USER',
+      entityId: newUser.id,
+      metadata: { email, role, fullName, status: 'created_new' }
     });
   }
 
@@ -80,7 +101,7 @@ export async function inviteUser(formData: FormData) {
  * Update a team member's role. Admin-only.
  */
 export async function updateUserRole(tenantUserId: string, newRole: string) {
-  const ctx = await requireAuth();
+  const ctx = await requireAuthFresh();
   requireRole(['admin'], ctx);
 
   if (!['admin', 'operator', 'viewer'].includes(newRole)) {
@@ -101,6 +122,16 @@ export async function updateUserRole(tenantUserId: string, newRole: string) {
     data: { role: newRole }
   });
 
+  await logAudit({
+    tenantId: ctx.tenantId,
+    userId: ctx.userId,
+    userRole: ctx.role,
+    action: AUDIT_ACTIONS.USER_UPDATED,
+    entityType: 'USER',
+    entityId: tu.userId,
+    metadata: { newRole, previousRole: tu.role }
+  });
+
   revalidatePath('/configuracoes');
   return { success: true };
 }
@@ -109,7 +140,7 @@ export async function updateUserRole(tenantUserId: string, newRole: string) {
  * Remove a team member from the tenant. Admin-only.
  */
 export async function removeTeamMember(tenantUserId: string) {
-  const ctx = await requireAuth();
+  const ctx = await requireAuthFresh();
   requireRole(['admin'], ctx);
 
   const tu = await prisma.tenantUser.findUnique({
@@ -134,7 +165,20 @@ export async function removeTeamMember(tenantUserId: string) {
     }
   }
 
+  const userToRemove = await prisma.user.findUnique({ where: { id: tu.userId } });
+
   await prisma.tenantUser.delete({ where: { id: tenantUserId } });
+
+  await logAudit({
+    tenantId: ctx.tenantId,
+    userId: ctx.userId,
+    userRole: ctx.role,
+    action: AUDIT_ACTIONS.USER_DELETED,
+    entityType: 'USER',
+    entityId: tu.userId,
+    metadata: { email: userToRemove?.email || 'unknown' }
+  });
+
   revalidatePath('/configuracoes');
   return { success: true };
 }

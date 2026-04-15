@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { getClientIp, enforceRateLimit } from '@/lib/api-rate-limiter';
 
 export async function GET(request: NextRequest) {
   const token = request.nextUrl.searchParams.get('token');
@@ -10,6 +11,9 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    const ip = await getClientIp();
+    await enforceRateLimit('activate', ip, { limit: 5, windowMs: 15 * 60 * 1000 }); // 5 attempts per 15 min
+
     const record = await prisma.emailVerificationToken.findUnique({ where: { token } });
 
     if (!record) {
@@ -35,7 +39,10 @@ export async function GET(request: NextRequest) {
     loginUrl.searchParams.set('callbackUrl', '/onboarding');
     loginUrl.searchParams.set('activated', '1');
     return NextResponse.redirect(loginUrl);
-  } catch (err) {
+  } catch (err: any) {
+    if (err.message && err.message.includes('Muitas requisições')) {
+      return NextResponse.redirect(new URL('/register?error=rate_limited', request.url));
+    }
     console.error('Activation error:', err);
     return NextResponse.redirect(new URL('/register?error=server_error', request.url));
   }

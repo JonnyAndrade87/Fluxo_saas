@@ -6,7 +6,6 @@
 
 import { auth as getAuth } from '../../auth';
 import { redirect } from 'next/navigation';
-import { cookies } from 'next/headers';
 
 export async function getSessionSafe() {
   try {
@@ -19,9 +18,10 @@ export async function getSessionSafe() {
 
     const session = await getAuth();
     return session;
-  } catch (error: any) {
+  } catch (error: unknown) {
     // If it's a redirect error from next/navigation, let it bubble up
-    if (error?.digest === 'NEXT_REDIRECT' || error?.digest?.startsWith?.('NEXT_REDIRECT')) throw error;
+    const err = error as { digest?: string };
+    if (err.digest === 'NEXT_REDIRECT' || err.digest?.startsWith?.('NEXT_REDIRECT')) throw error;
     
     // Auth failed - redirect to login
     console.error('Auth error:', error);
@@ -36,12 +36,12 @@ export async function requireAuth() {
     redirect('/login');
   }
   
-  return session.user;
+  return session.user as import('next-auth').User & { id: string; tenantId?: string; role?: string };
 }
 
 export async function requireTenant() {
   const user = await requireAuth();
-  const tenantId = (user as any)?.tenantId;
+  const tenantId = user.tenantId;
   
   if (!tenantId) {
     redirect('/onboarding');

@@ -5,7 +5,7 @@
 
 'use server';
 
-import { requireAuth, type UserRole, canPerformDestructiveAction, type AuditAction } from '@/lib/permissions';
+import { requireAuth, requireAuthFresh, type UserRole, canPerformDestructiveAction, type AuditAction } from '@/lib/permissions';
 import { logAudit } from '@/lib/audit';
 
 export interface ProtectedActionContext {
@@ -21,7 +21,8 @@ export async function checkAccess(
   requiredPermissions: (keyof typeof import('@/lib/permissions').PERMISSIONS_MATRIX)[],
   isDestructive = false
 ): Promise<ProtectedActionContext> {
-  const auth = await requireAuth();
+  // Validate auth using fresh DB state if action is destructive or explicitly requested
+  const auth = isDestructive ? await requireAuthFresh() : await requireAuth();
 
   // Validar permissões
   const { hasPermission: checkPerm } = await import('@/lib/permissions');

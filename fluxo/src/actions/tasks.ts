@@ -1,7 +1,7 @@
 'use server';
 
 import prisma from '@/lib/prisma';
-import { requireAuth } from '@/lib/permissions';
+import { requireAuthFresh } from '@/lib/permissions';
 import { revalidatePath } from 'next/cache';
 
 export interface CreateTaskData {
@@ -13,7 +13,7 @@ export interface CreateTaskData {
 }
 
 export async function createTask(data: CreateTaskData) {
-  const ctx = await requireAuth();
+  const ctx = await requireAuthFresh();
   if ((ctx.role as string) === 'viewer') {
     throw new Error('Forbidden: Acesso somente leitura');
   }
@@ -51,7 +51,7 @@ export async function createTask(data: CreateTaskData) {
 }
 
 export async function completeTask(taskId: string) {
-  const ctx = await requireAuth();
+  const ctx = await requireAuthFresh();
   if ((ctx.role as string) === 'viewer') {
     throw new Error('Forbidden: Acesso somente leitura');
   }
@@ -77,7 +77,7 @@ export async function completeTask(taskId: string) {
 }
 
 export async function cancelTask(taskId: string) {
-  const ctx = await requireAuth();
+  const ctx = await requireAuthFresh();
   if ((ctx.role as string) === 'viewer') {
     throw new Error('Forbidden: Acesso somente leitura');
   }

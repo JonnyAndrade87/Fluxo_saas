@@ -2,8 +2,9 @@
 
 import prisma from '@/lib/prisma';
 import { auth } from '../../auth';
-import { requireAuth } from '@/lib/permissions';
+import { requireAuthFresh } from '@/lib/permissions';
 import { generateCollectionLogs } from '@/services/communication/communicationService';
+import { enforceRateLimit } from '@/lib/api-rate-limiter';
 
 // ── Type helpers ───────────────────────────────────────────────────────────────
 
@@ -49,13 +50,14 @@ export async function triggerCollectionLogs(): Promise<{
   errors?: string[];
   error?: string;
 }> {
-  const ctx = await requireAuth();
+  const ctx = await requireAuthFresh();
   if ((ctx.role as string) === 'viewer') {
     return { success: false, error: 'Forbidden: Acesso somente leitura' };
   }
   const tenantId = ctx.tenantId;
 
   try {
+    await enforceRateLimit('trigger-logs', tenantId, { limit: 10, windowMs: 60 * 60 * 1000 }); // 10/hr
     const tenant = await prisma.tenant.findUnique({
       where: { id: tenantId },
       select: { id: true, name: true },
@@ -134,7 +136,7 @@ export async function getCommunicationLogs(
 // ── 3. Mark log as sent ────────────────────────────────────────────────────────
 
 export async function markLogSent(id: string): Promise<{ success: boolean }> {
-  const ctx = await requireAuth();
+  const ctx = await requireAuthFresh();
   if ((ctx.role as string) === 'viewer') return { success: false };
   const tenantId = ctx.tenantId;
 
@@ -149,7 +151,7 @@ export async function markLogSent(id: string): Promise<{ success: boolean }> {
 // ── 4. Mark log as skipped ────────────────────────────────────────────────────
 
 export async function markLogSkipped(id: string): Promise<{ success: boolean }> {
-  const ctx = await requireAuth();
+  const ctx = await requireAuthFresh();
   if ((ctx.role as string) === 'viewer') return { success: false };
   const tenantId = ctx.tenantId;
 

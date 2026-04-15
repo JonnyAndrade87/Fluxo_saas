@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { GET } from '../src/app/api/cron/route';
+import { getTenantPlanSnapshot } from '../src/lib/billing/plans';
 
 const prisma = new PrismaClient();
 
@@ -24,8 +25,8 @@ async function runTest() {
   };
 
   // 3. SEEDING TENANTS
-  const t1 = await prisma.tenant.create({ data: { id: 'ts-t1', name: 'Tenant Alpha', documentNumber: '111', planType: 'pro' }});
-  const t2 = await prisma.tenant.create({ data: { id: 'ts-t2', name: 'Tenant Beta', documentNumber: '222', planType: 'pro' }});
+  const t1 = await prisma.tenant.create({ data: { id: 'ts-t1', name: 'Tenant Alpha', documentNumber: '111', ...getTenantPlanSnapshot('pro') }});
+  const t2 = await prisma.tenant.create({ data: { id: 'ts-t2', name: 'Tenant Beta', documentNumber: '222', ...getTenantPlanSnapshot('pro') }});
 
   const cust1 = await prisma.customer.create({ data: { id: 'ts-c1', name: 'Client A', tenantId: t1.id, documentNumber: 'C1' }});
   const cust2 = await prisma.customer.create({ data: { id: 'ts-c2', name: 'Client B', tenantId: t2.id, documentNumber: 'C2' }});
