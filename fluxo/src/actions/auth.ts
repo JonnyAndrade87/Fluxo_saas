@@ -1,6 +1,6 @@
 'use server';
 
-import { signIn } from '../../auth';
+import { signIn, signOut } from '../../auth';
 import { AuthError } from 'next-auth';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
@@ -26,6 +26,10 @@ function validatePassword(password: string): string | null {
     return 'A senha deve conter ao menos um caractere especial (ex: @, !, #, $).';
   }
   return null;
+}
+
+export async function logout() {
+  await signOut({ redirectTo: '/login' });
 }
 
 export async function authenticate(
