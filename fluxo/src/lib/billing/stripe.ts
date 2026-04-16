@@ -364,7 +364,13 @@ export async function syncTenantBillingFromSubscription(
 ) {
   const plan = resolvePlanFromSubscription(subscription);
   if (!plan) {
-    throw new Error('Stripe subscription price is not mapped to a Fluxeer plan.');
+    // Return gracefully instead of throwing. If we throw here, the webhook
+    // route catches it and returns 500, which causes Stripe to retry indefinitely.
+    // Returning a skipped result causes the route to return 200 and Stripe stops retrying.
+    console.warn(
+      `[STRIPE/SYNC] Subscription ${subscription.id} price is not mapped to any Fluxeer plan. Skipping.`,
+    );
+    return { updated: false, skipped: 'unresolved_plan' } as const;
   }
 
   const stripeCustomerId = normalizeStripeCustomerId(subscription.customer);
