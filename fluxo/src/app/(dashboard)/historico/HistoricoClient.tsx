@@ -381,15 +381,15 @@ function CustomerListItem({ customer, isSelected, onClick }: {
 
 // ─── Empty State ──────────────────────────────────────────────────────────────
 
-function EmptyState({ message, icon: Icon }: { message: string; icon: any }) {
+function EmptyState({ message, sub, icon: Icon }: { message: string; sub?: string; icon: any }) {
   return (
-    <div className="flex flex-col items-center justify-center h-full py-20 text-center px-8">
-      <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-4">
-        <Icon className="w-6 h-6 text-slate-400" />
+    <div className="flex flex-col items-center justify-center h-full py-16 text-center px-8">
+      <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mb-3">
+        <Icon className="w-5 h-5 text-slate-400" />
       </div>
-      <p className="text-sm font-semibold text-obsidian">{message}</p>
-      <p className="text-xs text-muted-foreground mt-1.5 max-w-xs leading-relaxed">
-        Selecione um cliente no painel esquerdo para visualizar o histórico completo.
+      <p className="text-sm font-semibold text-slate-700">{message}</p>
+      <p className="text-xs text-slate-400 mt-1.5 max-w-xs leading-relaxed">
+        {sub ?? 'Selecione um cliente no painel esquerdo para visualizar o histórico completo.'}
       </p>
     </div>
   );
@@ -465,7 +465,7 @@ export default function HistoricoClient() {
               </button>
             )}
           </div>
-          {/* Status filter pills */}
+                  {/* Status filter pills */}
           <div className="flex gap-1.5 overflow-x-auto pb-0.5 scrollbar-hide">
             {[
               { v: 'all', l: 'Todos' },
@@ -478,7 +478,7 @@ export default function HistoricoClient() {
                 onClick={() => setStatusFilter(opt.v)}
                 className={`px-2.5 py-1 rounded-full text-[11px] font-bold shrink-0 transition-all ${
                   statusFilter === opt.v
-                    ? 'bg-fluxeer-blue text-white'
+                    ? 'bg-indigo-600 text-white'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
@@ -538,7 +538,11 @@ export default function HistoricoClient() {
 
         {/* No selection — only visible on desktop */}
         {!selectedId && !loadingDetail && (
-          <EmptyState message="Selecione um cliente" icon={Inbox} />
+          <EmptyState
+            message="Selecione um cliente"
+            sub="Escolha um cliente na lista ao lado para ver o histórico completo de comunicações, promessas e faturas."
+            icon={Inbox}
+          />
         )}
 
         {/* Detail content */}
@@ -546,20 +550,20 @@ export default function HistoricoClient() {
           <div className="flex flex-col h-full overflow-hidden">
 
             {/* Right header: customer info */}
-            <div className="p-4 border-b border-border/50 bg-white flex flex-wrap items-start gap-4">
-              <div className="w-11 h-11 rounded-xl bg-indigo-100 flex items-center justify-center shrink-0">
+            <div className="p-4 border-b border-slate-200 bg-white flex flex-wrap items-start gap-4">
+              <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center shrink-0">
                 <Building2 className="w-5 h-5 text-indigo-600" />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h2 className="text-[17px] font-extrabold font-heading text-obsidian">{detail.customer.name}</h2>
+                  <h2 className="text-base font-extrabold text-slate-900">{detail.customer.name}</h2>
                   {STATUS_LABELS[detail.customer.status] && (
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${STATUS_LABELS[detail.customer.status].cls}`}>
                       {STATUS_LABELS[detail.customer.status].label}
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-muted-foreground font-mono mt-0.5">{detail.customer.documentNumber}</p>
+                <p className="text-xs text-slate-400 font-mono mt-0.5">{detail.customer.documentNumber}</p>
                 <div className="flex items-center gap-3 mt-1.5 flex-wrap">
                   {detail.customer.email && (
                     <a href={`mailto:${detail.customer.email}`} className="flex items-center gap-1 text-[11px] text-indigo-600 hover:underline font-medium">
@@ -572,36 +576,36 @@ export default function HistoricoClient() {
                     </a>
                   )}
                   {detail.customer.assignee && (
-                    <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                    <span className="flex items-center gap-1 text-[11px] text-slate-400">
                       <User className="w-3 h-3" /> {detail.customer.assignee.fullName}
                     </span>
                   )}
                   {detail.customer.tags && (
-                    <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                    <span className="flex items-center gap-1 text-[11px] text-slate-400">
                       <Tag className="w-3 h-3" /> {detail.customer.tags}
                     </span>
                   )}
                 </div>
               </div>
-              {/* Quick stats */}
-              <div className="flex gap-3 shrink-0 flex-wrap justify-end">
-                <div className="text-center min-w-[44px]">
-                  <p className="text-[18px] font-extrabold text-rose-600">
+              {/* Quick stats — compact pills */}
+              <div className="flex gap-2 shrink-0 flex-wrap justify-end items-start">
+                <div className="flex flex-col items-center px-3 py-2 rounded-xl bg-rose-50 border border-rose-100 min-w-[52px]">
+                  <p className="text-lg font-black text-rose-600 tabular-nums">
                     {detail.invoices.filter(i => getInvoiceVisualState(i).includes('Vencida') || getInvoiceVisualState(i).includes('Vence hoje')).length}
                   </p>
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Atrasadas</p>
+                  <p className="text-[9px] text-rose-500 uppercase tracking-wide font-bold">Atrasadas</p>
                 </div>
-                <div className="text-center min-w-[44px]">
-                  <p className="text-[18px] font-extrabold text-amber-600">
-                    {detail.invoices.filter(i => (i.status === 'OPEN' || i.status === 'PROMISE_TO_PAY') && getInvoiceVisualState(i).includes('Em dia')).length}
+                <div className="flex flex-col items-center px-3 py-2 rounded-xl bg-amber-50 border border-amber-100 min-w-[52px]">
+                  <p className="text-lg font-black text-amber-600 tabular-nums">
+                    {detail.invoices.filter(i => (i.status === 'OPEN' || i.status === 'PROMISE_TO_PAY') && !getInvoiceVisualState(i).includes('Vencida')).length}
                   </p>
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide">A Vencer</p>
+                  <p className="text-[9px] text-amber-500 uppercase tracking-wide font-bold">A Vencer</p>
                 </div>
-                <div className="text-center min-w-[44px]">
-                  <p className="text-[18px] font-extrabold text-emerald-600">
+                <div className="flex flex-col items-center px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-100 min-w-[52px]">
+                  <p className="text-lg font-black text-emerald-600 tabular-nums">
                     {detail.invoices.filter(i => i.status === 'PAID').length}
                   </p>
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Pagas</p>
+                  <p className="text-[9px] text-emerald-500 uppercase tracking-wide font-bold">Pagas</p>
                 </div>
               </div>
             </div>
@@ -610,22 +614,22 @@ export default function HistoricoClient() {
             <div className="flex flex-col gap-2 px-4 py-2.5 border-b border-border/40 bg-white">
               {/* Top row: tabs + add-task button */}
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-0.5">
-                  {[
-                    { v: 'timeline', l: 'Timeline' },
-                    { v: 'invoices', l: 'Faturas' },
-                  ].map(tab => (
-                    <button
-                      key={tab.v}
-                      onClick={() => setActiveTab(tab.v as any)}
-                      className={`px-4 py-1.5 rounded-md text-[13px] font-semibold transition-colors ${
-                        activeTab === tab.v ? 'bg-fluxeer-blue text-white' : 'text-slate-500 hover:bg-slate-100'
-                      }`}
-                    >
-                      {tab.l}
-                    </button>
-                  ))}
-                </div>
+                                <div className="flex items-center gap-0.5">
+                    {[
+                      { v: 'timeline', l: 'Timeline' },
+                      { v: 'invoices', l: 'Faturas' },
+                    ].map(tab => (
+                      <button
+                        key={tab.v}
+                        onClick={() => setActiveTab(tab.v as any)}
+                        className={`px-4 py-1.5 rounded-md text-[13px] font-semibold transition-colors ${
+                          activeTab === tab.v ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:bg-slate-100'
+                        }`}
+                      >
+                        {tab.l}
+                      </button>
+                    ))}
+                  </div>
                 <button
                   onClick={() => setIsTaskModalOpen(true)}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[13px] font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors border border-indigo-200"
@@ -674,12 +678,34 @@ export default function HistoricoClient() {
               {activeTab === 'timeline' && (
                 <>
                   {filteredTimeline.length === 0 && (
-                    <EmptyState message="Nenhum evento registrado" icon={Clock} />
+                    <EmptyState
+                      message="Nenhum evento registrado"
+                      sub="Envie uma comunicação, registre uma nota ou promessa para começar o histórico."
+                      icon={Clock}
+                    />
                   )}
-                  <div className="max-w-2xl">
-                    {filteredTimeline.map(event => (
-                      <TimelineItem key={event.id} event={event} />
-                    ))}
+                  <div className="max-w-2xl space-y-0">
+                    {filteredTimeline.map((event, idx) => {
+                      /* Date separator — show when day changes */
+                      const prevEvent = filteredTimeline[idx - 1];
+                      const thisDay = new Date(event.createdAt).toDateString();
+                      const prevDay = prevEvent ? new Date(prevEvent.createdAt).toDateString() : null;
+                      const showDate = thisDay !== prevDay;
+                      return (
+                        <div key={event.id}>
+                          {showDate && (
+                            <div className="flex items-center gap-3 py-3">
+                              <div className="h-px flex-1 bg-slate-200" />
+                              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap">
+                                {new Date(event.createdAt).toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' })}
+                              </span>
+                              <div className="h-px flex-1 bg-slate-200" />
+                            </div>
+                          )}
+                          <TimelineItem event={event} />
+                        </div>
+                      );
+                    })}
                   </div>
                 </>
               )}

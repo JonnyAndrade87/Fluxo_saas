@@ -757,6 +757,57 @@ Todos os riscos arquiteturais identificados na seção 10 foram resolvidos ou mi
 
 ### O que ficou intencionalmente para v1.0
 - Skeletons de loading nos cards do dashboard (não crítico para beta com SSR).
-- Responsividade avançada das tabelas de Cobranças e Clientes (Sprint 4+).
-- Tela de Comunicações/Fila com feedback contextual de falhas (Sprint 4+).
-- Fluxo de importação de CSV com validação visual por linha (Sprint 4+).
+- Fluxo de importação de CSV com validação visual por linha (post-beta).
+
+---
+
+## 12.4 Sprint 4 — UX de Comunicações, Fila e Responsividade de Tabelas
+
+**Data:** Abril 2026  
+**Status:** ✅ Concluída  
+**Commit:** `295e837`
+
+### Objetivo
+Reduzir atrito operacional e melhorar legibilidade funcional nas telas de Comunicações e Fila, além de garantir responsividade real em todas as tabelas operacionais, sem adicionar complexidade nova.
+
+### O que foi feito
+
+#### `CommunicationsClient.tsx`
+- **STATUS_CONFIG refatorado:** dot colorido substituído por badge com ícone Lucide embarcado, borda semântica, e fundo por estado (amber/emerald/rose/slate).
+- **Prioridade visual por linha:** itens com `pending` recebem `border-l-2 border-l-amber-300`; itens `failed` recebem `border-l-2 border-l-rose-400` + `bg-rose-50/30`.
+- **Ações sempre visíveis:** removido `opacity-0 group-hover:opacity-100` — o botão ExternalLink é aplicado diretamente visível.
+- **KPI pills:** layout horizontal compacto (ícone + número + label), card de Falhas muda de cor (slate → rose) quando `failedLogs > 0`.
+- **Empty state B2B:** container branco arredondado, ícone, título + texto contextuais.
+- **Responsividade:** `min-w-[640px]` + coluna Fatura (`hidden sm:table-cell`), Venc./Atraso (`hidden md:table-cell`), Estágio (`hidden lg:table-cell`).
+- **Header simplificado:** CTA `bg-indigo-600`, sem tokens legados `font-heading/obsidian`.
+
+#### `QueueClient.tsx`
+- **Header com contexto:** título "Fila de Envio" + descrição funcional adicionados.
+- **Nomeação em PT:** "Dead-Letter Queue (DLQ)" → "Fila Morta (DLQ)" com subtítulo explicativo.
+- **KPI pills:** layout horizontal (ícone + número + label); cartão de itens problemáticos destacado.
+- **Empty state B2B:** "Fila morta está vazia — Sistema operando normalmente."
+- **Responsividade:** `div overflow-x-auto` + `min-w-[540px]`; Tentativas e Data `hidden` em mobile.
+- **Botão Reprocessar:** `bg-fluxeer-blue` → `bg-indigo-600` (design system consistente).
+- **Erro na DLQ:** null → "Sem detalhe" (mais claro operacionalmente).
+
+#### `ReceivablesClient.tsx`
+- **Card legado removido:** `Card/CardHeader/CardContent premium-card` substituído por `div rounded-2xl border`.
+- **Header compacto:** `h1` sem `font-heading`, botão `bg-indigo-600 rounded-xl`.
+- **Filtros integrados:** barra de filtros como parte do container da tabela (border-b), sem wrapper flutuante separado.
+- **Responsividade:** `min-w-[680px]` + Documento (`hidden sm:table-cell`), Vencimento (`hidden md:table-cell`); infos secundárias (doc, acordo) `hidden sm:block`.
+- **Empty state B2B:** ícone FileText + "Nenhum recebível encontrado" + "Ajuste os filtros ou cadastre".
+- **Pagination:** visual compacto, consistente com Sprint 4.
+
+### Decisões de design
+- Prioridade visual via borda esquerda (`border-l-2`) é mais discreta e não polui o layout.
+- Ações sempre visíveis evitam confusão — hovering é um padrão desktop-first inadequado para operadores com pressa.
+- `min-w` + `overflow-x-auto` é a abordagem padrão do projeto para responsividade de tabelas.
+
+### Arquivos alterados
+- `src/app/(dashboard)/comunicacoes/CommunicationsClient.tsx`
+- `src/app/(dashboard)/fila/QueueClient.tsx`
+- `src/app/(dashboard)/cobrancas/ReceivablesClient.tsx`
+
+---
+
+## 12.5 Sprint 5 — UX de Clientes + Histórico (em andamento)
