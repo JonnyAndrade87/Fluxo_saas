@@ -2,7 +2,7 @@
 
 import prisma from '@/lib/prisma';
 import { auth } from '../../auth';
-import { getRiskScoreForCustomer } from './risk-score';
+import { getRiskScoresBatch } from './risk-score';
 import {
   generateOverdueReport,
   generatePendingReport,
@@ -57,6 +57,11 @@ async function getInvoicesWithFilters(
   if (filters.status === 'overdue') {
     where.status = { in: ['OPEN', 'PROMISE_TO_PAY'] };
     where.dueDate = { lt: new Date() };
+  } else if (filters.status === 'pending') {
+    where.status = { in: ['OPEN', 'PROMISE_TO_PAY'] };
+    where.dueDate = { gte: new Date() };
+  } else if (filters.status === 'paid') {
+    where.status = 'PAID';
   } else if (filters.status) {
     where.status = filters.status;
   }
@@ -68,30 +73,17 @@ async function getInvoicesWithFilters(
   });
 }
 
-async function getCachedRiskScores(
+/** Converte Map<customerId, RiskScoreResult> para Record compatível com generateXReport() */
+async function batchRiskScores(
   tenantId: string,
   customerIds: string[]
 ): Promise<Record<string, { level: string; score: number }>> {
-  const scores: Record<string, { level: string; score: number }> = {};
-
-  // Fetch all risk scores in parallel
-  const riskScorePromises = customerIds.map(cid =>
-    getRiskScoreForCustomer(cid, tenantId).then(score => ({
-      customerId: cid,
-      data: score,
-    }))
-  );
-
-  const results = await Promise.all(riskScorePromises);
-
-  results.forEach(({ customerId, data }) => {
-    scores[customerId] = {
-      level: data?.level ?? 'Baixo',
-      score: data?.score ?? 0,
-    };
+  const map = await getRiskScoresBatch(tenantId, customerIds);
+  const out: Record<string, { level: string; score: number }> = {};
+  map.forEach((rs, cid) => {
+    out[cid] = { level: rs?.level ?? 'Baixo', score: rs?.score ?? 0 };
   });
-
-  return scores;
+  return out;
 }
 
 // ════════════════════════════════════════════════════════════════════════
@@ -118,7 +110,7 @@ export async function getOverdueReport(
 
   // Get all risk scores
   const customerIds = [...new Set(invoices.map(i => i.customerId))];
-  const riskScores = await getCachedRiskScores(tenantId, customerIds);
+  const riskScores = await batchRiskScores(tenantId, customerIds);
 
   return generateOverdueReport(invoices, riskScores);
 }
@@ -140,7 +132,7 @@ export async function getPendingReport(
   const invoices = await prisma.invoice.findMany({
     where: {
       tenantId,
-      status: { in: ['pending', 'in_negotiation'] },
+      status: { in: ['OPEN', 'PROMISE_TO_PAY'] },
       dueDate: {
         gte: now,
         lte: thirtyDaysFromNow,
@@ -153,7 +145,7 @@ export async function getPendingReport(
 
   // Get all risk scores
   const customerIds = [...new Set(invoices.map(i => i.customerId))];
-  const riskScores = await getCachedRiskScores(tenantId, customerIds);
+  const riskScores = await batchRiskScores(tenantId, customerIds);
 
   return generatePendingReport(invoices, riskScores);
 }
@@ -182,7 +174,7 @@ export async function getCustomerDelayReport(
 
   // Get all risk scores
   const customerIds = [...new Set(invoices.map(i => i.customerId))];
-  const riskScores = await getCachedRiskScores(tenantId, customerIds);
+  const riskScores = await batchRiskScores(tenantId, customerIds);
 
   return generateCustomerDelayReport(invoices, riskScores);
 }
@@ -211,7 +203,7 @@ export async function getRiskRankingReport(
 
   // Get all risk scores
   const customerIds = [...new Set(invoices.map(i => i.customerId))];
-  const riskScores = await getCachedRiskScores(tenantId, customerIds);
+  const riskScores = await batchRiskScores(tenantId, customerIds);
 
   return generateRiskRankingReport(invoices, riskScores);
 }
@@ -244,7 +236,7 @@ export async function getExecutiveReport(
 
   // Get all risk scores
   const customerIds = [...new Set(invoices.map(i => i.customerId))];
-  const riskScores = await getCachedRiskScores(tenantId, customerIds);
+  const riskScores = await batchRiskScores(tenantId, customerIds);
 
   return generateExecutiveSummary(
     invoices,

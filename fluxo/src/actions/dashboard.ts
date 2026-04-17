@@ -2,7 +2,7 @@
 
 import prisma from '@/lib/prisma';
 import { auth } from '../../auth';
-import { getRiskScoreForCustomer } from './risk-score';
+import { getRiskScoresBatch } from './risk-score';
 
 // ─── Return type ────────────────────────────────────────────────────────────
 
@@ -343,20 +343,24 @@ export async function getDashboardMetrics() {
       },
       select: { id: true, name: true },
     });
-    const riskScoresRaw = await Promise.all(
-      customersWithOverdue.map(async (c) => {
-        const riskScore = await getRiskScoreForCustomer(c.id, tenantId);
+    const riskScoresMap = await getRiskScoresBatch(
+      tenantId,
+      customersWithOverdue.map((c) => c.id)
+    );
+    const riskRankingList = customersWithOverdue
+      .map((c) => {
+        const rs = riskScoresMap.get(c.id);
         return {
           customerId: c.id,
           customerName: c.name,
-          score: riskScore?.score ?? 0,
-          level: riskScore?.level ?? 'Baixo',
-          overdueAmount: riskScore?.metadata?.openAmount ?? 0,
-          justification: riskScore?.justification ?? '',
+          score: rs?.score ?? 0,
+          level: rs?.level ?? 'Baixo',
+          overdueAmount: rs?.metadata?.openAmount ?? 0,
+          justification: rs?.justification ?? '',
         };
       })
-    );
-    const riskRankingList = riskScoresRaw.sort((a, b) => b.score - a.score).slice(0, 10);
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 10);
 
     // ── Receipts chart (60d window: -30 past + 30 future) ──────────────────
     const thirtyDaysAgo = new Date();

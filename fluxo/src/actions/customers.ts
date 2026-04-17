@@ -3,8 +3,8 @@
 import prisma from '@/lib/prisma';
 import { auth } from '../../auth';
 import { revalidatePath } from 'next/cache';
-import { requireAuthFresh, requireRole, AUDIT_ACTIONS } from '@/lib/permissions';
-import { getRiskScoreForCustomer } from './risk-score';
+import { requireAuthFresh, hasPermission, AUDIT_ACTIONS } from '@/lib/permissions';
+import { getRiskScoreForCustomer, getRiskScoresBatch } from './risk-score';
 import { isInvoiceOverdue } from '@/lib/invoice-utils';
 import { logAudit } from '@/lib/audit';
 import { createTenantLimitGuard } from '@/lib/billing/limits';
@@ -76,11 +76,13 @@ export async function getCustomersList(search?: string, riskFilter?: string) {
   });
 
   // ────────────────────────────────────────────────────────────────────────────
-  // Calcular score de risco para cada cliente usando o serviço centralizado
+  // Calcular score de risco em lote — 2 queries fixas independente do N de clientes
   // ────────────────────────────────────────────────────────────────────────────
-  const enhancedCustomers = await Promise.all(
-    customersRaw.map(async (customer) => {
-      const riskScoreData = await getRiskScoreForCustomer(customer.id, tenantId);
+  const customerIdList = customersRaw.map((c) => c.id);
+  const riskScoresMap = await getRiskScoresBatch(tenantId, customerIdList);
+
+  const enhancedCustomers = customersRaw.map((customer) => {
+      const riskScoreData = riskScoresMap.get(customer.id) ?? null;
       const contact = customer.financialContacts[0] || null;
 
       // Fallback para valores legados se score não puder ser calculado
@@ -130,8 +132,7 @@ export async function getCustomersList(search?: string, riskFilter?: string) {
           })
         }
       };
-    })
-  );
+  });
 
   if (riskFilter && riskFilter !== 'Todos' && riskFilter !== 'all') {
     return enhancedCustomers.filter((c) => c.riskLevel.toLowerCase() === riskFilter.toLowerCase());
@@ -186,7 +187,9 @@ export async function getCustomerDetails(customerId: string) {
 
 export async function upsertCustomer(data: CustomerInput) {
   const ctx = await requireAuthFresh();
-  requireRole(['admin'], ctx);
+  if (!hasPermission(ctx.role, 'customers:create') && !hasPermission(ctx.role, 'customers:update')) {
+    throw new Error('FORBIDDEN: customers:create or customers:update permission required');
+  }
   const { tenantId, userId } = ctx; // requireAuthFresh() guarantees both are non-empty strings
 
   const { id, name, documentNumber, email, phone, status, tags, address, notes, assignedUserId } = data;
@@ -261,7 +264,9 @@ export async function addCustomerNote(customerId: string, content: string) {
 
 export async function upsertFinancialContact(data: FinancialContactInput) {
   const ctx = await requireAuthFresh();
-  requireRole(['admin'], ctx);
+  if (!hasPermission(ctx.role, 'customers:update')) {
+    throw new Error('FORBIDDEN: customers:update permission required');
+  }
   const { tenantId } = ctx;
 
   const { id, customerId, name, email, phone, isPrimary } = data;
