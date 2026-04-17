@@ -884,3 +884,108 @@ Melhorar legibilidade, priorização visual, navegação operacional e responsiv
 - `src/app/(dashboard)/clientes/ClientesClient.tsx`
 - `src/app/(dashboard)/historico/HistoricoClient.tsx`
 - `FLUXEER.md`
+
+---
+
+## 12.6 Sprint 6 — UX de Cobranças + Importação/Mapeamento
+
+**Data:** Abril 2026  
+**Status:** ✅ Concluída  
+**Commit:** `ac16328`
+
+### Objetivo
+Tornar a tela central de operação financeira (Cobranças) mais escaneável e acionável, e a entrada de dados via importação mais guiada, segura e confiante.
+
+### O que foi feito
+
+#### `ReceivablesClient.tsx`
+
+**KPI Strip (sem nova server call):**
+- 4 chips derivados do estado local: Em Atraso / A Receber / Acordos / Recebido
+- Card "Em Atraso" muda para `bg-rose-50/border-rose-200` quando `kpiOverdue.length > 0`
+- Valores calculados a partir dos `invoices` já carregados na página
+
+**Prioridade visual por linha:**
+- Vencida/Promessa vencida: `border-l-2 border-l-rose-400 bg-rose-50/20`
+- Vence hoje/Promessa hoje: `border-l-2 border-l-amber-400 bg-amber-50/10`
+- Demais: `border-l-2 border-l-transparent` (sem ruído)
+
+**Badge de status com ícone Lucide inline:**
+- `AlertTriangle` (Vencida), `Clock` (Vence hoje), `CheckCircle` (Paga), `XCircle` (Cancelada), `Handshake` (Promessa)
+
+**Botão de ação contextual inline:**
+- Vencida/hoje → "Dar Baixa" (emerald) direto na linha
+- PROMISE_TO_PAY em dia → "Pago" (indigo) na linha
+- Dropdown `···` mantido para ações secundárias
+- "Excluir Responsabilidade" → "Excluir Fatura"
+
+**Limpeza do drawer:**
+- `font-heading/font-black` → `font-bold`; `text-obsidian` → `text-slate-800/900`
+- `bg-[#FAFAFB]` → `bg-slate-50/60`; `border-border` → `border-slate-200`
+- `bg-fluxeer-blue` → `bg-indigo-600` (Reabrir Fatura)
+- "Status Calculado" → "Situação"; "Valor OriginalBase" → "Valor Base"
+- Footer: `p-6` → `p-4`, Editar+Promessa em linha; "Fechar Painel" → "Fechar"
+
+#### `/importar/page.tsx` — rewrite
+
+- **Stepper 3 etapas** — etapa 1 ativa; usuário sempre sabe onde está no fluxo
+- Título "Importador de Lotes" → "Importar Planilha" (linguagem direta)
+- "Motor do Fluxo / injetar" → linguagem operacional objetiva
+- Estado de processamento: ícone animado + texto "Lendo {fileName}..."
+- **Accordion de ajuda** "O que precisa estar no CSV?" com 4 colunas mínimas
+- Drop zone: `bg-fluxeer-blue` → `bg-indigo-600` no estado hover
+
+#### `/importar/mapeamento/page.tsx` — rewrite
+
+- **Stepper com etapa 2 ativa** — continuidade do fluxo da etapa anterior
+- "Cruzar Referências da Planilha" → "Mapear Colunas da Planilha"
+- "Lemos N linhas" → "Encontramos N registros"
+- **Badge de confiança:** "Nenhum dado é enviado até você confirmar"
+- **Indicador por coluna:** dot verde (mapeado) / cinza (ignorado)
+- **Validação de campos obrigatórios:** alerta amber + botão desabilitado se `customerName`, `amount` ou `dueDate` não estiverem mapeados
+- "Confirmar & Injetar Massivo" → "Confirmar e Importar"
+- "Injetando Lote..." → "Importando os dados..."
+- `variant="beam"` → `bg-indigo-600 rounded-xl`
+
+### Decisões de design
+- KPI strip derivado do estado local não adiciona latência nem complexidade ao servidor
+- Validação de campos obrigatórios no front bloqueia erros silenciosos na importação
+- Stepper compartilhado entre `/importar` e `/importar/mapeamento` cria senso de progresso contínuo
+
+### Arquivos alterados
+- `src/app/(dashboard)/cobrancas/ReceivablesClient.tsx`
+- `src/app/(dashboard)/importar/page.tsx`
+- `src/app/(dashboard)/importar/mapeamento/page.tsx`
+
+---
+
+## 13. Estado Beta — Freeze de Escopo
+
+**Data:** Abril 2026  
+**Status:** 🔒 Freeze ativo — apenas bugfix, ajuste fino e documentação
+
+### Sprints de polimento concluídas
+
+| Sprint | Foco | Status |
+| :--- | :--- | :--- |
+| Sprint 1 | Setup / Onboarding — tela de progresso guiado | ✅ |
+| Sprint 2 | Dashboard — ações recomendadas, KPI cards, empty states | ✅ |
+| Sprint 3 | Onboarding refinado + Planos/Billing | ✅ |
+| Sprint 4 | Comunicações, Fila, Responsividade de tabelas | ✅ |
+| Sprint 5 | Clientes, Histórico — legibilidade e separadores de data | ✅ |
+| Sprint 6 | Cobranças (KPI strip, ação inline), Importação (stepper, validação) | ✅ |
+
+### Design system em uso (pós-freeze)
+
+Tokens canônicos aprovados:
+- **Cores:** `indigo-600` (primário), `slate-*` (neutros), `rose/amber/emerald` (semânticos)
+- **Bordas-L de urgência:** `border-l-2 rose-400` (crítico), `border-l-2 amber-400` (atenção)
+- **Headers:** `text-slate-900 font-bold tracking-tight` (sem `font-heading` ou `text-obsidian`)
+- **Buttons:** `rounded-xl bg-indigo-600` (primário), `rounded-xl border-slate-200` (outline)
+- **Empty states:** ícone Lucide + `text-sm font-semibold text-slate-700` + `text-xs text-slate-400`
+- **Tabelas:** `min-w-[X]px` + `overflow-x-auto` + colunas `hidden sm/md/lg:table-cell`
+
+Tokens legados removidos em todas as telas do beta:
+- `bg-fluxeer-blue`, `bg-fluxeer-blue-hover`, `btn-beam`
+- `font-heading`, `text-obsidian`, `text-muted-foreground` (substituído por `text-slate-*`)
+- `premium-card`, `bg-[#FAFAFB]`, `border-border/60`
