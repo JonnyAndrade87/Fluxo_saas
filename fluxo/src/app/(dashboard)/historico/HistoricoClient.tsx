@@ -34,14 +34,17 @@ const STATUS_LABELS: Record<string, { label: string; cls: string }> = {
   blocklisted: { label: 'Bloqueado',  cls: 'bg-rose-50 text-rose-700 border-rose-200' },
 };
 
+/**
+ * INVOICE_STATUS: mapa de exibição alinhado com os valores reais do schema Prisma.
+ * Chaves = valores que chegam do banco. label = texto exibido. cls = Tailwind badge.
+ */
 const INVOICE_STATUS: Record<string, { label: string; cls: string }> = {
-  pending:        { label: 'Pendente',    cls: 'bg-amber-50 text-amber-700' },
-  overdue:        { label: 'Atrasada',    cls: 'bg-rose-50 text-rose-700' },
-  paid:           { label: 'Paga',        cls: 'bg-emerald-50 text-emerald-700' },
-  canceled:       { label: 'Cancelada',   cls: 'bg-slate-100 text-slate-500' },
-  in_negotiation: { label: 'Negociando',  cls: 'bg-indigo-50 text-indigo-700' },
-  draft:          { label: 'Rascunho',    cls: 'bg-slate-100 text-slate-500' },
+  OPEN:            { label: 'A Vencer',    cls: 'bg-amber-50 text-amber-700' },
+  PROMISE_TO_PAY:  { label: 'Promessa',   cls: 'bg-indigo-50 text-indigo-700' },
+  PAID:            { label: 'Paga',        cls: 'bg-emerald-50 text-emerald-700' },
+  CANCELED:        { label: 'Cancelada',   cls: 'bg-slate-100 text-slate-500' },
 };
+
 
 const CHANNEL_ICON = (channel?: string) => {
   if (channel === 'whatsapp') return <MessageSquare className="w-3.5 h-3.5 text-emerald-500" />;

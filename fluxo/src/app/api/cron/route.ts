@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { enqueueAndSend } from '@/lib/queue';
 import { requireInternalEndpointAuth } from '@/lib/internalEndpointAuth';
+import { normalizeBillingFlowConfig } from '@/lib/billing-flow';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,9 +30,9 @@ function isCronRateLimited(key: string, limit: number = 10, windowMs: number = 3
  * Billing Engine Cron — runs once per day.
  * Supports both:
  *   - Dunning v1 legacy format: { preAtivado, diaAtivado, posAtivado, ... }
- *   - Dunning v2 stages format: { stages: [{ id, isActive, days, channels, ... }] }
+ *   - Dunning v2 normalized format: { stages: [{ id, active, days, channels, templates, ... }] }
  *
- * Messages are now actually sent via Resend (email) and Z-API (WhatsApp).
+ * Messages are now actually sent via Resend (email) and Meta WhatsApp Cloud API.
  * Fail-safe: if provider is unconfigured, Communication stays 'queued' — no false positives.
  */
 export async function GET(request: Request) {
@@ -55,8 +56,18 @@ export async function GET(request: Request) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    // Hora atual em America/Sao_Paulo para comparar com stage.time
+    const nowBR = new Date();
+    const currentHourBR = parseInt(
+      nowBR.toLocaleTimeString('pt-BR', { hour: '2-digit', hour12: false, timeZone: 'America/Sao_Paulo' })
+    );
+    const currentMinuteBR = parseInt(
+      nowBR.toLocaleTimeString('pt-BR', { minute: '2-digit', hour12: false, timeZone: 'America/Sao_Paulo' })
+    );
+    const currentTotalMinutes = currentHourBR * 60 + currentMinuteBR;
+
     const mode = process.env.COMMUNICATION_MODE ?? 'manual';
-    console.log(`[CRON] Starting execution. Mode: ${mode}`);
+    console.log(`[CRON] Starting execution. Mode: ${mode}. Hour (BR): ${currentHourBR}:${String(currentMinuteBR).padStart(2,'0')}`);
 
     const activeFlows = await prisma.billingFlow.findMany({
       where: { isActive: true }
@@ -86,6 +97,7 @@ export async function GET(request: Request) {
       try { rules = JSON.parse(flow.rules); } catch { continue; }
 
       const isV2 = Array.isArray(rules.stages);
+      const normalizedRules = isV2 ? normalizeBillingFlowConfig(rules) : null;
 
       const invoices = await prisma.invoice.findMany({
         where: {
@@ -119,21 +131,32 @@ export async function GET(request: Request) {
 
         if (isV2) {
           // ── Dunning v2 ─────────────────────────────────────────────────────
-          for (const stage of (rules.stages as any[])) {
-            if (!stage.isActive) continue;
+          for (const stage of normalizedRules!.stages) {
+            if (!stage.active) continue;
 
             const stageDays: number = Number(stage.days ?? 0);
-            const shouldFire = stage.id === 'pre'
-              ? (diffDays < 0 && Math.abs(diffDays) === stageDays)
-              : (diffDays === stageDays);
+            const dayMatches = diffDays === stageDays;
+
+            // ── Verificação de janela de horário ──────────────────────────
+            // stage.time formato: "HH:MM" (ex: "10:00", "08:30")
+            // Dispara se horário atual estiver dentro de ±30min do configurado.
+            // Se stage.time não estiver definido, dispara sem restrição de horário.
+            const timeMatches = (() => {
+              if (!stage.time || typeof stage.time !== 'string') return true;
+              const [hStr, mStr] = stage.time.split(':');
+              const stageMinutes = parseInt(hStr) * 60 + parseInt(mStr || '0');
+              return Math.abs(currentTotalMinutes - stageMinutes) <= 30;
+            })();
+
+            const shouldFire = dayMatches && timeMatches;
 
             if (!shouldFire) continue;
 
-            const stageLabel = `Etapa ${stage.id} (D${stage.id === 'pre' ? '-' : '+'}${stageDays})`;
+            const stageLabel = `Etapa ${stage.id} (D${stageDays > 0 ? `+${stageDays}` : stageDays})`;
             let fired = false;
 
-            if (stage.channels?.whatsapp?.active && contactPhone) {
-              const template = stage.channels.whatsapp.template ?? '';
+            if (stage.channels.whatsapp && contactPhone) {
+              const template = stage.templates.whatsapp;
               const body = populateTemplate(template, inv, 'whatsapp');
               if (mode !== 'manual') {
                 const r = await enqueueAndSend({
@@ -156,8 +179,8 @@ export async function GET(request: Request) {
               fired = true;
             }
 
-            if (stage.channels?.email?.active && contactEmail) {
-              const template = stage.channels.email.template ?? '';
+            if (stage.channels.email && contactEmail) {
+              const template = stage.templates.email;
               const body = populateTemplate(template, inv, 'email');
               if (mode !== 'manual') {
                 const r = await enqueueAndSend({

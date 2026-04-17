@@ -153,46 +153,22 @@ export async function verifyResendSignature(
   }
 }
 
+
+/**
+ * @deprecated Z-API foi substituída pela Meta Cloud API em Março/2026.
+ * Esta função retorna sempre inválido. Mantida apenas para compatibilidade
+ * com testes legados. NÃO usar em produção — use verifyWhatsAppSignature().
+ *
+ * Para remover completamente: delete esta função e atualize
+ * src/lib/__tests__/webhookVerify.test.ts.
+ */
 export function verifyZapiSignature(
-  body: string,
-  headers: Headers,
+  _body: string,
+  _headers: Headers,
 ): VerifyResult {
-  const secret = process.env.ZAPI_WEBHOOK_SECRET?.trim();
-  const legacyToken = process.env.ZAPI_WEBHOOK_TOKEN?.trim();
-
-  if (secret) {
-    const receivedSignature = headers.get('x-zapi-signature');
-    if (!receivedSignature) {
-      return failed('missing_signature', 'Missing x-zapi-signature header');
-    }
-
-    const expectedSignature = `sha256=${createHmac('sha256', secret).update(body).digest('hex')}`;
-    const normalizedReceived = receivedSignature.startsWith('sha256=')
-      ? receivedSignature
-      : `sha256=${receivedSignature}`;
-
-    if (!safeEqualStrings(normalizedReceived.toLowerCase(), expectedSignature.toLowerCase())) {
-      return failed('invalid_signature', 'Z-API signature mismatch');
-    }
-
-    return verified();
-  }
-
-  if (legacyToken) {
-    const providedToken = extractBearerToken(
-      headers.get('x-zapi-token') ?? headers.get('authorization'),
-    );
-
-    if (!providedToken) {
-      return failed('missing_token', 'Missing Z-API token');
-    }
-
-    if (!safeEqualStrings(providedToken, legacyToken)) {
-      return failed('invalid_token', 'Invalid Z-API token');
-    }
-
-    return verified();
-  }
-
-  return failed('missing_config', 'ZAPI webhook secret/token is not configured');
+  return failed(
+    'missing_config',
+    '[DEPRECATED] Z-API foi substituída pela Meta Cloud API. Use verifyWhatsAppSignature().',
+  );
 }
+
