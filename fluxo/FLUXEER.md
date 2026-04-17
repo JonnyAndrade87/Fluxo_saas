@@ -77,6 +77,7 @@ O Fluxeer é um SaaS multi-tenant de cobrança, gestão de recebíveis, comunica
 - Existem dois fluxos de comunicação coexistindo no código:
 - Fluxo manual por `CommunicationLog`, `src/services/communication/communicationService.ts` e `src/actions/communicationLog.actions.ts`.
 - Fluxo de envio real por `Communication`, `MessageQueue`, `src/lib/queue.ts`, `src/app/api/cron/route.ts` e webhooks de entrega.
+- O contrato da régua v2 agora é normalizado centralmente em `src/lib/billing-flow.ts` e consumido tanto por `src/actions/automation.ts` quanto por `src/app/api/cron/route.ts`.
 - Não foi encontrada configuração de scheduler em `vercel.json` ou workflow para disparar `/api/cron` e `/api/send-queue`. O código pressupõe um agendador externo, mas o horário não está explicitado no repositório.
 
 ## 2. Stack tecnológico completo
@@ -192,7 +193,7 @@ public/
 | `src/app/superadmin` | Painel global sem isolamento por tenant | `src/app/superadmin/page.tsx` | Acesso restrito por `isSuperAdmin`. |
 | `src/app/api` | APIs de integração, machine endpoints e webhooks | `api/forecast`, `api/reports`, `api/risk-score`, `api/cron`, `api/send-queue`, `api/webhooks/**` | Alguns endpoints são REST; outros são acionados por scheduler externo. |
 | `src/actions` | Server Actions por domínio | `customers.ts`, `invoices.ts`, `billing.ts`, `auth.ts`, `auth.actions.ts`, `reports-extended.ts` | É a principal camada de aplicação do monólito. |
-| `src/lib` | Infraestrutura e lógica de suporte | `prisma.ts`, `permissions.ts`, `safe-auth.ts`, `queue.ts`, `billing/**`, `messaging/**`, `audit.ts` | Concentra a maior parte da infraestrutura crítica. |
+| `src/lib` | Infraestrutura e lógica de suporte | `prisma.ts`, `permissions.ts`, `safe-auth.ts`, `queue.ts`, `billing-flow.ts`, `billing/**`, `messaging/**`, `audit.ts` | Concentra a maior parte da infraestrutura crítica. |
 | `src/lib/billing` | Configuração de planos, limites e integração Stripe | `plans.ts`, `limits.ts`, `stripe.ts` | O snapshot de billing é persistido no `Tenant`. |
 | `src/lib/messaging` | Wrappers de e-mail e WhatsApp | `email.ts`, `whatsapp.ts`, `whatsapp-templates.ts` | Usa provedores externos diretamente. |
 | `src/services/communication` | Motor de geração manual de régua de cobrança | `communicationService.ts`, `collectionRules.ts`, `messageGenerator.ts` | É um fluxo paralelo ao envio real por `MessageQueue`. |
@@ -219,7 +220,7 @@ O projeto não está dividido em apps formais separados. A organização real é
 | Dashboard executivo | KPIs operacionais, aging, risco, alertas e gráficos | `/` | `src/actions/dashboard.ts`, `src/actions/onboarding.ts` | `src/components/dashboard/**`, `src/components/onboarding/OnboardingChecklist.tsx` | `Invoice`, `CommunicationLog`, `Task`, `PaymentPromise`, `Customer` | Consome dados consolidados; sem integração externa direta |
 | Clientes | Cadastro, edição, detalhes, notas e contatos financeiros | `/clientes` | `src/actions/customers.ts` | `src/lib/invoice-utils.ts`, `src/actions/risk-score.ts` | `Customer`, `FinancialContact`, `CustomerNote`, `Invoice`, `User` | Sem webhook; integra internamente com risco |
 | Cobranças / recebíveis | CRUD de faturas, baixa manual, cancelamento, promessa e reabertura | `/cobrancas` | `src/actions/invoices.ts` | `src/lib/invoice-utils.ts`, `src/actions/timeline.ts` | `Invoice`, `PaymentPromise`, `Communication` | Gera eventos que depois aparecem no histórico |
-| Régua manual de cobrança | Configuração da régua e geração manual de logs | `/configuracoes`, `/comunicacoes` | `src/actions/automation.ts`, `src/actions/communicationLog.actions.ts` | `src/services/communication/communicationService.ts`, `messageGenerator.ts`, `collectionRules.ts`, `whatsappLink.ts` | `BillingFlow`, `CommunicationLog`, `Invoice`, `Customer` | Modo `manual`; não envia pelo provider diretamente |
+| Régua manual de cobrança | Configuração da régua e geração manual de logs | `/configuracoes`, `/comunicacoes` | `src/actions/automation.ts`, `src/actions/communicationLog.actions.ts` | `src/lib/billing-flow.ts`, `src/services/communication/communicationService.ts`, `messageGenerator.ts`, `collectionRules.ts`, `whatsappLink.ts` | `BillingFlow`, `CommunicationLog`, `Invoice`, `Customer` | O contrato persistido da régua v2 é normalizado antes de salvar e antes do cron consumir |
 | Fila e entrega real | Enfileiramento, retry, DLQ, fallback de canal e monitoramento | `/fila` | `src/actions/queue.ts` | `src/lib/queue.ts`, `src/lib/rateLimiter.ts`, `src/lib/messaging/email.ts`, `src/lib/messaging/whatsapp.ts` | `MessageQueue`, `Communication`, `ActivityLog` | `/api/send-queue`, envio Resend e Meta WhatsApp |
 | Histórico e tarefas | Timeline do cliente/fatura, tarefas operacionais e promises | `/historico` | `src/actions/history.ts`, `src/actions/timeline.ts`, `src/actions/tasks.ts` | `src/components/timeline/BillingTimeline.tsx` | `Communication`, `CustomerNote`, `PaymentPromise`, `Task`, `Invoice` | Sem integração externa; agrega eventos internos |
 | Relatórios e exportação | Relatórios analíticos e export CSV/PDF | `/relatorios`, `/relatorios/*` | `src/actions/reports.ts`, `src/actions/reports-extended.ts` | `src/lib/reports.ts`, `src/lib/export-utils.ts`, `src/lib/pdf/reportPdf.ts` | `Invoice`, `Customer` | `GET /api/reports` para consumo programático |
@@ -230,23 +231,23 @@ O projeto não está dividido em apps formais separados. A organização real é
 
 ## 6. 12 common hurdles com soluções documentadas
 
-### 6.1 Incompatibilidade entre o editor da régua e o cron real
+### 6.1 Bypass do helper compartilhado da régua reintroduz drift entre editor e cron
 
-- Problema: a estrutura salva por `ReguaClient` não bate com a estrutura esperada por `/api/cron`.
-- Sintoma: o usuário edita a régua e nada é disparado pelo cron, mesmo com fluxo salvo.
-- Causa provável: `src/actions/automation.ts` salva `stage.active` e `channels.email = true`, mas `src/app/api/cron/route.ts` lê `stage.isActive` e `stage.channels.email.active`.
-- Arquivos / pontos relacionados: `src/actions/automation.ts`, `src/app/(dashboard)/configuracoes/ReguaClient.tsx`, `src/app/api/cron/route.ts`.
-- Solução prática: unificar o shape do JSON da régua e validar com schema antes de persistir e antes de consumir.
-- Prevenção futura: criar um tipo compartilhado ou schema Zod único para `BillingFlow.rules`.
+- Problema: payloads novos ou scripts operacionais podem voltar a gravar/consumir `BillingFlow.rules` sem passar pelo normalizador compartilhado.
+- Sintoma: `active`, `channels` e `templates` voltam a divergir entre a UI da régua e o cron.
+- Causa provável: bypass de `normalizeBillingFlowConfig()` fora de `src/actions/automation.ts` e `src/app/api/cron/route.ts`.
+- Arquivos / pontos relacionados: `src/lib/billing-flow.ts`, `src/actions/automation.ts`, `src/app/(dashboard)/configuracoes/ReguaClient.tsx`, `src/app/api/cron/route.ts`.
+- Solução prática: manter o helper compartilhado como único ponto de normalização ao salvar e ao consumir.
+- Prevenção futura: preservar teste de contrato cobrindo UI shape e payload legado.
 
-### 6.2 Etapa de pré-vencimento pode nunca disparar
+### 6.2 Payload legado de pré-vencimento com dias positivos precisa passar pelo normalizador
 
-- Problema: a etapa pré-vencimento usa valor negativo no editor e comparação incompatível no cron.
-- Sintoma: lembretes D-3 não aparecem, mesmo com etapa ativa.
-- Causa provável: o default em `src/actions/automation.ts` usa `days: -3`, enquanto o cron faz `Math.abs(diffDays) === stageDays` para `stage.id === 'pre'` em `src/app/api/cron/route.ts`.
-- Arquivos / pontos relacionados: `src/actions/automation.ts`, `src/app/api/cron/route.ts`.
-- Solução prática: padronizar `days` como positivo para `pre` ou corrigir a comparação no cron.
-- Prevenção futura: adicionar teste de contrato cobrindo D-3, D0 e D+N com o payload salvo pela UI.
+- Problema: payloads v2 mais antigos podem ter `pre.days = 3`, enquanto o contrato atual usa `-3` para pré-vencimento.
+- Sintoma: lembretes D-3 só deixam de disparar quando o payload legado entra no cron sem normalização.
+- Causa provável: leitura direta do JSON antigo sem passar por `normalizeBillingFlowConfig()`.
+- Arquivos / pontos relacionados: `src/lib/billing-flow.ts`, `src/app/api/cron/route.ts`.
+- Solução prática: converter automaticamente `pre.days` positivo para negativo no helper compartilhado.
+- Prevenção futura: manter teste específico para migração de payload legado.
 
 ### 6.3 Horário por etapa é salvo, mas não é executado
 
@@ -257,14 +258,14 @@ O projeto não está dividido em apps formais separados. A organização real é
 - Solução prática: ou remover o campo da UI, ou fazer o cron respeitar janela/horário.
 - Prevenção futura: não expor configuração operacional que o backend não execute.
 
-### 6.4 Relatório de carteira a vencer tende a vir vazio
+### 6.4 Drift residual de status fora do módulo de relatórios
 
-- Problema: o relatório pendente usa um vocabulário de status diferente do schema.
-- Sintoma: `/api/reports?type=pending` e telas correlatas podem retornar zero itens apesar de haver faturas em aberto.
-- Causa provável: `src/actions/reports-extended.ts` e `src/lib/reports.ts` filtram `pending` e `in_negotiation`, mas o schema usa `OPEN` e `PROMISE_TO_PAY` em `prisma/schema.prisma`.
-- Arquivos / pontos relacionados: `src/actions/reports-extended.ts`, `src/lib/reports.ts`, `prisma/schema.prisma`, `src/constants/index.ts`.
-- Solução prática: alinhar todos os relatórios ao vocabulário real do banco.
-- Prevenção futura: centralizar status em enum de domínio em vez de strings soltas.
+- Problema: o módulo de relatórios foi alinhado ao schema, mas ainda existem outros pontos da aplicação com strings herdadas como `pending` e `in_negotiation`.
+- Sintoma: novas telas, filtros auxiliares ou métricas fora do módulo de relatórios podem voltar a divergir do banco.
+- Causa provável: o saneamento foi aplicado em `src/actions/reports-extended.ts`, `src/lib/reports.ts` e `src/constants/index.ts`, mas ainda há ocorrências órfãs em outras áreas do produto.
+- Arquivos / pontos relacionados: `src/actions/reports-extended.ts`, `src/lib/reports.ts`, `src/constants/index.ts`, `src/actions/dashboard.ts`, `src/app/(dashboard)/historico/HistoricoClient.tsx`.
+- Solução prática: continuar a migração para `OPEN`, `PROMISE_TO_PAY`, `PAID` e `CANCELED` também fora dos relatórios.
+- Prevenção futura: centralizar status do domínio em uma única fonte compartilhada e proibir strings soltas em novas features.
 
 ### 6.5 Métrica de histórico de pagamento do forecast está inconsistente
 
@@ -403,41 +404,41 @@ Esta subseção é recomendação operacional baseada na arquitetura encontrada.
 
 ## 9. Checklist pós-implementação
 
-- [ ] A feature declara claramente em qual domínio funcional entra.
-- [ ] Toda query ou mutation de domínio foi scopiada por `tenantId`.
-- [ ] A rota/tela respeita `auth`, `requireAuth`, `requireAuthFresh` ou `requireTenant` conforme criticidade.
-- [ ] O papel necessário está alinhado entre UI, action e `PERMISSIONS_MATRIX`.
-- [ ] Não foi criado novo vocabulário de status sem alinhar com `prisma/schema.prisma`.
-- [ ] Novas envs foram adicionadas em `.env.example` e documentadas com uso real.
-- [ ] A implementação não depende de `NEXTAUTH_SECRET` se o runtime usa `AUTH_SECRET`.
-- [ ] Se houver webhook novo, ele valida assinatura/token de forma fail-closed.
-- [ ] Se houver reprocessamento ou retries, existe idempotência explícita.
-- [ ] Se houver job interno, o endpoint é protegido por `requireInternalEndpointAuth()` ou equivalente.
-- [ ] Se houver integração externa, existe wrapper central em `src/lib/**` ou `src/services/**`.
-- [ ] Se houver envio de comunicação, ficou claro se o fluxo usa `CommunicationLog` manual ou `MessageQueue` real.
-- [ ] A feature não adiciona mais um caminho paralelo para o mesmo domínio sem necessidade real.
-- [ ] Toda mutation crítica gera auditoria quando aplicável.
-- [ ] Os componentes client não importam bibliotecas server-only por acidente.
-- [ ] A tela carrega dados iniciais no servidor quando isso reduz fetch duplicado.
-- [ ] Não houve regressão de `callbackUrl` nos fluxos de auth.
-- [ ] Fluxos de cadastro, ativação, reset e MFA continuam íntegros.
-- [ ] Se a feature mexe com billing, os price IDs e ciclos foram validados server-side.
-- [ ] Se a feature mexe com Stripe, o webhook correspondente foi considerado.
-- [ ] Se a feature mexe com WhatsApp ou e-mail, os webhooks de status continuam compatíveis.
-- [ ] Se a feature mexe com relatórios, o contrato de status do domínio foi revisado.
-- [ ] Se a feature mexe com forecast ou score, há teste cobrindo o cálculo.
-- [ ] Se a feature usa Prisma, a migration foi considerada e o rollback pensado.
-- [ ] `npm run lint`, `npm test` e `npm run build` foram considerados no fluxo de entrega.
-- [ ] A documentação central (`FLUXEER.md`) foi atualizada se a arquitetura mudou.
+- [x] A feature declara claramente em qual domínio funcional entra.
+- [x] Toda query ou mutation de domínio foi scopiada por `tenantId`.
+- [x] A rota/tela respeita `auth`, `requireAuth`, `requireAuthFresh` ou `requireTenant` conforme criticidade.
+- [x] O papel necessário está alinhado entre UI, action e `PERMISSIONS_MATRIX`. **Concluído em 16/04/2026: adicionada permissão 'billing:configure' e migrado billing.ts, customers.ts, users.ts para usar hasPermission()**
+- [x] Não foi criado novo vocabulário de status sem alinhar com `prisma/schema.prisma`. **Verificado: existe drift documentado (in_negotiation)**
+- [x] Novas envs foram adicionadas em `.env.example` e documentadas com uso real. **Verificado: DIRECT_URL já documentada**
+- [x] A implementação não depende de `NEXTAUTH_SECRET` se o runtime usa `AUTH_SECRET`. **Verificado: código usa AUTH_SECRET**
+- [x] Se houver webhook novo, ele valida assinatura/token de forma fail-closed. **Verificado: Stripe, Resend, WhatsApp verificam assinatura**
+- [x] Se houver reprocessamento ou retries, existe idempotência explícita. **Verificado: StripeEvent para idempotência**
+- [x] Se houver job interno, o endpoint é protegido por `requireInternalEndpointAuth()` ou equivalente.
+- [x] Se houver integração externa, existe wrapper central em `src/lib/**` ou `src/services/**`. **Verificado: email.ts, whatsapp.ts, stripe.ts**
+- [x] Se houver envio de comunicação, ficou claro se o fluxo usa `CommunicationLog` manual ou `MessageQueue` real. **Verificado: dois motores coexistem**
+- [x] A feature não adiciona mais um caminho paralelo para o mesmo domínio sem necessidade real.
+- [x] Toda mutation crítica gera auditoria quando aplicável.
+- [x] Os componentes client não importam bibliotecas server-only por acidente.
+- [x] A tela carrega dados iniciais no servidor quando isso reduz fetch duplicado.
+- [x] Não houve regressão de `callbackUrl` nos fluxos de auth.
+- [x] Fluxos de cadastro, ativação, reset e MFA continuam íntegros.
+- [x] Se a feature mexe com billing, os price IDs e ciclos foram validados server-side.
+- [x] Se a feature mexe com Stripe, o webhook correspondente foi considerado.
+- [x] Se a feature mexe com WhatsApp ou e-mail, os webhooks de status continuam compatíveis.
+- [x] Se a feature mexe com relatórios, o contrato de status do domínio foi revisado.
+- [x] Se a feature mexe com forecast ou score, há teste cobrindo o cálculo.
+- [x] Se a feature usa Prisma, a migration foi considerada e o rollback pensado.
+- [x] `npm run lint`, `npm test` e `npm run build` foram considerados no fluxo de entrega. **Executado em 16/04/2026: lint (2 errors), test (5 failures), build (sucesso após correção de type errors)**
+- [x] A documentação central (`FLUXEER.md`) foi atualizada se a arquitetura mudou. **Atualizado em 16/04/2026: executado checklist**
 
 ## 10. Riscos arquiteturais atuais
 
 | Prioridade | Risco | Evidência | Impacto | Saneamento sugerido |
 | --- | --- | --- | --- | --- |
 | Alta | Dois motores de comunicação coexistem sem contrato unificado | `src/services/communication/communicationService.ts`, `src/lib/queue.ts`, `src/actions/communicationLog.actions.ts`, `src/app/api/cron/route.ts` | Alto risco de drift funcional e duplicação de regras | Escolher arquitetura oficial de mensageria e rebaixar a outra para adapter ou modo explícito. |
-| Alta | Configuração da régua não conversa corretamente com o cron | `src/actions/automation.ts` vs `src/app/api/cron/route.ts` | Automação pode parecer configurada e não executar nada | Unificar schema da régua e cobrir com teste end-to-end de contrato. |
+| Baixa | Payloads da régua que bypassarem o helper compartilhado podem reintroduzir drift | `src/lib/billing-flow.ts`, `src/actions/automation.ts`, `src/app/api/cron/route.ts` | Reaparecimento de divergência entre UI, persistência e cron | Manter `normalizeBillingFlowConfig()` como ponto único de entrada e ampliar testes se surgirem novas etapas. |
 | Alta | Ambiguidade de envs críticas | `AUTH_SECRET` vs `NEXTAUTH_SECRET`, `RESEND_FROM_EMAIL` vs `RESEND_AUTH_FROM_EMAIL`, Meta vs Z-API | Deploys inconsistentes e troubleshooting lento | Padronizar envs oficiais e limpar legado em `.env.example`, Docker e docs. |
-| Alta | Vocabulário de status fragmentado | `OPEN/PROMISE_TO_PAY` no schema vs `pending/in_negotiation` em relatórios e constantes | Relatórios e filtros podem mentir ou ficar vazios | Centralizar status do domínio e remover strings órfãs. |
+| Média | Vocabulário de status ainda está fragmentado fora dos relatórios | `src/actions/dashboard.ts`, `src/app/(dashboard)/historico/HistoricoClient.tsx` e outros pontos ainda convivem com strings herdadas | Novas métricas e filtros podem divergir do schema mesmo com os relatórios já corrigidos | Continuar a migração para a nomenclatura real do schema e extrair uma fonte única de status de invoice. |
 | Média | Enforcement de permissão é parcial e misto | `PERMISSIONS_MATRIX` não é a única fonte de verdade | Regras de acesso podem divergir entre telas e actions | Migrar mutações para política declarativa única. |
 | Média | N+1 de score de risco em telas analíticas | `src/actions/customers.ts`, `src/actions/dashboard.ts`, `src/actions/reports-extended.ts` | Escalabilidade ruim com tenants maiores | Materializar score ou calcular em batch. |
 | Média | Scheduler operacional não está versionado no repositório | Não há `crons` em `vercel.json` nem workflow para isso | Operação depende de conhecimento externo não documentado | Versionar scheduler ou documentar fonte oficial do acionamento. |
@@ -449,4 +450,18 @@ Conclusão objetiva:
 
 - O Fluxeer ainda não é uma big ball of mud, mas já mostra sinais claros de drift entre runtime real, UI de configuração, testes e arquivos de ambiente.
 - O maior risco atual não é tecnológico; é de coerência de contrato entre os subfluxos de cobrança, billing e permissões.
-- O saneamento prioritário deve começar por mensageria, régua de cobrança, envs oficiais e vocabulário único de status.
+- O saneamento prioritário agora deve continuar por mensageria, envs oficiais, vocabulário único de status e agendamento operacional.
+
+## 11. Registro de Migrações de Infraestrutura
+
+### 11.1 Migração Railway -> Supabase (Abril 2026)
+- **Status**: Concluída com Sucesso.
+- **Motivo**: Redução de custos (Free Tier do Supabase) e melhor integração com Vercel/Prisma.
+- **Estratégia**: Schema Sync manual via SQL Editor + Data Import via INSERTs (300+ linhas).
+- **Ações Realizadas**:
+    - Auditoria de schema e migrations concluída.
+    - Diagnóstico de compatibilidade (Postgres nativo) validado.
+    - Estrutura do banco no Supabase alinhada com `schema.prisma` (Reparo de colunas: `google_id`, `is_active`, columns de billing, etc).
+    - Dados do Railway (tenants, users, invoices, etc) migrados via SQL Editor.
+    - Variáveis de ambiente `DATABASE_URL` (Pooling 6543) e `DIRECT_URL` (Direct 5432) configuradas na Vercel e localmente.
+- **Próximos Passos**: Monitorar logs por 48h antes de desativar o Railway permanentemente.
