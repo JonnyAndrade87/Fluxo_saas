@@ -433,18 +433,18 @@ Esta subseção é recomendação operacional baseada na arquitetura encontrada.
 
 ## 10. Riscos arquiteturais atuais
 
-| Prioridade | Risco | Evidência | Impacto | Saneamento sugerido |
-| --- | --- | --- | --- | --- |
-| Alta | Dois motores de comunicação coexistem sem contrato unificado | `src/services/communication/communicationService.ts`, `src/lib/queue.ts`, `src/actions/communicationLog.actions.ts`, `src/app/api/cron/route.ts` | Alto risco de drift funcional e duplicação de regras | Escolher arquitetura oficial de mensageria e rebaixar a outra para adapter ou modo explícito. |
-| Baixa | Payloads da régua que bypassarem o helper compartilhado podem reintroduzir drift | `src/lib/billing-flow.ts`, `src/actions/automation.ts`, `src/app/api/cron/route.ts` | Reaparecimento de divergência entre UI, persistência e cron | Manter `normalizeBillingFlowConfig()` como ponto único de entrada e ampliar testes se surgirem novas etapas. |
-| Alta | Ambiguidade de envs críticas | `AUTH_SECRET` vs `NEXTAUTH_SECRET`, `RESEND_FROM_EMAIL` vs `RESEND_AUTH_FROM_EMAIL`, Meta vs Z-API | Deploys inconsistentes e troubleshooting lento | Padronizar envs oficiais e limpar legado em `.env.example`, Docker e docs. |
-| Média | Vocabulário de status ainda está fragmentado fora dos relatórios | `src/actions/dashboard.ts`, `src/app/(dashboard)/historico/HistoricoClient.tsx` e outros pontos ainda convivem com strings herdadas | Novas métricas e filtros podem divergir do schema mesmo com os relatórios já corrigidos | Continuar a migração para a nomenclatura real do schema e extrair uma fonte única de status de invoice. |
-| Média | Enforcement de permissão é parcial e misto | `PERMISSIONS_MATRIX` não é a única fonte de verdade | Regras de acesso podem divergir entre telas e actions | Migrar mutações para política declarativa única. |
-| Média | N+1 de score de risco em telas analíticas | `src/actions/customers.ts`, `src/actions/dashboard.ts`, `src/actions/reports-extended.ts` | Escalabilidade ruim com tenants maiores | Materializar score ou calcular em batch. |
-| Média | Scheduler operacional não está versionado no repositório | Não há `crons` em `vercel.json` nem workflow para isso | Operação depende de conhecimento externo não documentado | Versionar scheduler ou documentar fonte oficial do acionamento. |
-| Média | Testes E2E de billing estão defasados da UI real | `e2e/billing.spec.ts` vs `/planos` atual | CI falsa, cobertura enganosa | Regravar E2E conforme o fluxo atual. |
-| Média | Drift entre código e configs auxiliares | `docker-compose.yml`, `src/constants/index.ts`, `vercel.json` | Time novo pode configurar integrações erradas | Revisão de config por domínio e remoção de legado. |
-| Baixa | Helpers e caminhos pouco usados seguem no repositório | `src/lib/server-action-auth.ts`, `src/components/layout/ClientAuthGuard.tsx` | Complexidade acidental e confusão de onboarding técnico | Remover, consolidar ou marcar como legado. |
+| Prioridade | Risco | Evidência | Impacto | Saneamento sugerido | Status |
+|------------|-------|-----------|---------|---------------------|--------|
+| Alta | Dois motores de comunicação coexistem sem contrato unificado | `src/services/communication/communicationService.ts`, `src/lib/queue.ts`, `src/actions/communicationLog.actions.ts`, `src/app/api/cron/route.ts` | Alto risco de drift funcional e duplicação de regras | Escolher arquitetura oficial de mensageria e rebaixar a outra para adapter ou modo explícito. | ✅ Documentado - modo manual vs whatsapp_api documentado em COMMUNICATION_MODE |
+| Baixa | Payloads da régua que bypassarem o helper compartilhado podem reintroduzir drift | `src/lib/billing-flow.ts`, `src/actions/automation.ts`, `src/app/api/cron/route.ts` | Reaparecimento de divergência entre UI, persistência e cron | Manter `normalizeBillingFlowConfig()` como ponto único de entrada e ampliar testes se surgirem novas etapas. | - |
+| Alta | Ambiguidade de envs críticas | `AUTH_SECRET` vs `NEXTAUTH_SECRET`, `RESEND_FROM_EMAIL` vs `RESEND_AUTH_FROM_EMAIL`, Meta vs Z-API | Deploys inconsistentes e troubleshooting lento | Padronizar envs oficiais e limpar legado em `.env.example`, Docker e docs. | ✅ Corrigido em 16/04/2026 - .env.example atualizado, docker-compose limpo, NEXTAUTH_SECRET marcado como deprecated |
+| Média | Vocabulário de status ainda está fragmentado fora dos relatórios | `src/actions/dashboard.ts`, `src/app/(dashboard)/historico/HistoricoClient.tsx` e outros pontos ainda convivem com strings herdadas | Novas métricas e filtros podem divergir do schema mesmo com os relatórios já corrigidos | Continuar a migração para a nomenclatura real do schema e extrair uma fonte única de status de invoice. | - |
+| Média | Enforcement de permissão é parcial e misto | `PERMISSIONS_MATRIX` não é a única fonte de verdade | Regras de acesso podem divergir entre telas e actions | Migrar mutações para política declarativa única. | ✅ Corrigido em 16/04/2026 - migrado billing.ts, customers.ts, users.ts para hasPermission() |
+| Média | N+1 de score de risco em telas analíticas | `src/actions/customers.ts`, `src/actions/dashboard.ts`, `src/actions/reports-extended.ts` | Escalabilidade ruim com tenants maiores | Materializar score ou calcular em batch. | - |
+| Média | Scheduler operacional não está versionado no repositório | Não há `crons` em `vercel.json` nem workflow para isso | Operação depende de conhecimento externo não documentado | Versionar scheduler ou documentar fonte oficial do acionamento. | - |
+| Média | Testes E2E de billing estavam defasados da UI real | `e2e/billing.spec.ts` vs `/planos` atual | CI falsa, cobertura enganosa | Regravar E2E conforme o fluxo atual. | ✅ Resolvido em 17/04/2026 — 3/3 testes passando com login real, usuário E2E real e fixtures de billing isoladas. Ver seção 11.2. |
+| Média | Drift entre código e configs auxiliares | `docker-compose.yml`, `src/constants/index.ts`, `vercel.json` | Time novo pode configurar integrações erradas | Revisão de config por domínio e remoção de legado. | - |
+| Baixa | Helpers e caminhos pouco usados seguem no repositório | `src/lib/server-action-auth.ts`, `src/components/layout/ClientAuthGuard.tsx` | Complexidade acidental e confusão de onboarding técnico | Remover, consolidar ou marcar como legado. | - |
 
 Conclusão objetiva:
 
@@ -463,5 +463,37 @@ Conclusão objetiva:
     - Diagnóstico de compatibilidade (Postgres nativo) validado.
     - Estrutura do banco no Supabase alinhada com `schema.prisma` (Reparo de colunas: `google_id`, `is_active`, columns de billing, etc).
     - Dados do Railway (tenants, users, invoices, etc) migrados via SQL Editor.
-    - Variáveis de ambiente `DATABASE_URL` (Pooling 6543) e `DIRECT_URL` (Direct 5432) configuradas na Vercel e localmente.
+    - Variáveis de ambiente `DATABASE_URL` (Session Pooler IPv4) e `DIRECT_URL` configuradas na Vercel, `.env` e `.env.production.local`.
+    - Problema de whitespace na `DATABASE_URL` no Vercel corrigido via CLI (`vercel env rm` + `vercel env add`).
+    - `.env` local e `.env.production.local` que ainda apontavam para Railway também corrigidos.
 - **Próximos Passos**: Monitorar logs por 48h antes de desativar o Railway permanentemente.
+
+### 11.2 Correção E2E Auth/Billing (Abril 2026)
+- **Status**: Concluída com Sucesso — 3/3 testes passando.
+- **Problema**: Os testes E2E de billing falhavam no login/redirecionamento. O fluxo E2E não conseguia autenticar.
+
+**Causas raiz identificadas (todas corrigidas):**
+
+1. **`playwright.config.ts` apontava para o Railway (`centerbeam.proxy.rlwy.net:47892`)** — banco desativado, connection refused imediato.
+2. **`.env` local também apontava para Railway** — o Next.js dev server carrega `.env` com prioridade sobre as `env` vars injetadas pelo webServer do Playwright, portanto a override do config não era suficiente.
+3. **Usuário E2E `e2etest@fluxeer.test` não existia no banco** — sem `global-setup`, o login falhava com `"User not found or missing password hash"`.
+4. **MFA gate no middleware interceptava admins** — todo usuário com `role=admin` sem cookie `mfa_verified` era redirecionado para `/mfa-setup`, mesmo com `mfaEnabled=false`. O spec não injetava esse cookie após o login.
+5. **Seletores das assertions não refletiam o HTML real** — `'text=Plano atual'` e `/Gerenciar/` eram ambíguos; `"Regularizar"` nunca existiu na UI.
+
+**Arquivos alterados:**
+- `playwright.config.ts` — Database URL atualizada, `globalSetup` adicionado, timeouts aumentados.
+- `e2e/global-setup.ts` — [NOVO] Garante usuário/tenant E2E real no banco antes dos testes (idempotente via upsert).
+- `e2e/billing.spec.ts` — Reescrito: login real por credentials + cookie `mfa_verified` injetado pós-login + cenário de billing por cookie + assertions corretas baseadas no HTML real.
+- `.env` — `DATABASE_URL` e `DIRECT_URL` atualizados para Supabase Session Pooler.
+- `.env.production.local` — mesma correção.
+
+**Decisão técnica — injeção do cookie `mfa_verified`:**
+O middleware exige que todo `admin` tenha o cookie `mfa_verified`. Isso é uma **regra de negócio legítima** (admins devem configurar MFA). O cookie é injetado manualmente no contexto do browser **após o login real**, simulando o que o usuário real faz ao configurar MFA pela primeira vez. Isso é seguro: o cookie só existe na memória do contexto do browser de teste (não é um bypass de produção).
+
+**Como rodar e validar:**
+```bash
+npx playwright test e2e/billing.spec.ts --reporter=list
+# Resultado esperado: 3 passed
+```
+
+**Pré-requisitos:** `DATABASE_URL` em `.env` deve apontar para Supabase (não Railway).

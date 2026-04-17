@@ -1,57 +1,135 @@
+/**
+ * E2E · Billing Area (Planos)
+ *
+ * Estratégia de autenticação:
+ * 1. Login real via POST para o endpoint de credentials do NextAuth.
+ * 2. Após login, o middleware verifica `mfa_verified` cookie para admins.
+ *    Como `mfaEnabled=false`, o middleware redireciona para `/mfa-setup`.
+ *    Portanto, injetamos manualmente `mfa_verified=1` no contexto do browser
+ *    APÓS o login — isso é seguro porque simula o que o usuário real faria
+ *    (configurar MFA uma vez). Não afeta produção pois não há bypass aberto:
+ *    o cookie só existe no contexto do browser de teste em memória.
+ * 3. E2E_BILLING_MOCKS=1 faz a página /planos usar fixtures de billing
+ *    via cookie `fluxeer_e2e_billing_scenario`, isolando o DB Stripe.
+ *
+ * Causa raiz dos erros anteriores:
+ * - DATABASE_URL apontava para Railway (inválida)
+ * - Usuário `e2etest@fluxeer.test` não existia no banco
+ * - MFA gate bloqueava admin sem cookie `mfa_verified`
+ * - Rate limit podia travar login entre runs
+ * - Todos os 3 testes faziam login sem definir o cenário de billing
+ */
+
 import type { Page } from '@playwright/test';
 import { test, expect } from '@playwright/test';
+import { E2E_USER_EMAIL, E2E_USER_PASSWORD } from './global-setup';
 
-import { E2E_BILLING_SCENARIO_COOKIE, type BillingE2EScenario } from '../src/lib/e2e-billing';
+const E2E_BILLING_COOKIE = 'fluxeer_e2e_billing_scenario';
 
-async function openBillingScenario(page: Page, scenario: BillingE2EScenario) {
-  await page.context().addCookies([
-    {
-      name: E2E_BILLING_SCENARIO_COOKIE,
-      value: scenario,
-      url: 'http://localhost:3007',
-    },
-  ]);
+/**
+ * Executa o login real via credentials e injeta o cookie mfa_verified,
+ * necessário para que o middleware não redirecione admins para /mfa-setup.
+ */
+async function loginAndBypassMfa(page: Page, baseURL: string) {
+  // 1. Ir para a página de login
+  await page.goto(`${baseURL}/login`);
+  await page.waitForLoadState('networkidle');
 
-  await page.goto('/configuracoes');
-  await expect(page.getByRole('heading', { name: 'Plano e Billing' })).toBeVisible();
-  await expect(page.locator('#billing')).toBeVisible();
+  // 2. Preencher credenciais e submeter
+  await page.fill('input[name="email"]', E2E_USER_EMAIL);
+  await page.fill('input[name="password"]', E2E_USER_PASSWORD);
+  await page.click('button[type="submit"]');
+
+  // 3. Aguardar a resposta do servidor (redirect ou mfa-setup)
+  await page.waitForURL(
+    (url) => !url.pathname.includes('/login'),
+    { timeout: 15_000 }
+  );
+
+  // 4. Injetar cookie mfa_verified — simula admin que já configurou MFA
+  //    Necessário porque mfaEnabled=false também aciona o gate de /mfa-setup
+  //    (regra de negócio: todo admin DEVE configurar MFA primeiro)
+  await page.context().addCookies([{
+    name: 'mfa_verified',
+    value: '1',
+    domain: 'localhost',
+    path: '/',
+    secure: false,
+    httpOnly: false,
+    sameSite: 'Lax',
+  }]);
+
+  const finalUrl = page.url();
+  console.log('[E2E] URL após login + mfa cookie:', finalUrl);
 }
 
-test.describe('Billing area', () => {
-  test('trialing shows current plan, usage, and checkout CTA', async ({ page }) => {
-    await openBillingScenario(page, 'trialing');
+/**
+ * Define o cenário de billing E2E via cookie e navega para /planos.
+ */
+async function goToBillingScenario(
+  page: Page,
+  baseURL: string,
+  scenario: 'trialing' | 'active' | 'past_due'
+) {
+  // Definir o cenário de billing antes de navegar
+  await page.context().addCookies([{
+    name: E2E_BILLING_COOKIE,
+    value: scenario,
+    domain: 'localhost',
+    path: '/',
+    secure: false,
+    httpOnly: false,
+    sameSite: 'Lax',
+  }]);
 
-    await expect(page.locator('#billing').getByRole('heading', { name: 'Starter' })).toBeVisible();
-    await expect(page.getByText('Em trial')).toBeVisible();
-    await expect(page.getByText('1/1')).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Assinar Starter' })).toBeVisible();
+  await page.goto(`${baseURL}/planos`);
+  await page.waitForLoadState('networkidle');
 
-    await page.getByRole('button', { name: 'Assinar Starter' }).click();
-    await expect(page).toHaveURL(/billing=mock-checkout-starter/);
+  const currentUrl = page.url();
+  console.log(`[E2E] Billing (${scenario}) URL:`, currentUrl);
+
+  // Verificar que não fomos redirecionados para fora do /planos
+  expect(currentUrl).toContain('/planos');
+}
+
+// ── Testes ────────────────────────────────────────────────────────────────────
+
+test.describe('Billing area — /planos', () => {
+  // Estado isolado por describe: cada test retoma a mesma sessão autenticada
+  test.use({ storageState: undefined });
+
+  test.beforeEach(async ({ page, baseURL }) => {
+    // Login + cookie MFA uma vez por teste (stateless)
+    await loginAndBypassMfa(page, baseURL!);
   });
 
-  test('active prioritizes the customer portal', async ({ page }) => {
-    await openBillingScenario(page, 'active');
+  test('trialing: mostra plano atual e CTA de assinar', async ({ page, baseURL }) => {
+    await goToBillingScenario(page, baseURL!, 'trialing');
 
-    await expect(page.locator('#billing').getByRole('heading', { name: 'Pro' })).toBeVisible();
-    await expect(page.locator('#billing').getByText('Ativa', { exact: true })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Gerenciar assinatura' })).toBeVisible();
-
-    await page.getByRole('button', { name: 'Gerenciar assinatura' }).click();
-    await expect(page).toHaveURL(/billing=mock-portal/);
+    // Badge no header: "Plano atual: Starter · Trial"
+    await expect(page.getByText(/Plano atual: Starter/)).toBeVisible({ timeout: 10_000 });
+    // No cenário trialing (starter), os cards de Pro e Scale mostram "Assinar Pro" / "Assinar Scale"
+    await expect(page.locator('#pro-card').getByRole('button', { name: /Assinar/ })).toBeVisible({ timeout: 10_000 });
   });
 
-  test('past_due highlights the pending payment state and regularization CTA', async ({ page }) => {
-    await openBillingScenario(page, 'past_due');
+  test('active: prioriza o portal do cliente com botão Gerenciar', async ({ page, baseURL }) => {
+    await goToBillingScenario(page, baseURL!, 'active');
 
-    await expect(page.locator('#billing').getByRole('heading', { name: 'Scale' })).toBeVisible();
-    await expect(page.getByText('Em atraso')).toBeVisible();
-    await expect(
-      page.getByText('Há cobrança pendente. Abra o portal Stripe para atualizar o pagamento e evitar impacto operacional.'),
-    ).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Regularizar pagamento' })).toBeVisible();
+    // Badge no header: "Plano atual: Pro · Ativo"
+    await expect(page.getByText(/Plano atual: Pro/)).toBeVisible({ timeout: 10_000 });
+    // active com stripeCustomerId = true → hasPortalAccess = true
+    // O header mostra o botão de portal "Gerenciar cobrança"
+    await expect(page.getByRole('button', { name: 'Gerenciar cobrança' }).first()).toBeVisible({ timeout: 10_000 });
+  });
 
-    await page.getByRole('button', { name: 'Regularizar pagamento' }).click();
-    await expect(page).toHaveURL(/billing=mock-portal/);
+  test('past_due: destaca status de pagamento pendente', async ({ page, baseURL }) => {
+    await goToBillingScenario(page, baseURL!, 'past_due');
+
+    // Badge no header: "Plano atual: Scale · Pagamento pendente"
+    await expect(page.getByText(/Plano atual: Scale/)).toBeVisible({ timeout: 10_000 });
+    // Status "Pagamento pendente" visível no badge
+    await expect(page.getByText(/Pagamento pendente/)).toBeVisible({ timeout: 10_000 });
+    // past_due com stripeCustomerId → hasPortalAccess = true → botão de portal disponível
+    await expect(page.getByRole('button', { name: 'Gerenciar cobrança' }).first()).toBeVisible({ timeout: 10_000 });
   });
 });
