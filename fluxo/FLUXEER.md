@@ -435,12 +435,12 @@ Esta subseção é recomendação operacional baseada na arquitetura encontrada.
 
 | Prioridade | Risco | Evidência | Impacto | Saneamento sugerido | Status |
 |------------|-------|-----------|---------|---------------------|--------|
-| Alta | Dois motores de comunicação coexistem sem contrato unificado | `src/services/communication/communicationService.ts`, `src/lib/queue.ts`, `src/actions/communicationLog.actions.ts`, `src/app/api/cron/route.ts` | Alto risco de drift funcional e duplicação de regras | Escolher arquitetura oficial de mensageria e rebaixar a outra para adapter ou modo explícito. | ✅ Documentado - modo manual vs whatsapp_api documentado em COMMUNICATION_MODE |
+| Alta | Dois motores de comunição coexistiam sem contrato unificado | `src/services/communication/communicationService.ts`, `src/lib/queue.ts`, `src/actions/communicationLog.actions.ts`, `src/app/api/cron/route.ts` | Alto risco de drift funcional e duplicação de regras | Escolher arquitetura oficial de mensageria e rebaixar a outra para adapter ou modo explícito. | ✅ Resolvido em 17/04/2026 — fonte única de verdade implementada via `billing-flow.ts`. Hook `whatsapp_api` ativado. Ver seção 11.3. |
 | Baixa | Payloads da régua que bypassarem o helper compartilhado podem reintroduzir drift | `src/lib/billing-flow.ts`, `src/actions/automation.ts`, `src/app/api/cron/route.ts` | Reaparecimento de divergência entre UI, persistência e cron | Manter `normalizeBillingFlowConfig()` como ponto único de entrada e ampliar testes se surgirem novas etapas. | - |
 | Alta | Ambiguidade de envs críticas | `AUTH_SECRET` vs `NEXTAUTH_SECRET`, `RESEND_FROM_EMAIL` vs `RESEND_AUTH_FROM_EMAIL`, Meta vs Z-API | Deploys inconsistentes e troubleshooting lento | Padronizar envs oficiais e limpar legado em `.env.example`, Docker e docs. | ✅ Corrigido em 16/04/2026 - .env.example atualizado, docker-compose limpo, NEXTAUTH_SECRET marcado como deprecated |
 | Média | Vocabulário de status ainda está fragmentado fora dos relatórios | `src/actions/dashboard.ts`, `src/app/(dashboard)/historico/HistoricoClient.tsx` e outros pontos ainda convivem com strings herdadas | Novas métricas e filtros podem divergir do schema mesmo com os relatórios já corrigidos | Continuar a migração para a nomenclatura real do schema e extrair uma fonte única de status de invoice. | - |
 | Média | Enforcement de permissão é parcial e misto | `PERMISSIONS_MATRIX` não é a única fonte de verdade | Regras de acesso podem divergir entre telas e actions | Migrar mutações para política declarativa única. | ✅ Corrigido em 16/04/2026 - migrado billing.ts, customers.ts, users.ts para hasPermission() |
-| Média | N+1 de score de risco em telas analíticas | `src/actions/customers.ts`, `src/actions/dashboard.ts`, `src/actions/reports-extended.ts` | Escalabilidade ruim com tenants maiores | Materializar score ou calcular em batch. | - |
+| Média | N+1 de score de risco em telas analíticas | `src/actions/customers.ts`, `src/actions/dashboard.ts`, `src/actions/reports-extended.ts` | Escalabilidade ruim com tenants maiores | Materializar score ou calcular em batch. | ✅ Resolvido em 17/04/2026 — `getRiskScoresBatch()` implementado: 2 queries fixas independente do N. Ver seção 11.3. |
 | Média | Scheduler operacional não está versionado no repositório | Não há `crons` em `vercel.json` nem workflow para isso | Operação depende de conhecimento externo não documentado | Versionar scheduler ou documentar fonte oficial do acionamento. | - |
 | Média | Testes E2E de billing estavam defasados da UI real | `e2e/billing.spec.ts` vs `/planos` atual | CI falsa, cobertura enganosa | Regravar E2E conforme o fluxo atual. | ✅ Resolvido em 17/04/2026 — 3/3 testes passando com login real, usuário E2E real e fixtures de billing isoladas. Ver seção 11.2. |
 | Média | Drift entre código e configs auxiliares | `docker-compose.yml`, `src/constants/index.ts`, `vercel.json` | Time novo pode configurar integrações erradas | Revisão de config por domínio e remoção de legado. | - |
@@ -497,3 +497,55 @@ npx playwright test e2e/billing.spec.ts --reporter=list
 ```
 
 **Pré-requisitos:** `DATABASE_URL` em `.env` deve apontar para Supabase (não Railway).
+
+### 11.3 Eliminação do N+1 de Risk Score + Fonte Única de Comunicação (Abril 2026)
+- **Status**: Concluído com Sucesso.
+- **Commit**: `b55f396`
+
+#### Problema 1 — N+1 de Score de Risco
+
+**Causa raiz:** `getRiskScoreForCustomer()` disparava 3 queries (customer + invoices + promises) por cliente. Com 100 clientes = 300 queries. Com 500 = 1.500 queries.
+
+**Solução implementada:**
+- Criado `getRiskScoresBatch(tenantId, customerIds[])` em `src/actions/risk-score.ts`:
+  - **Query 1**: todas as invoices do tenant filtradas pelos customerIds
+  - **Query 2**: todas as promises quebradas do tenant filtradas pelos customerIds
+  - Agrupamento em memória por `customerId` e cálculo de score em O(1) por cliente
+  - **Resultado: 2 queries fixas independente do N de clientes**
+- `getRiskScoresForTenant()` refatorado internamente para usar o batch.
+
+**Arquivos alterados:**
+- `src/actions/risk-score.ts` — `getRiskScoresBatch()` adicionado
+- `src/actions/customers.ts` — loop substituído por batch na listagem de clientes
+- `src/actions/dashboard.ts` — `Promise.all` substituído por batch no risk ranking
+- `src/actions/reports-extended.ts` — `getCachedRiskScores()` removido, substituído por `batchRiskScores()` wrapper do batch
+
+**Impacto:** Todos os 4 pontos (lista de clientes, dashboard, e 4 relatórios) agora executam com 2 queries fixas.
+
+---
+
+#### Problema 2 — Motores de Comunicação e Fonte Única de Regras
+
+**Decisão arquitetural aprovada:**
+- **Motor Manual** (`CommunicationLog`) = **Planner**: define o quê e quando enviar
+- **Motor Real** (`MessageQueue`) = **Executor**: recebe a ordem e executa o envio
+- Os dois motores **não foram fundidos** — a fronteira é explícita via `COMMUNICATION_MODE`
+
+**Fonte única de verdade implementada:**
+O `communicationService.ts` agora lê a `BillingFlowConfig` ativa do tenant via `normalizeBillingFlowConfig()` (exatamente a mesma fonte que o cron usa). Dias de disparo e templates vêm da UI, não de `collectionRules.ts` hardcoded.
+
+**Fallback preservado:** Se o tenant não tiver `BillingFlow` ativo com config v2 (`stages[]`), o sistema usa `collectionRules.ts` (regras fixas) para garantir compatibilidade com tenants antigos.
+
+**Hook `whatsapp_api` implementado:**
+- `COMMUNICATION_MODE=manual` — gera `CommunicationLog` + link `wa.me` (Planner)
+- `COMMUNICATION_MODE=whatsapp_api` — chama `enqueueAndSend()` de `src/lib/queue.ts` e registra `CommunicationLog` como audit trail (Executor)
+
+**Arquivo alterado:**
+- `src/services/communication/communicationService.ts` — reescrito completamente
+
+**Impacto técnico:**
+- Tela `/comunicacoes` (motor manual) e cron (`/api/cron`) agora compartilham a mesma fonte de regras
+- Trocar `COMMUNICATION_MODE` para `whatsapp_api` ativa o envio real sem nenhuma outra alteração de código
+- `collectionRules.ts` permanece como fallback e não foi removido
+
+**Pendências:** Nenhuma. O hook está funcional. Para ativar o modo real, basta setar `COMMUNICATION_MODE=whatsapp_api` e garantir que as variáveis `WHATSAPP_ACCESS_TOKEN` e `WHATSAPP_PHONE_NUMBER_ID` estejam configuradas.
