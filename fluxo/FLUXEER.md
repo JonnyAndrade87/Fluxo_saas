@@ -810,4 +810,77 @@ Reduzir atrito operacional e melhorar legibilidade funcional nas telas de Comuni
 
 ---
 
-## 12.5 Sprint 5 — UX de Clientes + Histórico (em andamento)
+## 12.5 Sprint 5 — UX de Clientes + Histórico
+
+**Data:** Abril 2026  
+**Status:** ✅ Concluída  
+**Commit:** `3a781c4`
+
+### Objetivo
+Melhorar legibilidade, priorização visual, navegação operacional e responsividade das telas de Clientes e Histórico, mantendo o padrão refinado das Sprints anteriores.
+
+### O que foi feito
+
+#### `ClientesClient.tsx` — rewrite completo
+
+**Header e container:**
+- `Card/CardHeader/CardContent premium-card` e tag pill "CRM Central" removidos
+- `h1` sem `font-heading`/`text-obsidian`, botão `bg-indigo-600 rounded-xl`
+- Filtros integrados ao topo do container da tabela (border-b), sem wrapper flutuante
+
+**Tabela responsiva:**
+- `min-w-[700px]` + `overflow-x-auto` — sem quebra em qualquer resolução
+- Coluna Contato: `hidden md:table-cell`
+- Colunas LTV e Exposição: `hidden sm:table-cell`
+- Coluna Status: `hidden lg:table-cell`
+- Nova coluna com `ChevronRight` como indicador visual de interação por linha
+
+**Dados de risco:**
+- Badge `riskBadgeCls()` compacto + `riskScoreColor()` no score numérico abaixo do badge
+- Elimina coluna redundante de `riskJustification` (vai para o drawer)
+- Exposição: chip semântico `rose` (com valor em atraso) ou `emerald` ("Limpo")
+
+**Empty state B2B:**
+- Ícone `Users`, título "Nenhum cliente encontrado", CTA "Ajuste os filtros ou cadastre o primeiro cliente"
+
+**Drawer — redesign sem dark header:**
+- Header `bg-[#050B14]` substituído por header branco com avatar `Building2` + nome/doc/badges
+- KPI strip: 3 cards grid (`A Receber` / `Em Atraso` / `LTV`)
+- Bloco de risco: funções helper `riskDrawerCls()` + `riskBadgeCls()` + `riskScoreColor()` aplicadas
+- Caixa de recomendação e fatores de composição mantidos com melhor tipografia
+- Faturas recentes: dots coloridos + status em PT + valor por estado (pago/atrasado/a vencer)
+- Footer: `bg-indigo-600` + `rounded-xl`, sem `btn-beam` nem `bg-fluxeer-blue`
+
+#### `HistoricoClient.tsx` — melhorias pontuais
+
+**Design system:**
+- `bg-fluxeer-blue` → `bg-indigo-600` nos filtros de status e tabs
+
+**EmptyState:**
+- Prop `sub` adicionada para texto contextual diferente por tela
+- "Selecione um cliente": sub explicativo adicionado
+- Timeline vazia: sub "Envie uma comunicação, registre uma nota ou promessa para começar"
+
+**Quick stats (painel direito):**
+- Números soltos → pills com `bg-rose-50/border-rose-100`, `bg-amber-50`, `bg-emerald-50`
+- Mais compactos e com contexto cromático claro
+
+**Header do painel direito:**
+- `font-heading/text-obsidian/text-muted-foreground` → tokens slate nativos
+
+**Timeline — separadores de data:**
+- A cada mudança de dia entre eventos, exibe linha + data (`seg, 14 abr`) centralizada
+- Torna o fluxo temporal explícito e auditável
+
+**Lógica corrigida:**
+- Contador "A Vencer" corrigido para excluir vencidas (`!includes('Vencida')`), em vez de filtrar pela string 'Em dia' que não existia consistentemente
+
+### Decisões de design
+- Drawer sem fundo dark mantém o padrão B2B sóbrio e evita contraste excessivo num painel lateral
+- Separadores de data na timeline são o padrão SaaS operacional para auditabilidade (Slack, Linear, Intercom)
+- Funções `riskBadgeCls/riskScoreColor/riskDrawerCls` isoladas como helpers mantêm consistência sem duplicação
+
+### Arquivos alterados
+- `src/app/(dashboard)/clientes/ClientesClient.tsx`
+- `src/app/(dashboard)/historico/HistoricoClient.tsx`
+- `FLUXEER.md`
