@@ -8,22 +8,25 @@ export interface OnboardingStep {
   id: string;
   label: string;
   description: string;
-  href: string;       // navigation target
+  href: string;
+  /** Destination label for the CTA button */
+  cta: string;
   completed: boolean;
 }
 
 export interface OnboardingStatus {
-  /** true = tenant has completed ALL steps → hide the card */
   isComplete: boolean;
-  /** 0–4 */
   completedCount: number;
+  totalSteps: number;
+  progressPct: number;
   steps: OnboardingStep[];
+  /** Next single step the user should focus on */
+  nextStep: OnboardingStep | null;
 }
 
 export async function getOnboardingStatus(): Promise<OnboardingStatus> {
   const session = await auth();
 
-  // Redirect unauthenticated users to login
   if (!session?.user) {
     redirect('/login');
   }
@@ -31,68 +34,73 @@ export async function getOnboardingStatus(): Promise<OnboardingStatus> {
   const tenantId = session.user.tenantId;
 
   if (!tenantId) {
-    // User authenticated but no tenant - redirect to onboarding (they should be here)
-    // This shouldn't happen if the auth flow is correct, but just in case
     redirect('/onboarding');
   }
 
-  // Single parallel round-trip: three cheap COUNT queries
-  const [customerCount, invoiceCount, commLogCount] = await Promise.all([
+  // Single parallel round-trip: 3 cheap COUNT + 1 findFirst
+  const [customerCount, invoiceCount, activeBillingFlow] = await Promise.all([
     prisma.customer.count({ where: { tenantId } }),
     prisma.invoice.count({ where: { tenantId } }),
-    prisma.communicationLog.count({ where: { tenantId, status: { in: ['sent', 'pending'] } } }),
+    prisma.billingFlow.findFirst({
+      where: { tenantId, isActive: true },
+      select: { id: true },
+    }),
   ]);
 
-  const hasCustomer = customerCount > 0;
-  const hasInvoice  = invoiceCount  > 0;
-  const hasComm     = commLogCount  > 0;
+  const hasCustomer     = customerCount > 0;
+  const hasInvoice      = invoiceCount > 0;
+  const hasBillingFlow  = !!activeBillingFlow;
 
-  const steps = buildSteps({ hasCustomer, hasInvoice, hasComm });
+  const steps = buildSteps({ hasCustomer, hasInvoice, hasBillingFlow });
   const completedCount = steps.filter(s => s.completed).length;
+  const totalSteps = steps.length;
+  const progressPct = Math.round((completedCount / totalSteps) * 100);
+  const isComplete = completedCount === totalSteps;
+  const nextStep = steps.find(s => !s.completed) ?? null;
 
   return {
-    isComplete: completedCount === steps.length,
+    isComplete,
     completedCount,
+    totalSteps,
+    progressPct,
     steps,
+    nextStep,
   };
 }
 
-// ── Step definitions ─────────────────────────────────────────────────────────
+// ── Step definitions ──────────────────────────────────────────────────────────
+// Maturidade operacional da beta: cliente + fatura + régua ativa
+// WhatsApp/Meta é next step recomendado — NÃO é bloqueador do dashboard.
 
 function buildSteps(flags: {
   hasCustomer: boolean;
   hasInvoice: boolean;
-  hasComm: boolean;
+  hasBillingFlow: boolean;
 }): OnboardingStep[] {
   return [
     {
       id: 'create_customer',
-      label: 'Cadastrar primeiro cliente',
+      label: 'Cadastre o primeiro cliente',
       description: 'Adicione um sacado para começar o fluxo de cobrança.',
       href: '/clientes',
+      cta: 'Ir para Clientes',
       completed: flags.hasCustomer,
     },
     {
       id: 'create_invoice',
-      label: 'Emitir primeira fatura',
-      description: 'Registre um recebível vinculado ao cliente.',
+      label: 'Registre uma fatura',
+      description: 'Cadastre um título a receber ou importe via planilha CSV.',
       href: '/cobrancas',
+      cta: 'Ir para Cobranças',
       completed: flags.hasInvoice,
     },
     {
-      id: 'view_comms',
-      label: 'Abrir a Central de Comunicações',
-      description: 'Veja as comunicações geradas pelo motor de cobrança.',
-      href: '/comunicacoes',
-      completed: flags.hasComm,
-    },
-    {
-      id: 'understand_flow',
-      label: 'Entender o fluxo de cobrança',
-      description: 'Consulte o histórico de ações do sistema para um cliente.',
-      href: '/historico',
-      // This step completes automatically once communication logs exist
-      completed: flags.hasComm,
+      id: 'configure_billing_flow',
+      label: 'Configure a régua de cobrança',
+      description: 'Defina quando e como o sistema vai contatar seus clientes automaticamente.',
+      href: '/automacao',
+      cta: 'Configurar Régua',
+      completed: flags.hasBillingFlow,
     },
   ];
 }

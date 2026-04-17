@@ -26,9 +26,8 @@ import {
 import { getDashboardMetrics } from "@/actions/dashboard"
 import { getOnboardingStatus } from "@/actions/onboarding"
 import DashboardChart from "./DashboardChart"
-import OnboardingChecklist from "@/components/onboarding/OnboardingChecklist"
+import OnboardingSetup from "@/components/onboarding/OnboardingSetup"
 import { CashForecast } from "@/components/dashboard/CashForecast"
-import WelcomeModal from "@/components/dashboard/WelcomeModal"
 
 const fmt = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const formatCurrency = (val: number) => fmt.format(val).replace('R$\u00a0', '').replace('R$ ', '').trim();
@@ -59,23 +58,25 @@ const AGING_COLORS = [
 ];
 
 export default async function Dashboard() {
-  const [metrics, onboardingStatus] = await Promise.all([
-    getDashboardMetrics(),
-    getOnboardingStatus(),
-  ]);
+  const onboardingStatus = await getOnboardingStatus();
 
+  // ── Tela de Setup Dedicada ───────────────────────────────────────────────
+  // Exibida enquanto o tenant não atingiu a maturidade operacional mínima:
+  // 1 cliente | 1 fatura | 1 régua ativa
+  if (!onboardingStatus.isComplete) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-10 sm:py-14">
+        <OnboardingSetup status={onboardingStatus} />
+      </div>
+    );
+  }
+
+  // ── Dashboard Completo (só carrega quando setup concluído) ──────────────
+  const metrics = await getDashboardMetrics();
   const totalAgingAmount = metrics.agingDistribution.reduce((s, b) => s + b.amount, 0);
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12">
-
-      {/* ── Modal de Boas-vindas (detecta ?welcome=1 após onboarding) ── */}
-      <WelcomeModal />
-
-      {/* ── Onboarding Checklist (hidden once complete or dismissed) ──── */}
-      {!onboardingStatus.isComplete && (
-        <OnboardingChecklist status={onboardingStatus} />
-      )}
 
       {/* Critical Alerts Banner */}
       {metrics.criticalAlerts.length > 0 && (
