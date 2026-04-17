@@ -8,6 +8,8 @@ import {
   isBillingLimitExceededError,
   type TenantLimitGuard,
 } from '@/lib/billing/limits';
+import { normalizeInvoiceStatus } from '@/lib/invoice-normalizer';
+
 
 export type ParsedReceivable = {
   customerName: string;
@@ -190,14 +192,10 @@ export async function importReceivables(data: ParsedReceivable[]): Promise<Impor
       }
 
       // ── Create Invoice ─────────────────────────────────────────────────────────
-      const statusMap: Record<string, string> = {
-        paid: 'PAID',
-        pago: 'PAID',
-        canceled: 'CANCELED',
-        cancelado: 'CANCELED',
-        cancelada: 'CANCELED',
-      };
-      const invoiceStatus = (row.status && statusMap[row.status.toLowerCase()]) || 'OPEN';
+      // Usa invoice-normalizer como única fonte de verdade de status.
+      // Nenhum payload de CSV pode injetar status inválido no banco.
+      const invoiceStatus = normalizeInvoiceStatus(row.status);
+
 
       await prisma.invoice.create({
         data: {
