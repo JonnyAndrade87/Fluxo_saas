@@ -658,3 +658,105 @@ const invoiceStatus = normalizeInvoiceStatus(row.status);
 ## ✅ Tarefa Encerrada
 
 Todos os riscos arquiteturais identificados na seção 10 foram resolvidos ou mitigados com implementação real de código, documentação e testes. Zero itens em aberto.
+
+---
+
+## 12. Melhorias da Versão Beta (Sprints 1–3)
+
+> Ciclo de polimento de produto focado em experiência real de uso, clareza operacional e percepção de produto maduro.
+
+---
+
+### 12.1 Sprint 1 — Setup Screen (Onboarding Dedicado)
+
+**O que foi feito:**
+- Substituído o `WelcomeModal` e o `OnboardingChecklist` flutuante por uma **tela de Setup dedicada** (`OnboardingSetup.tsx`).
+- O Dashboard completo só carrega **após o setup concluído** — antecipando a checagem de onboarding antes de métricas pesadas.
+- Definido critério de **maturidade operacional**: 1 cliente + 1 fatura + 1 régua ativa.
+- WhatsApp como "próximo nível recomendado" — **nunca como bloqueador**.
+
+**Por que foi feito:**
+- Modal é efêmero; o operador beta precisa de uma tela persistente, retomável e orientada a progresso.
+- Separar o carregamento do dashboard do onboarding melhora performance e clareza.
+
+**Impacto esperado:**
+- Redução de atrito no primeiro acesso.
+- Tempo até o "primeiro valor" menor e mais guiado.
+- Performance: `getDashboardMetrics()` não é chamado enquanto o tenant não está maduro.
+
+**Arquivos alterados:**
+- `src/actions/onboarding.ts` — 3 passos com `progressPct`, `nextStep`, `cta` por step
+- `src/components/onboarding/OnboardingSetup.tsx` — [NOVO] tela de setup dedicada
+- `src/app/(dashboard)/page.tsx` — bifurcação Setup vs. Dashboard
+
+---
+
+### 12.2 Sprint 2 — Dashboard Acionável e Empty States B2B
+
+**O que foi feito:**
+- Criado `ActionsBanner.tsx`: bloco de "Ações Recomendadas" derivado 100% de dados reais (max 5, priorizados por criticidade: `high > medium > low`).
+- KPIs restruturados: **4 primários** (valores monetários em destaque) + **4 secundários** (pills de indicadores operacionais).
+- Page header simplificado — removidos badges decorativos e `"Cockpit Financeiro"`.
+- Empty states B2B em todos os blocos: ícone Lucide + título forte + texto curto + CTA onde útil.
+- Status de comunicações traduzidos para PT (Enviado / Falhou / Pendente / Pulado).
+- Design system unificado: `rounded-2xl/3xl`, `border-slate-200`, `shadow-sm` sistêmico.
+
+**Por que foi feito:**
+- Dashboard deve ser tela de decisão, não só de visualização.
+- Empty states vazios ou com emoji passam sensação de produto incompleto.
+- KPIs com mesma hierarquia visual criam ruído cognitivo.
+
+**Impacto esperado:**
+- Operador identifica ação prioritária em menos de 5 segundos.
+- Telas vazias não confundem o usuário beta.
+- Percepção geral de produto mais maduro e confiável.
+
+**Arquivos alterados:**
+- `src/components/dashboard/ActionsBanner.tsx` — [NOVO] ações recomendadas
+- `src/app/(dashboard)/page.tsx` — KPI hierarchy, empty states, visual polish
+
+---
+
+### 12.3 Sprint 3 — Onboarding Polish + Billing Refinement
+
+**O que foi feito:**
+
+**Onboarding (Setup Screen):**
+- Passo ativo com **borda 2px indigo + ping animado** — dominância visual clara.
+- Passo concluído com chip "✓ Feito" e fundo emerald sobrio.
+- Passo bloqueado com `opacity-50` — comunicação sem ambiguidade.
+- Título dinâmico baseado no estado: "Vamos começar" / "Continue de onde parou" / "Quase lá".
+- `ProgressHeader` extraído como sub-componente; ring SVG menor (64px) para melhor harmonia mobile.
+- Copy revisado: mais objetivo e mais forte.
+
+**Planos / Billing:**
+- `CurrentPlanSummary`: bloco dedicado com plano atual, status badge semântico (cor por status) e barras de uso `UsageBar` (verde → amarelo → vermelho por percentual de uso).
+- `PlanCard` extraído como componente isolado — mais manutenível.
+- `UsageBar`: barras de uso com threshold de warning (80%) e crítico (95%).
+- `CapacityGrid` dentro do card com ícones Lucide por métrica.
+- "Mais popular" como badge **flutuante** acima do card Pro.
+- Toggle Mensal/Anual mais compacto com label "−17%" ao invés de "2 meses grátis" (mensagem de desconto mais clara).
+- Error state B2B limpo: ícone + título + texto sem Card genérico.
+- Paleta migrada de `teal` para `indigo` (alinhado ao design system do sistema).
+
+**Por que foi feito:**
+- Setup screen precisava de dominância visual mais clara para o próximo passo.
+- Tela de billing parecia desconectada do produto — sem contexto de uso atual.
+- Usuário sem informação de "quanto já usei" não entende quando fazer upgrade.
+
+**Impacto esperado:**
+- Operador completa o setup sem dúvida sobre qual é o próximo passo.
+- Decisão de upgrade baseada em dados reais de uso, não só em preço.
+- Percepção de billing como parte nativa do produto, não bloco isolado.
+
+**Arquivos alterados:**
+- `src/components/onboarding/OnboardingSetup.tsx` — polish completo
+- `src/app/(dashboard)/planos/PlanosClient.tsx` — billing refinement
+
+---
+
+### O que ficou intencionalmente para v1.0
+- Skeletons de loading nos cards do dashboard (não crítico para beta com SSR).
+- Responsividade avançada das tabelas de Cobranças e Clientes (Sprint 4+).
+- Tela de Comunicações/Fila com feedback contextual de falhas (Sprint 4+).
+- Fluxo de importação de CSV com validação visual por linha (Sprint 4+).
