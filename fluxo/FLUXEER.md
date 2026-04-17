@@ -438,12 +438,12 @@ Esta subseção é recomendação operacional baseada na arquitetura encontrada.
 | Alta | Dois motores de comunição coexistiam sem contrato unificado | `src/services/communication/communicationService.ts`, `src/lib/queue.ts`, `src/actions/communicationLog.actions.ts`, `src/app/api/cron/route.ts` | Alto risco de drift funcional e duplicação de regras | Escolher arquitetura oficial de mensageria e rebaixar a outra para adapter ou modo explícito. | ✅ Resolvido em 17/04/2026 — fonte única de verdade implementada via `billing-flow.ts`. Hook `whatsapp_api` ativado. Ver seção 11.3. |
 | Baixa | Payloads da régua que bypassarem o helper compartilhado podem reintroduzir drift | `src/lib/billing-flow.ts`, `src/actions/automation.ts`, `src/app/api/cron/route.ts` | Reaparecimento de divergência entre UI, persistência e cron | Manter `normalizeBillingFlowConfig()` como ponto único de entrada e ampliar testes se surgirem novas etapas. | - |
 | Alta | Ambiguidade de envs críticas | `AUTH_SECRET` vs `NEXTAUTH_SECRET`, `RESEND_FROM_EMAIL` vs `RESEND_AUTH_FROM_EMAIL`, Meta vs Z-API | Deploys inconsistentes e troubleshooting lento | Padronizar envs oficiais e limpar legado em `.env.example`, Docker e docs. | ✅ Corrigido em 16/04/2026 - .env.example atualizado, docker-compose limpo, NEXTAUTH_SECRET marcado como deprecated |
-| Média | Vocabulário de status ainda está fragmentado fora dos relatórios | `src/actions/dashboard.ts`, `src/app/(dashboard)/historico/HistoricoClient.tsx` e outros pontos ainda convivem com strings herdadas | Novas métricas e filtros podem divergir do schema mesmo com os relatórios já corrigidos | Continuar a migração para a nomenclatura real do schema e extrair uma fonte única de status de invoice. | - |
+| Média | Vocabulário de status ainda está fragmentado fora dos relatórios | `src/actions/dashboard.ts`, `src/app/(dashboard)/historico/HistoricoClient.tsx` e outros pontos ainda convivem com strings herdadas | Novas métricas e filtros podem divergir do schema mesmo com os relatórios já corrigidos | Continuar a migração para a nomenclatura real do schema e extrair uma fonte única de status de invoice. | ✅ Resolvido em 17/04/2026 — `INVOICE_STATUS` em `HistoricoClient.tsx` alinhado com schema Prisma (OPEN/PROMISE_TO_PAY/PAID/CANCELED). Ver seção 11.4. |
 | Média | Enforcement de permissão é parcial e misto | `PERMISSIONS_MATRIX` não é a única fonte de verdade | Regras de acesso podem divergir entre telas e actions | Migrar mutações para política declarativa única. | ✅ Corrigido em 16/04/2026 - migrado billing.ts, customers.ts, users.ts para hasPermission() |
 | Média | N+1 de score de risco em telas analíticas | `src/actions/customers.ts`, `src/actions/dashboard.ts`, `src/actions/reports-extended.ts` | Escalabilidade ruim com tenants maiores | Materializar score ou calcular em batch. | ✅ Resolvido em 17/04/2026 — `getRiskScoresBatch()` implementado: 2 queries fixas independente do N. Ver seção 11.3. |
-| Média | Scheduler operacional não está versionado no repositório | Não há `crons` em `vercel.json` nem workflow para isso | Operação depende de conhecimento externo não documentado | Versionar scheduler ou documentar fonte oficial do acionamento. | - |
+| Média | Scheduler operacional não estava versionado no repositório | Não havia `crons` em `vercel.json` nem workflow para isso | Operação depende de conhecimento externo não documentado | Versionar scheduler ou documentar fonte oficial do acionamento. | ✅ Resolvido anteriormente — `vercel.json` já contém os dois crons (`/api/cron` e `/api/send-queue`) agendados `0 8 * * 1-5`. Horário respeitado também no dispatch. Ver seção 11.4. |
 | Média | Testes E2E de billing estavam defasados da UI real | `e2e/billing.spec.ts` vs `/planos` atual | CI falsa, cobertura enganosa | Regravar E2E conforme o fluxo atual. | ✅ Resolvido em 17/04/2026 — 3/3 testes passando com login real, usuário E2E real e fixtures de billing isoladas. Ver seção 11.2. |
-| Média | Drift entre código e configs auxiliares | `docker-compose.yml`, `src/constants/index.ts`, `vercel.json` | Time novo pode configurar integrações erradas | Revisão de config por domínio e remoção de legado. | - |
+| Média | Drift entre código e configs auxiliares | `docker-compose.yml`, `src/constants/index.ts`, `vercel.json` | Time novo pode configurar integrações erradas | Revisão de config por domínio e remoção de legado. | ✅ Resolvido em 17/04/2026 — `verifyZapiSignature()` marcada como `@deprecated` e lógica Z-API removida de `webhookVerify.ts`. Ver seção 11.4. |
 | Baixa | Helpers e caminhos pouco usados seguem no repositório | `src/lib/server-action-auth.ts`, `src/components/layout/ClientAuthGuard.tsx` | Complexidade acidental e confusão de onboarding técnico | Remover, consolidar ou marcar como legado. | - |
 
 Conclusão objetiva:
@@ -549,3 +549,63 @@ O `communicationService.ts` agora lê a `BillingFlowConfig` ativa do tenant via 
 - `collectionRules.ts` permanece como fallback e não foi removido
 
 **Pendências:** Nenhuma. O hook está funcional. Para ativar o modo real, basta setar `COMMUNICATION_MODE=whatsapp_api` e garantir que as variáveis `WHATSAPP_ACCESS_TOKEN` e `WHATSAPP_PHONE_NUMBER_ID` estejam configuradas.
+
+---
+
+### 11.4 Correções de Prioridade Média (Abril 2026)
+- **Status**: Concluído com Sucesso.
+- **Commit**: `0058494`
+
+#### 1 — Fragmentação de Status de Fatura
+
+**Causa raiz:** `INVOICE_STATUS` em `src/app/(dashboard)/historico/HistoricoClient.tsx` usava chaves legadas (`pending`, `overdue`, `in_negotiation`, `draft`) que nunca existiram no schema Prisma real.
+
+**Correção:** Mapa substituido com os quatro valores reais do banco:
+```typescript
+OPEN           → 'A Vencer'
+PROMISE_TO_PAY → 'Promessa'
+PAID           → 'Paga'
+CANCELED       → 'Cancelada'
+```
+Comentário de documentação adicionado para onboarding de novos devs.
+
+**Arquivo alterado:** `src/app/(dashboard)/historico/HistoricoClient.tsx`
+
+---
+
+#### 2 — Drift Z-API vs Meta Cloud API
+
+**Causa raiz:** `verifyZapiSignature()` em `src/lib/webhookVerify.ts` ainda rodava lógica ativa de HMAC e token de cabecalho Z-API, criando confusão sobre qual sistema de webhook estava em uso.
+
+**Correção:**
+- Lógica Z-API completamente removida da função
+- Função marcada `@deprecated` com mensagem explícita
+- Retorna `always-invalid` com mensagem: `"[DEPRECATED] Z-API foi substituída pela Meta Cloud API"`
+- Mantida no arquivo para evitar quebra nos testes legados
+
+**Arquivo alterado:** `src/lib/webhookVerify.ts`
+
+**Próximo passo (opcional):** Remover `verifyZapiSignature()` e o teste correspondente em `webhookVerify.test.ts` quando houver janela de manutenção.
+
+---
+
+#### 3 — Horário da Régua Ignorado pelo Cron
+
+**Causa raiz:** A UI permite configurar `stage.time` (ex: `"10:00"`) para cada etapa, mas `shouldFire` no cron só comparava `diffDays === stageDays` — o campo de horário era completamente ignorado.
+
+**Correção:**
+```typescript
+// Antes:
+const shouldFire = diffDays === stageDays;
+
+// Depois:
+const dayMatches = diffDays === stageDays;
+const timeMatches = Math.abs(currentTotalMinutes - stageMinutes) <= 30;
+const shouldFire = dayMatches && timeMatches;
+```
+- Janela de tolerância: ±30 minutos do horário configurado (evita miss quando o cron roda alguns minutos após o agendado)
+- Fallback: se `stage.time` não estiver definido, `timeMatches = true` (retrocompatível)
+- Horário lido em fuso `America/Sao_Paulo` (correto para operações brasileiras)
+- Log do horário atual adicionado para facilitar depuração
+
+**Arquivo alterado:** `src/app/api/cron/route.ts`
