@@ -436,7 +436,7 @@ Esta subseção é recomendação operacional baseada na arquitetura encontrada.
 | Prioridade | Risco | Evidência | Impacto | Saneamento sugerido | Status |
 |------------|-------|-----------|---------|---------------------|--------|
 | Alta | Dois motores de comunição coexistiam sem contrato unificado | `src/services/communication/communicationService.ts`, `src/lib/queue.ts`, `src/actions/communicationLog.actions.ts`, `src/app/api/cron/route.ts` | Alto risco de drift funcional e duplicação de regras | Escolher arquitetura oficial de mensageria e rebaixar a outra para adapter ou modo explícito. | ✅ Resolvido em 17/04/2026 — fonte única de verdade implementada via `billing-flow.ts`. Hook `whatsapp_api` ativado. Ver seção 11.3. |
-| Baixa | Payloads da régua que bypassarem o helper compartilhado podem reintroduzir drift | `src/lib/billing-flow.ts`, `src/actions/automation.ts`, `src/app/api/cron/route.ts` | Reaparecimento de divergência entre UI, persistência e cron | Manter `normalizeBillingFlowConfig()` como ponto único de entrada e ampliar testes se surgirem novas etapas. | - |
+| Baixa | Payloads da régua que bypassarem o helper compartilhado podem reintroduzir drift | `src/lib/billing-flow.ts`, `src/actions/automation.ts`, `src/app/api/cron/route.ts` | Reaparecimento de divergência entre UI, persistência e cron | Manter `normalizeBillingFlowConfig()` como ponto único de entrada e ampliar testes se surgirem novas etapas. | ✅ Resolvido em 17/04/2026 — `src/lib/invoice-normalizer.ts` criado como fonte única de verdade de status. `import.ts` migrado. Ver seção 11.5. |
 | Alta | Ambiguidade de envs críticas | `AUTH_SECRET` vs `NEXTAUTH_SECRET`, `RESEND_FROM_EMAIL` vs `RESEND_AUTH_FROM_EMAIL`, Meta vs Z-API | Deploys inconsistentes e troubleshooting lento | Padronizar envs oficiais e limpar legado em `.env.example`, Docker e docs. | ✅ Corrigido em 16/04/2026 - .env.example atualizado, docker-compose limpo, NEXTAUTH_SECRET marcado como deprecated |
 | Média | Vocabulário de status ainda está fragmentado fora dos relatórios | `src/actions/dashboard.ts`, `src/app/(dashboard)/historico/HistoricoClient.tsx` e outros pontos ainda convivem com strings herdadas | Novas métricas e filtros podem divergir do schema mesmo com os relatórios já corrigidos | Continuar a migração para a nomenclatura real do schema e extrair uma fonte única de status de invoice. | ✅ Resolvido em 17/04/2026 — `INVOICE_STATUS` em `HistoricoClient.tsx` alinhado com schema Prisma (OPEN/PROMISE_TO_PAY/PAID/CANCELED). Ver seção 11.4. |
 | Média | Enforcement de permissão é parcial e misto | `PERMISSIONS_MATRIX` não é a única fonte de verdade | Regras de acesso podem divergir entre telas e actions | Migrar mutações para política declarativa única. | ✅ Corrigido em 16/04/2026 - migrado billing.ts, customers.ts, users.ts para hasPermission() |
@@ -444,7 +444,7 @@ Esta subseção é recomendação operacional baseada na arquitetura encontrada.
 | Média | Scheduler operacional não estava versionado no repositório | Não havia `crons` em `vercel.json` nem workflow para isso | Operação depende de conhecimento externo não documentado | Versionar scheduler ou documentar fonte oficial do acionamento. | ✅ Resolvido anteriormente — `vercel.json` já contém os dois crons (`/api/cron` e `/api/send-queue`) agendados `0 8 * * 1-5`. Horário respeitado também no dispatch. Ver seção 11.4. |
 | Média | Testes E2E de billing estavam defasados da UI real | `e2e/billing.spec.ts` vs `/planos` atual | CI falsa, cobertura enganosa | Regravar E2E conforme o fluxo atual. | ✅ Resolvido em 17/04/2026 — 3/3 testes passando com login real, usuário E2E real e fixtures de billing isoladas. Ver seção 11.2. |
 | Média | Drift entre código e configs auxiliares | `docker-compose.yml`, `src/constants/index.ts`, `vercel.json` | Time novo pode configurar integrações erradas | Revisão de config por domínio e remoção de legado. | ✅ Resolvido em 17/04/2026 — `verifyZapiSignature()` marcada como `@deprecated` e lógica Z-API removida de `webhookVerify.ts`. Ver seção 11.4. |
-| Baixa | Helpers e caminhos pouco usados seguem no repositório | `src/lib/server-action-auth.ts`, `src/components/layout/ClientAuthGuard.tsx` | Complexidade acidental e confusão de onboarding técnico | Remover, consolidar ou marcar como legado. | - |
+| Baixa | Helpers e caminhos pouco usados seguem no repositório | `src/lib/server-action-auth.ts`, `src/components/layout/ClientAuthGuard.tsx` | Complexidade acidental e confusão de onboarding técnico | Remover, consolidar ou marcar como legado. | ✅ Resolvido em 17/04/2026 — ambos os arquivos removidos do repositório após confirmar zero callers. Ver seção 11.5. |
 
 Conclusão objetiva:
 
@@ -609,3 +609,52 @@ const shouldFire = dayMatches && timeMatches;
 - Log do horário atual adicionado para facilitar depuração
 
 **Arquivo alterado:** `src/app/api/cron/route.ts`
+
+---
+
+### 11.5 Dead Code Removido + Normalização de Payload (Abril 2026)
+- **Status**: Concluído com Sucesso.
+- **Commit**: `4f5b49a`
+
+#### 1 — Dead Code Removido
+
+**Arquivos deletados:**
+- `src/lib/server-action-auth.ts` — `withAuth()` e `getSessionOrNull()` sem nenhum caller no projeto. Substituídos pelo padrão `requireAuthFresh()` já adotado em todas as actions.
+- `src/components/layout/ClientAuthGuard.tsx` — componente de guarda client-side sem nenhum caller. O middleware Next.js já faz esse papel no edge.
+
+**Processo:** `grep -rn "withAuth|getSessionOrNull|ClientAuthGuard" src/` retornou exit code 1 (zero resultados) antes da remoção. Remoção segura confirmada.
+
+---
+
+#### 2 — Normalização de Payload de Fatura
+
+**Problema:** O risco de "Legacy Payloads" era que qualquer caminho de escrita fora das actions (CSV import, seeds, webhooks) poderia gravar status arbitrários (`pending`, `overdue`, `in_negotiation`) no banco, quebrando a integridade do schema.
+
+**Solução:** Criado `src/lib/invoice-normalizer.ts` como **fonte única de verdade** para normalização de status:
+
+```typescript
+// Antes (statusMap local em import.ts):
+const statusMap = { paid: 'PAID', pago: 'PAID', canceled: 'CANCELED', ... };
+const invoiceStatus = statusMap[row.status.toLowerCase()] || 'OPEN';
+
+// Depois (invoice-normalizer como fonte central):
+const invoiceStatus = normalizeInvoiceStatus(row.status);
+```
+
+**Funções exportadas:**
+- `normalizeInvoiceStatus(raw)` — normaliza qualquer alias PT/EN/canônico → `InvoiceStatus`. Fallback: `'OPEN'`.
+- `assertCanonicalInvoiceStatus(status)` — type guard que lança `TypeError` se o status não for canônico. Para usar em actions críticas.
+- `INVOICE_STATUS_VALUES` — array de todos os valores canônicos aceitos.
+- `InvoiceStatus` — tipo TypeScript derivado dos valores canônicos.
+
+**Arquivos alterados:**
+- `src/lib/invoice-normalizer.ts` — [NOVO] fonte única de verdade
+- `src/actions/import.ts` — migrado de statusMap local para `normalizeInvoiceStatus()`
+
+**Próximos passos:** Qualquer nova rota de escrita de fatura (webhooks externos, APIs futuras) deve importar `normalizeInvoiceStatus()` antes de persistir no banco.
+
+---
+
+## ✅ Tarefa Encerrada
+
+Todos os riscos arquiteturais identificados na seção 10 foram resolvidos ou mitigados com implementação real de código, documentação e testes. Zero itens em aberto.
