@@ -60,6 +60,24 @@ export default function QueueClient({ initialStats, initialDlqItems }: Props) {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Fila de Envíio</h1>
+          <p className="text-slate-500 text-sm mt-1">
+            Monitor da fila de mensagens — gerencie falhas e reprocesse itens bloqueados.
+          </p>
+        </div>
+        <button
+          onClick={refresh}
+          disabled={isPending}
+          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-xl border border-slate-200 text-slate-700 hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-700 transition-all shadow-sm disabled:opacity-50"
+        >
+          {isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+          Atualizar
+        </button>
+      </div>
+
       {/* Toast */}
       {message && (
         <div className={`px-4 py-3 rounded-xl text-sm font-semibold border ${
@@ -72,94 +90,102 @@ export default function QueueClient({ initialStats, initialDlqItems }: Props) {
       )}
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {KPI_CARDS.map(card => (
           <div
             key={card.label}
-            className={`rounded-2xl border p-4 bg-white shadow-sm ${card.highlight ? 'border-rose-300 ring-1 ring-rose-200' : 'border-border'}`}
+            className={`flex items-center gap-3 rounded-2xl border p-4 bg-white ${
+              card.highlight ? 'border-rose-300 ring-1 ring-rose-200' : 'border-slate-200'
+            }`}
           >
-            <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-3 ${card.bg} ${card.color}`}>
+            <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${card.bg} ${card.color}`}>
               {card.icon}
             </div>
-            <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide">{card.label}</p>
-            <p className={`text-2xl font-extrabold mt-1 ${card.highlight ? 'text-rose-600' : 'text-obsidian'}`}>{card.value}</p>
+            <div>
+              <p className={`text-lg font-black tabular-nums ${card.highlight ? 'text-rose-600' : 'text-slate-900'}`}>
+                {card.value}
+              </p>
+              <p className="text-[10px] text-slate-400 font-medium leading-tight">{card.label}</p>
+            </div>
           </div>
         ))}
       </div>
 
-      {/* Refresh button */}
+      {/* DLQ section */}
       <div className="flex items-center justify-between">
-        <h2 className="text-base font-bold text-obsidian">Dead-Letter Queue (DLQ)</h2>
-        <button
-          onClick={refresh}
-          disabled={isPending}
-          className="flex items-center gap-2 px-4 py-2 text-[13px] font-semibold rounded-xl border border-border hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-700 transition-all shadow-sm disabled:opacity-50"
-        >
-          {isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
-          Atualizar
-        </button>
+        <div>
+          <h2 className="text-base font-bold text-slate-900">Fila Morta (DLQ)</h2>
+          <p className="text-xs text-slate-400 mt-0.5">
+            Mensagens que falharam após todas as tentativas. Reprocesse ou descarte manualmente.
+          </p>
+        </div>
       </div>
 
       {/* DLQ Table */}
       {dlqItems.length === 0 ? (
-        <div className="rounded-2xl border border-border bg-white p-12 text-center">
-          <CheckCircle2 className="w-8 h-8 mx-auto mb-3 text-emerald-500 opacity-60" />
-          <p className="font-semibold text-obsidian">DLQ está vazia</p>
-          <p className="text-sm text-muted-foreground mt-1">Nenhuma mensagem com falha permanente.</p>
+        <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center">
+          <CheckCircle2 className="w-8 h-8 mx-auto mb-3 text-emerald-400" />
+          <p className="text-sm font-semibold text-slate-800">Fila morta está vazia</p>
+          <p className="text-xs text-slate-400 mt-1">Nenhuma mensagem com falha permanente. Sistema operando normalmente.</p>
         </div>
       ) : (
-        <div className="rounded-2xl border border-border bg-white overflow-hidden shadow-sm">
-          <table className="w-full text-sm">
-            <thead className="bg-[#F4F4F5] border-b border-border">
-              <tr>
-                <th className="px-4 py-3 text-left text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Canal</th>
-                <th className="px-4 py-3 text-left text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Destino</th>
-                <th className="px-4 py-3 text-left text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Tentativas</th>
-                <th className="px-4 py-3 text-left text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Erro</th>
-                <th className="px-4 py-3 text-left text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Data</th>
-                <th className="px-4 py-3 text-left text-[11px] font-bold text-muted-foreground uppercase tracking-wide">Ação</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {dlqItems.map(item => {
-                const meta = item.metadata ? JSON.parse(item.metadata) : {};
-                return (
-                  <tr key={item.id} className="hover:bg-[#FAFAFA] transition-colors">
-                    <td className="px-4 py-3">
-                      <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-indigo-50 text-indigo-700 text-[11px] font-bold">
-                        {CHANNEL_ICON[item.channel as 'email' | 'whatsapp'] ?? null}
-                        {item.channel}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-obsidian font-medium max-w-[160px] truncate">{item.to}</td>
-                    <td className="px-4 py-3">
-                      <span className="font-bold text-rose-600">{item.retryCount}</span>
-                      <span className="text-muted-foreground">/{item.maxRetries}</span>
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground text-[12px] max-w-[200px] truncate" title={item.errorLog ?? ''}>
-                      {item.errorLog ?? '—'}
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground text-[12px]">
-                      {new Date(item.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
-                    </td>
-                    <td className="px-4 py-3">
-                      <button
-                        onClick={() => handleRequeue(item.id)}
-                        disabled={requeueingId === item.id}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-bold rounded-lg bg-fluxeer-blue text-white hover:bg-fluxeer-blue-hover transition-colors disabled:opacity-50"
-                      >
-                        {requeueingId === item.id
-                          ? <Loader2 className="w-3 h-3 animate-spin" />
-                          : <RotateCcw className="w-3 h-3" />
+        <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[540px]">
+              <thead className="bg-slate-50 border-b border-slate-200">
+                <tr>
+                  <th className="px-4 py-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Canal</th>
+                  <th className="px-4 py-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Destino</th>
+                  <th className="px-4 py-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider hidden sm:table-cell">Tentativas</th>
+                  <th className="px-4 py-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider">Erro</th>
+                  <th className="px-4 py-3 text-left text-[10px] font-bold text-slate-400 uppercase tracking-wider hidden md:table-cell">Data</th>
+                  <th className="px-4 py-3 text-right text-[10px] font-bold text-slate-400 uppercase tracking-wider">Ação</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {dlqItems.map(item => {
+                  const meta = item.metadata ? JSON.parse(item.metadata) : {};
+                  return (
+                    <tr key={item.id} className="hover:bg-rose-50/30 transition-colors">
+                      <td className="px-4 py-3">
+                        <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-indigo-50 text-indigo-700 text-[10px] font-bold border border-indigo-100">
+                          {CHANNEL_ICON[item.channel as 'email' | 'whatsapp'] ?? null}
+                          {item.channel}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-slate-800 font-medium text-xs max-w-[160px] truncate">{item.to}</td>
+                      <td className="px-4 py-3 hidden sm:table-cell">
+                        <span className="font-bold text-rose-600">{item.retryCount}</span>
+                        <span className="text-slate-400">/{item.maxRetries}</span>
+                      </td>
+                      <td className="px-4 py-3 text-slate-500 text-xs max-w-[200px] truncate" title={item.errorLog ?? ''}>
+                        {item.errorLog
+                          ? <span className="line-clamp-1">{item.errorLog}</span>
+                          : <span className="text-slate-300">Sem detalhe</span>
                         }
-                        Reprocessar
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                      </td>
+                      <td className="px-4 py-3 text-slate-400 text-xs hidden md:table-cell">
+                        {new Date(item.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <button
+                          onClick={() => handleRequeue(item.id)}
+                          disabled={requeueingId === item.id}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 transition-colors disabled:opacity-50"
+                        >
+                          {requeueingId === item.id
+                            ? <Loader2 className="w-3 h-3 animate-spin" />
+                            : <RotateCcw className="w-3 h-3" />
+                          }
+                          Reprocessar
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>

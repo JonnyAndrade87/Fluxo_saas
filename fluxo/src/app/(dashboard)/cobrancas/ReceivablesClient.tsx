@@ -150,210 +150,191 @@ export default function ReceivablesClient({ initialData, initialTotalPages = 1 }
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500 pb-10">
+    <div className="space-y-6 animate-in fade-in duration-500 pb-10">
       {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-border/50 pb-6">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-heading font-extrabold tracking-tight text-obsidian">Recebíveis</h1>
-          <p className="text-muted-foreground text-sm max-w-lg">
-            Gestão unificada de faturas. Analise o status, filtre por risco e engatilhe ações rápidas.
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Recebíveis</h1>
+          <p className="text-slate-500 text-sm mt-1">
+            Gestão de faturas — analise status, filtre por risco e engatilhe ações.
           </p>
         </div>
-        <Button className="btn-beam shadow-lg rounded-lg overflow-hidden relative group border-none bg-fluxeer-blue text-white hover:bg-fluxeer-blue-hover px-6" onClick={() => window.dispatchEvent(new CustomEvent('open-new-invoice-modal'))}>
-          <span className="relative z-10 flex items-center gap-2 font-semibold">
-            <Plus className="w-4 h-4" /> Nova Cobrança
-          </span>
+        <Button
+          size="sm"
+          className="rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold gap-1.5 shadow-sm"
+          onClick={() => window.dispatchEvent(new CustomEvent('open-new-invoice-modal'))}
+        >
+          <Plus className="w-3.5 h-3.5" /> Nova Cobrança
         </Button>
       </div>
 
-      <Card className="premium-card relative">
-        <CardHeader className="border-b border-border/50 bg-[#FAFAFB]">
-          <CardTitle className="text-base flex items-center gap-2 text-obsidian">
-            <FileText className="w-4 h-4 text-indigo-500" /> Tabela Matriz de Invoices
-          </CardTitle>
-          <CardDescription className="text-xs">
-            Utilize os filtros abaixo para segmentar as categorias de contas a receber.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="pt-6">
-          
-          {/* Filters Bar */}
-          <div className="flex flex-wrap items-start md:items-center justify-between gap-3 mb-6 bg-white p-2 rounded-xl border border-border/40 shadow-sm">
-            <div className="relative w-full md:max-w-xs group">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground group-focus-within:text-indigo-500 transition-colors" />
-              <Input 
-                 type="search" 
-                 placeholder="Buscar cliente ou fatura..." 
-                 className="pl-9 h-10 border-none shadow-none focus-visible:ring-0 bg-transparent" 
-                 value={search}
-                 onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-            
-            <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
-              <div className="flex flex-wrap items-center gap-2">
-                 <Filter className="w-4 h-4 text-muted-foreground hidden sm:block shrink-0" />
-                 <select 
-                   className="text-sm h-9 px-3 rounded-lg border border-border bg-white text-obsidian focus:ring-1 focus:ring-indigo-500 outline-none flex-1 min-w-0"
-                   value={status} onChange={e => setStatus(e.target.value)}
-                 >
-                    <option value="all">Status do Banco: Todos</option>
-                    <option value="OPEN">Ativos (Em Aberto)</option>
-                    <option value="overdue">Atrasados (Apenas Abertos)</option>
-                    <option value="PROMISE_TO_PAY">Em Acordo</option>
-                    <option value="PAID">Liquidados (Pagos)</option>
-                    <option value="CANCELED">Cancelados</option>
-                 </select>
-                 <select 
-                   className="text-sm h-9 px-3 rounded-lg border border-border bg-white text-obsidian focus:ring-1 focus:ring-indigo-500 outline-none flex-1 min-w-0"
-                   value={dateRange} onChange={e => setDateRange(e.target.value)}
-                 >
-                    <option value="all">Período: Completo</option>
-                    <option value="7days">Últimos 7 dias</option>
-                    <option value="last30days">Últimos 30 dias</option>
-                    <option value="next7days">Previsão (7 dias)</option>
-                 </select>
-              </div>
-            </div>
+      {/* Filters + Table */}
+      <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+
+        {/* Filters Bar */}
+        <div className="flex flex-wrap items-center gap-2 p-4 border-b border-slate-100 bg-slate-50/60">
+          <div className="relative flex-1 min-w-[180px]">
+            <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
+            <Input
+              type="search"
+              placeholder="Buscar cliente ou fatura..."
+              className="pl-9 h-9 text-sm border-slate-200 rounded-xl"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
           </div>
-          
-          {/* Table Area */}
-          <div className={`rounded-xl border border-border/60 overflow-hidden bg-white w-full shadow-sm transition-opacity duration-300 ${isPending ? 'opacity-60' : 'opacity-100'}`}>
-            <div className="overflow-x-auto w-full">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-[#FAFAFB] text-muted-foreground text-xs uppercase tracking-wider font-semibold border-b border-border/60">
+          <select
+            className="text-xs h-9 px-3 rounded-xl border border-slate-200 bg-white text-slate-700 focus:ring-1 focus:ring-indigo-500 outline-none"
+            value={status} onChange={e => setStatus(e.target.value)}
+          >
+            <option value="all">Status: Todos</option>
+            <option value="OPEN">Em Aberto</option>
+            <option value="overdue">Atrasados</option>
+            <option value="PROMISE_TO_PAY">Em Acordo</option>
+            <option value="PAID">Pagos</option>
+            <option value="CANCELED">Cancelados</option>
+          </select>
+          <select
+            className="text-xs h-9 px-3 rounded-xl border border-slate-200 bg-white text-slate-700 focus:ring-1 focus:ring-indigo-500 outline-none"
+            value={dateRange} onChange={e => setDateRange(e.target.value)}
+          >
+            <option value="all">Período: Completo</option>
+            <option value="7days">Últimos 7 dias</option>
+            <option value="last30days">Últimos 30 dias</option>
+            <option value="next7days">Previsão (7 dias)</option>
+          </select>
+        </div>
+
+        {/* Table */}
+        <div className={`overflow-x-auto transition-opacity duration-300 ${isPending ? 'opacity-60' : 'opacity-100'}`}>
+          <table className="w-full text-sm text-left min-w-[680px]">
+            <thead className="bg-slate-50 text-slate-400 text-[10px] uppercase tracking-wider font-bold border-b border-slate-200">
+              <tr>
+                <th className="px-5 py-3 hidden sm:table-cell">Documento</th>
+                <th className="px-5 py-3">Cliente</th>
+                <th className="px-5 py-3">Status</th>
+                <th
+                  className="px-5 py-3 cursor-pointer hover:text-indigo-600 transition-colors select-none hidden md:table-cell"
+                  onClick={() => setSortBy(sortBy === 'date_asc' ? 'date_desc' : 'date_asc')}
+                >
+                  <div className="flex items-center gap-1">Vencimento <ArrowUpDown className="w-3 h-3" /></div>
+                </th>
+                <th
+                  className="px-5 py-3 cursor-pointer hover:text-indigo-600 transition-colors select-none text-right"
+                  onClick={() => setSortBy(sortBy === 'value_desc' ? 'value_asc' : 'value_desc')}
+                >
+                  <div className="flex items-center justify-end gap-1">Valor <ArrowUpDown className="w-3 h-3" /></div>
+                </th>
+                <th className="px-5 py-3 text-right">Ação</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 text-slate-800 relative">
+              {invoices.length === 0 && (
                 <tr>
-                  <th className="px-6 py-4">Documento</th>
-                  <th className="px-6 py-4">Cliente</th>
-                  <th className="px-6 py-4">Status Visual</th>
-                  <th 
-                     className="px-6 py-4 cursor-pointer hover:text-indigo-600 transition-colors select-none"
-                     onClick={() => setSortBy(sortBy === 'date_asc' ? 'date_desc' : 'date_asc')}
-                  >
-                    <div className="flex items-center gap-1 text-right justify-end">Vencimento Original <ArrowUpDown className="w-3 h-3" /></div>
-                  </th>
-                  <th 
-                     className="px-6 py-4 cursor-pointer hover:text-indigo-600 transition-colors select-none"
-                     onClick={() => setSortBy(sortBy === 'value_desc' ? 'value_asc' : 'value_desc')}
-                  >
-                    <div className="flex items-center justify-end gap-1">Valor Vigente <ArrowUpDown className="w-3 h-3" /></div>
-                  </th>
-                  <th className="px-6 py-4 text-right">Ação</th>
+                  <td colSpan={6} className="px-5 py-14 text-center">
+                    <FileText className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                    <p className="text-sm font-semibold text-slate-700">Nenhum recebível encontrado</p>
+                    <p className="text-xs text-slate-400 mt-1">Ajuste os filtros ou cadastre uma nova fatura.</p>
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-border/60 text-obsidian relative">
-                {invoices.length === 0 && (
-                   <tr>
-                      <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
-                         Nenhum recebível encontrado com os filtros atuais.
-                      </td>
-                   </tr>
-                )}
-                {invoices.map((item: any) => {
-                  const vStatus = getInvoiceVisualState(item);
-                  const fins = calculateInvoiceFinancials(item);
+              )}
+              {invoices.map((item: any) => {
+                const vStatus = getInvoiceVisualState(item);
+                const fins = calculateInvoiceFinancials(item);
 
-                  return (
-                  <tr key={item.id} className="hover:bg-indigo-50/20 transition-colors group relative cursor-pointer" onClick={(e) => {
-                     // Prevent triggering drawer if clicking action button
-                     if ((e.target as any).closest('.action-btn')) return;
-                     handleSelectInvoice(item);
-                  }}>
-                    <td className="px-6 py-4">
-                      <div className="font-semibold font-mono tracking-tight text-indigo-700">{item.invoiceNumber || item.id.split('-')[0].toUpperCase()}</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="font-semibold text-obsidian ">{item.customer?.name || 'Cliente Genérico'}</div>
-                      <div className="text-xs text-muted-foreground mt-0.5">Doc: {item.customer?.documentNumber || 'N/A'}</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <Badge variant={getBadgeVariant(vStatus) as any} className="px-2.5 py-1 whitespace-nowrap shadow-sm">
-                        {vStatus}
-                      </Badge>
-                      {item.status === 'PROMISE_TO_PAY' && item.promiseDate && (
-                         <div className="text-[10px] text-muted-foreground mt-1">Acordo: {formatDate(item.promiseDate)}</div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-right font-mono text-muted-foreground">
-                       {formatDate(item.dueDate)}
-                    </td>
-                    <td className="px-6 py-4 font-bold font-mono text-obsidian text-right text-[15px]">
-                      {item.status === 'PAID' ? (
-                         <span className="text-emerald-600">{formatCurrency(item.paidAmount || fins.updatedAmount)}</span>
-                      ) : item.status === 'CANCELED' ? (
-                         <span className="text-slate-400 line-through">{formatCurrency(fins.updatedAmount)}</span>
-                      ) : (
-                         <span className={fins.fineAmount > 0 ? "text-rose-600" : ""}>{formatCurrency(fins.updatedAmount)}</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-right relative action-btn">
-                      <Button 
-                         variant="ghost" 
-                         size="icon" 
-                         className="h-8 w-8 text-muted-foreground hover:text-indigo-600 hover:bg-indigo-50 relative z-10"
-                         onClick={() => setActiveDropdown(activeDropdown === item.id ? null : item.id)}
-                      >
-                         <MoreHorizontal className="w-4 h-4" />
-                      </Button>
-                      
-                      {/* Floating Action Menu dropdown */}
-                      {activeDropdown === item.id && (
-                         <div className="absolute right-8 top-10 w-48 bg-white border border-border shadow-xl rounded-xl z-50 flex flex-col py-1 animate-in fade-in zoom-in-95">
-                            {item.status !== 'PAID' && item.status !== 'CANCELED' && (
-                              <button onClick={() => handlePay(item.id, fins.updatedAmount)} className="flex items-center gap-2 px-4 py-2 text-sm text-left hover:bg-emerald-50 hover:text-emerald-700 transition-colors">
-                                 <CheckCircle className="w-4 h-4 text-emerald-500" /> Marcar como Pago
-                              </button>
-                            )}
-                            {item.status !== 'PAID' && item.status !== 'CANCELED' && (
-                              <button onClick={() => {
-                                 setActiveDropdown(null);
-                                 window.dispatchEvent(new CustomEvent('open-new-invoice-modal', { detail: { invoice: item } }));
-                              }} className="flex items-center gap-2 px-4 py-2 text-sm text-left hover:bg-slate-50 hover:text-indigo-700 transition-colors border-b border-border/50">
-                                 <Edit3 className="w-4 h-4 text-slate-500" /> Editar Fatura
-                              </button>
-                            )}
-                            {(vStatus.includes('Vencida') || vStatus.includes('Vence hoje')) && item.status !== 'CANCELED' && item.status !== 'PAID' && (
-                               <button onClick={() => handlePromessa(item.id, fins.updatedAmount)} className="flex items-center gap-2 px-4 py-2 text-sm text-left hover:bg-indigo-50 hover:text-indigo-700 transition-colors border-b border-border/50">
-                                  <CalendarClock className="w-4 h-4 text-indigo-500" /> Registrar Promessa
-                               </button>
-                            )}
-                            {(item.status === 'PAID' || item.status === 'CANCELED') && (
-                               <button onClick={() => handleReopen(item.id)} className="flex items-center gap-2 px-4 py-2 text-sm text-left hover:bg-amber-50 hover:text-amber-700 transition-colors border-b border-border/50">
-                                  <RefreshCcw className="w-4 h-4 text-amber-500" /> Reabrir Fatura
-                               </button>
-                            )}
-                            {item.status !== 'CANCELED' && item.status !== 'PAID' && (
-                               <button onClick={() => handleCancel(item.id)} className="flex items-center gap-2 px-4 py-2 text-sm text-left hover:bg-rose-50 hover:text-rose-700 transition-colors text-rose-600">
-                                  <XCircle className="w-4 h-4 text-rose-500" /> Cancelar Título
-                               </button>
-                            )}
-                            <button onClick={() => handleAction(deleteInvoice, item.id)} className="flex items-center gap-2 px-4 py-2 text-sm text-left hover:bg-rose-50 hover:text-rose-700 transition-colors text-rose-600 border-t border-border/50">
-                               <Trash2 className="w-4 h-4" /> Excluir Responsabilidade
-                            </button>
-                         </div>
-                      )}
-                    </td>
-                  </tr>
-                )})}
-              </tbody>
-            </table>
-            </div>{/* end overflow-x-auto */}
+                return (
+                <tr key={item.id} className="hover:bg-indigo-50/20 transition-colors group cursor-pointer" onClick={(e) => {
+                  if ((e.target as any).closest('.action-btn')) return;
+                  handleSelectInvoice(item);
+                }}>
+                  <td className="px-5 py-3.5 hidden sm:table-cell">
+                    <div className="font-semibold font-mono tracking-tight text-indigo-700 text-xs">{item.invoiceNumber || item.id.split('-')[0].toUpperCase()}</div>
+                  </td>
+                  <td className="px-5 py-3.5">
+                    <div className="font-semibold text-slate-800">{item.customer?.name || 'Cliente Genérico'}</div>
+                    <div className="text-[10px] text-slate-400 mt-0.5 hidden sm:block">Doc: {item.customer?.documentNumber || 'N/A'}</div>
+                  </td>
+                  <td className="px-5 py-3.5">
+                    <Badge variant={getBadgeVariant(vStatus) as any} className="px-2 py-0.5 text-[10px] whitespace-nowrap">
+                      {vStatus}
+                    </Badge>
+                    {item.status === 'PROMISE_TO_PAY' && item.promiseDate && (
+                      <div className="text-[10px] text-slate-400 mt-0.5 hidden sm:block">Acordo: {formatDate(item.promiseDate)}</div>
+                    )}
+                  </td>
+                  <td className="px-5 py-3.5 text-right text-slate-500 text-xs font-mono hidden md:table-cell">
+                    {formatDate(item.dueDate)}
+                  </td>
+                  <td className="px-5 py-3.5 font-bold font-mono text-right text-[14px]">
+                    {item.status === 'PAID' ? (
+                      <span className="text-emerald-600">{formatCurrency(item.paidAmount || fins.updatedAmount)}</span>
+                    ) : item.status === 'CANCELED' ? (
+                      <span className="text-slate-400 line-through">{formatCurrency(fins.updatedAmount)}</span>
+                    ) : (
+                      <span className={fins.fineAmount > 0 ? 'text-rose-600' : 'text-slate-800'}>{formatCurrency(fins.updatedAmount)}</span>
+                    )}
+                  </td>
+                  <td className="px-5 py-3.5 text-right relative action-btn">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50"
+                      onClick={() => setActiveDropdown(activeDropdown === item.id ? null : item.id)}
+                    >
+                      <MoreHorizontal className="w-4 h-4" />
+                    </Button>
+                    {/* Dropdown menu */}
+                    {activeDropdown === item.id && (
+                      <div className="absolute right-8 top-10 w-48 bg-white border border-slate-200 shadow-xl rounded-xl z-50 flex flex-col py-1 animate-in fade-in zoom-in-95">
+                        {item.status !== 'PAID' && item.status !== 'CANCELED' && (
+                          <button onClick={() => handlePay(item.id, fins.updatedAmount)} className="flex items-center gap-2 px-4 py-2 text-sm text-left hover:bg-emerald-50 hover:text-emerald-700 transition-colors">
+                            <CheckCircle className="w-4 h-4 text-emerald-500" /> Marcar como Pago
+                          </button>
+                        )}
+                        {item.status !== 'PAID' && item.status !== 'CANCELED' && (
+                          <button onClick={() => { setActiveDropdown(null); window.dispatchEvent(new CustomEvent('open-new-invoice-modal', { detail: { invoice: item } })); }} className="flex items-center gap-2 px-4 py-2 text-sm text-left hover:bg-slate-50 hover:text-indigo-700 transition-colors border-b border-slate-100">
+                            <Edit3 className="w-4 h-4 text-slate-500" /> Editar Fatura
+                          </button>
+                        )}
+                        {(vStatus.includes('Vencida') || vStatus.includes('Vence hoje')) && item.status !== 'CANCELED' && item.status !== 'PAID' && (
+                          <button onClick={() => handlePromessa(item.id, fins.updatedAmount)} className="flex items-center gap-2 px-4 py-2 text-sm text-left hover:bg-indigo-50 hover:text-indigo-700 transition-colors border-b border-slate-100">
+                            <CalendarClock className="w-4 h-4 text-indigo-500" /> Registrar Promessa
+                          </button>
+                        )}
+                        {(item.status === 'PAID' || item.status === 'CANCELED') && (
+                          <button onClick={() => handleReopen(item.id)} className="flex items-center gap-2 px-4 py-2 text-sm text-left hover:bg-amber-50 hover:text-amber-700 transition-colors border-b border-slate-100">
+                            <RefreshCcw className="w-4 h-4 text-amber-500" /> Reabrir Fatura
+                          </button>
+                        )}
+                        {item.status !== 'CANCELED' && item.status !== 'PAID' && (
+                          <button onClick={() => handleCancel(item.id)} className="flex items-center gap-2 px-4 py-2 text-sm text-left hover:bg-rose-50 hover:text-rose-700 transition-colors text-rose-600">
+                            <XCircle className="w-4 h-4 text-rose-500" /> Cancelar Título
+                          </button>
+                        )}
+                        <button onClick={() => handleAction(deleteInvoice, item.id)} className="flex items-center gap-2 px-4 py-2 text-sm text-left hover:bg-rose-50 hover:text-rose-700 transition-colors text-rose-600 border-t border-slate-100">
+                          <Trash2 className="w-4 h-4" /> Excluir Responsabilidade
+                        </button>
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+        </div>{/* end overflow-x-auto */}
 
-            {/* Pagination Controls */}
-            {totalPages > 1 && (
-               <div className="flex items-center justify-between px-6 py-4 border-t border-border/60 bg-[#FAFAFB]">
-                  <span className="text-sm text-muted-foreground font-medium">Página {page} de {totalPages}</span>
-                  <div className="flex items-center gap-2">
-                     <Button variant="outline" size="sm" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="h-8 shadow-sm">Anterior</Button>
-                     <Button variant="outline" size="sm" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="h-8 shadow-sm">Próxima</Button>
-                  </div>
-               </div>
-            )}
-            
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between px-5 py-3 border-t border-slate-100 bg-slate-50/60">
+            <span className="text-xs text-slate-400 font-medium">Página {page} de {totalPages}</span>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="h-7 text-xs rounded-xl border-slate-200">Anterior</Button>
+              <Button variant="outline" size="sm" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="h-7 text-xs rounded-xl border-slate-200">Próxima</Button>
+            </div>
           </div>
-          
-        </CardContent>
-      </Card>
+        )}
+      </div>
 
       {/* Drawer Overlay for Selected Invoice */}
       {selectedInvoice && (() => {
