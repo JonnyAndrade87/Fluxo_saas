@@ -1,15 +1,12 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import Link from 'next/link'
 import {
   ArrowUpRight,
-  ArrowDownRight,
   DollarSign,
   Activity,
   AlertTriangle,
   Clock,
-  Sparkles,
   CalendarDays,
   ShieldAlert,
   CheckCircle2,
@@ -22,40 +19,36 @@ import {
   SkipForward,
   RefreshCw,
   FileText,
+  Inbox,
+  BarChart3,
 } from "lucide-react"
 import { getDashboardMetrics } from "@/actions/dashboard"
 import { getOnboardingStatus } from "@/actions/onboarding"
 import DashboardChart from "./DashboardChart"
 import OnboardingSetup from "@/components/onboarding/OnboardingSetup"
 import { CashForecast } from "@/components/dashboard/CashForecast"
+import ActionsBanner from "@/components/dashboard/ActionsBanner"
 
 const fmt = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const formatCurrency = (val: number) => fmt.format(val).replace('R$\u00a0', '').replace('R$ ', '').trim();
 const fmtCurrencyFull = (val: number) => fmt.format(val);
 
-const RULE_LABELS: Record<string, string> = {
-  pre_due_3d: 'D-3',
-  due_today: 'D0',
-  overdue_1d: 'D+1',
-  overdue_3d: 'D+3',
-  overdue_7d: 'D+7',
-  overdue_15d: 'D+15',
-  custom: 'Custom',
-};
-
-const CHANNEL_LABELS: Record<string, string> = {
-  whatsapp_manual: 'WhatsApp',
-  email_manual: 'E-mail',
-  internal: 'Interno',
-};
 
 const AGING_COLORS = [
   { bar: '#4F46E5', text: 'text-indigo-600', bg: 'bg-indigo-500' },
-  { bar: '#F59E0B', text: 'text-amber-600', bg: 'bg-amber-400' },
+  { bar: '#F59E0B', text: 'text-amber-600',  bg: 'bg-amber-400' },
   { bar: '#F97316', text: 'text-orange-600', bg: 'bg-orange-500' },
-  { bar: '#EF4444', text: 'text-rose-600', bg: 'bg-rose-500' },
-  { bar: '#7F1D1D', text: 'text-red-900', bg: 'bg-red-900' },
+  { bar: '#EF4444', text: 'text-rose-600',   bg: 'bg-rose-500'  },
+  { bar: '#7F1D1D', text: 'text-red-900',    bg: 'bg-red-900'   },
 ];
+
+const COMM_STATUS_LABELS: Record<string, string> = {
+  sent:    'Enviado',
+  pending: 'Pendente',
+  failed:  'Falhou',
+  skipped: 'Pulado',
+};
+
 
 export default async function Dashboard() {
   const onboardingStatus = await getOnboardingStatus();
@@ -78,177 +71,163 @@ export default async function Dashboard() {
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12">
 
-      {/* Critical Alerts Banner */}
-      {metrics.criticalAlerts.length > 0 && (
-        <div className="flex flex-col gap-3">
-          {metrics.criticalAlerts.map(alert => (
-            <div key={alert.id} className="bg-rose-50 border border-rose-200 text-rose-800 p-4 rounded-2xl flex items-center justify-between gap-4 shadow-sm relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-r from-rose-100/50 to-transparent" />
-              <div className="flex items-center gap-3 relative z-10 w-full">
-                <div className="w-10 h-10 rounded-full bg-rose-100 flex items-center justify-center shrink-0">
-                  {alert.type === 'broken_promise'
-                    ? <Clock className="w-5 h-5 text-rose-600 animate-pulse" />
-                    : alert.type === 'delivery_failed'
-                    ? <XCircle className="w-5 h-5 text-rose-600" />
-                    : <ShieldAlert className="w-5 h-5 text-rose-600 animate-pulse" />}
-                </div>
-                <div className="flex-1">
-                  <h4 className="font-bold text-sm tracking-tight">{alert.title}</h4>
-                  <p className="text-xs opacity-90 font-medium mt-0.5">{alert.description}</p>
-                </div>
-                <Link href={alert.actionUrl}>
-                  <Button variant="destructive" size="sm" className="relative z-10 shadow-sm shrink-0 whitespace-nowrap hidden sm:flex font-semibold">Resolver</Button>
-                </Link>
-              </div>
-            </div>
-          ))}
+      {/* ── Page Header ──────────────────────────────────────────────── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Painel Operacional</h1>
+          <p className="text-slate-500 text-sm mt-1">Recebíveis, inadimplência e cobrança em tempo real.</p>
         </div>
-      )}
-
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pt-2">
-        <div className="space-y-1">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50/50 border border-indigo-100/50 text-xs font-semibold text-indigo-700 mb-2 shadow-sm">
-            <Sparkles className="w-3.5 h-3.5" /> Cockpit Financeiro
-          </div>
-          <h1 className="text-3xl font-sans font-semibold tracking-tighter text-obsidian">Visão Executiva</h1>
-          <p className="text-muted-foreground text-sm">Painel de controle de recebíveis, inadimplência e cobrança.</p>
-        </div>
-        <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap">
           <Link href="/relatorios">
-            <Button variant="outline" className="shadow-sm font-semibold rounded-lg bg-white border-border text-obsidian hover:bg-gray-50">Exportar Relatório</Button>
+            <Button variant="outline" size="sm" className="font-semibold rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50">
+              Exportar Relatório
+            </Button>
           </Link>
           <Link href="/cobrancas">
-            <Button className="btn-beam shadow-lg rounded-lg overflow-hidden relative group border-none bg-fluxeer-blue text-white hover:bg-fluxeer-blue-hover">
-              <span className="relative z-10 flex items-center gap-2 font-semibold">
-                <DollarSign className="w-4 h-4" /> Nova Fatura
-              </span>
+            <Button size="sm" className="rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold gap-1.5 shadow-sm">
+              <DollarSign className="w-3.5 h-3.5" /> Nova Fatura
             </Button>
           </Link>
         </div>
       </div>
 
-      {/* ── 8 KPI Cards ────────────────────────────────────────────────────── */}
-      <div className="grid gap-3 grid-cols-1 min-[400px]:grid-cols-2 sm:grid-cols-4 xl:grid-cols-8">
+      {/* ── Ações Recomendadas ────────────────────────────────────────── */}
+      <ActionsBanner
+        kpis={metrics.kpis}
+        overdueSnapshot={metrics.overdueSnapshot}
+        recentCommActivity={metrics.recentCommActivity}
+        criticalAlerts={metrics.criticalAlerts}
+      />
+
+      {/* ── KPI Cards Primários (4 principais) ───────────────────────── */}
+      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
 
         {/* 1. Total a Receber */}
-        <Card className="premium-card relative overflow-hidden rounded-2xl col-span-1">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 pt-4 px-4">
-            <CardTitle className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">A Receber</CardTitle>
-            <Activity className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-          </CardHeader>
-          <CardContent className="px-4 pb-4">
-            <div className="text-xl font-black tracking-tight text-obsidian">
-              <span className="text-xs text-muted-foreground font-medium mr-0.5">R$</span>
-              {formatCurrency(metrics.kpis.totalPending)}
+        <Card className="rounded-2xl border-slate-200 bg-white shadow-sm">
+          <CardContent className="p-5">
+            <div className="flex items-start justify-between mb-3">
+              <div className="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center">
+                <Activity className="w-4 h-4 text-indigo-600" />
+              </div>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">À Vencer</span>
             </div>
-            <p className="text-[10px] text-muted-foreground mt-1">Em aberto</p>
+            <p className="text-2xl font-black tracking-tight text-slate-900">
+              <span className="text-sm font-semibold text-slate-400 mr-1">R$</span>
+              {formatCurrency(metrics.kpis.totalPending)}
+            </p>
+            <p className="text-xs text-slate-500 mt-1.5">Total em aberto no sistema</p>
           </CardContent>
         </Card>
 
         {/* 2. Vencido */}
-        <Card className="premium-card relative overflow-hidden rounded-2xl border-rose-100 col-span-1">
-          <div className="absolute top-0 left-0 w-1 h-full bg-rose-500 rounded-l-2xl" />
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 pt-4 px-4">
-            <CardTitle className="text-[10px] font-bold text-rose-600 uppercase tracking-wider">Vencido</CardTitle>
-            <ArrowDownRight className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-          </CardHeader>
-          <CardContent className="px-4 pb-4">
-            <div className="text-xl font-black tracking-tight text-rose-700">
-              <span className="text-xs text-rose-400 font-medium mr-0.5">R$</span>
+        <Card className="rounded-2xl border-rose-100 bg-white shadow-sm">
+          <CardContent className="p-5">
+            <div className="flex items-start justify-between mb-3">
+              <div className="w-9 h-9 rounded-xl bg-rose-50 flex items-center justify-center">
+                <AlertTriangle className="w-4 h-4 text-rose-600" />
+              </div>
+              <span className="text-[10px] font-bold text-rose-400 uppercase tracking-wider">Vencido</span>
+            </div>
+            <p className="text-2xl font-black tracking-tight text-rose-700">
+              <span className="text-sm font-semibold text-rose-300 mr-1">R$</span>
               {formatCurrency(metrics.kpis.totalOverdue)}
-            </div>
-            <p className="text-[10px] text-rose-500 mt-1 font-semibold">Em atraso</p>
+            </p>
+            <p className="text-xs text-rose-500 mt-1.5 font-medium">Em atraso — exige ação</p>
           </CardContent>
         </Card>
 
-        {/* 3. Previsão 7d */}
-        <Card className="premium-card relative overflow-hidden rounded-2xl border-amber-100 col-span-1">
-          <div className="absolute top-0 left-0 w-1 h-full bg-amber-400 rounded-l-2xl" />
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 pt-4 px-4">
-            <CardTitle className="text-[10px] font-bold text-amber-700 uppercase tracking-wider">Previsão 7d</CardTitle>
-            <CalendarDays className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-          </CardHeader>
-          <CardContent className="px-4 pb-4">
-            <div className="text-xl font-black tracking-tight text-amber-600">
-              <span className="text-xs text-amber-400 font-medium mr-0.5">R$</span>
-              {formatCurrency(metrics.kpis.dueNext7Days)}
+        {/* 3. Recebido no Mês */}
+        <Card className="rounded-2xl border-emerald-100 bg-white shadow-sm">
+          <CardContent className="p-5">
+            <div className="flex items-start justify-between mb-3">
+              <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center">
+                <ArrowUpRight className="w-4 h-4 text-emerald-600" />
+              </div>
+              <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Recebido</span>
             </div>
-            <p className="text-[10px] text-amber-600 mt-1">Próximos 7 dias</p>
-          </CardContent>
-        </Card>
-
-        {/* 4. Recebido no Mês */}
-        <Card className="premium-card relative overflow-hidden rounded-2xl border-emerald-100 col-span-1">
-          <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500 rounded-l-2xl" />
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 pt-4 px-4">
-            <CardTitle className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">Recebido</CardTitle>
-            <ArrowUpRight className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-          </CardHeader>
-          <CardContent className="px-4 pb-4">
-            <div className="text-xl font-black tracking-tight text-emerald-700">
-              <span className="text-xs text-emerald-400 font-medium mr-0.5">R$</span>
+            <p className="text-2xl font-black tracking-tight text-emerald-700">
+              <span className="text-sm font-semibold text-emerald-300 mr-1">R$</span>
               {formatCurrency(metrics.kpis.paidThisMonth)}
-            </div>
-            <p className="text-[10px] text-emerald-600 mt-1">Este mês</p>
+            </p>
+            <p className="text-xs text-emerald-600 mt-1.5">Confirmado este mês</p>
           </CardContent>
         </Card>
 
-        {/* 5. Taxa de Inadimplência */}
-        <Card className="premium-card relative overflow-hidden rounded-2xl col-span-1">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 pt-4 px-4">
-            <CardTitle className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Inadimp.</CardTitle>
-            <TrendingDown className="w-3.5 h-3.5 text-rose-400 shrink-0" />
-          </CardHeader>
-          <CardContent className="px-4 pb-4">
-            <div className={`text-xl font-black tracking-tight ${metrics.kpis.defaultRate > 20 ? 'text-rose-600' : metrics.kpis.defaultRate > 10 ? 'text-amber-600' : 'text-emerald-600'}`}>
-              {metrics.kpis.defaultRate.toFixed(1)}%
+        {/* 4. Previsto 7 dias */}
+        <Card className="rounded-2xl border-amber-100 bg-white shadow-sm">
+          <CardContent className="p-5">
+            <div className="flex items-start justify-between mb-3">
+              <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center">
+                <CalendarDays className="w-4 h-4 text-amber-600" />
+              </div>
+              <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider">Previsto</span>
             </div>
-            <p className="text-[10px] text-muted-foreground mt-1">Do total emitido</p>
+            <p className="text-2xl font-black tracking-tight text-amber-700">
+              <span className="text-sm font-semibold text-amber-300 mr-1">R$</span>
+              {formatCurrency(metrics.kpis.dueNext7Days)}
+            </p>
+            <p className="text-xs text-amber-600 mt-1.5">Para os próximos 7 dias</p>
           </CardContent>
         </Card>
 
-        {/* 6. Taxa de Recuperação */}
-        <Card className="premium-card relative overflow-hidden rounded-2xl col-span-1">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 pt-4 px-4">
-            <CardTitle className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Recuperação</CardTitle>
-            <RefreshCw className="w-3.5 h-3.5 text-teal-500 shrink-0" />
-          </CardHeader>
-          <CardContent className="px-4 pb-4">
-            <div className={`text-xl font-black tracking-tight ${metrics.kpis.recoveryRate > 50 ? 'text-emerald-600' : metrics.kpis.recoveryRate > 20 ? 'text-amber-600' : 'text-slate-500'}`}>
-              {metrics.kpis.recoveryRate.toFixed(1)}%
-            </div>
-            <p className="text-[10px] text-muted-foreground mt-1">Inadimp. recuperada</p>
-          </CardContent>
-        </Card>
+      </div>
 
-        {/* 7. Clientes Críticos */}
-        <Card className="premium-card relative overflow-hidden rounded-2xl col-span-1">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 pt-4 px-4">
-            <CardTitle className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Alto Risco</CardTitle>
-            <Users className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-          </CardHeader>
-          <CardContent className="px-4 pb-4">
-            <div className="text-xl font-black tracking-tight text-rose-600">
-              {metrics.kpis.criticalCustomersCount}
-            </div>
-            <p className="text-[10px] text-muted-foreground mt-1">Clientes &gt;60d</p>
-          </CardContent>
-        </Card>
+      {/* ── KPI Cards Secundários (4 indicadores operacionais) ──────────── */}
+      <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
 
-        {/* 8. Comunicações Pendentes */}
-        <Card className="premium-card relative overflow-hidden rounded-2xl col-span-1">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 pt-4 px-4">
-            <CardTitle className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Comun. Pend.</CardTitle>
-            <MessageSquare className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-          </CardHeader>
-          <CardContent className="px-4 pb-4">
-            <div className={`text-xl font-black tracking-tight ${metrics.kpis.pendingCommsCount > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
-              {metrics.kpis.pendingCommsCount}
-            </div>
-            <p className="text-[10px] text-muted-foreground mt-1">Aguardando envio</p>
-          </CardContent>
-        </Card>
+        {/* Inadimplência */}
+        <div className="flex items-center gap-3 p-4 rounded-2xl border border-slate-200 bg-slate-50">
+          <div className="w-8 h-8 rounded-xl bg-white border border-slate-200 flex items-center justify-center shrink-0">
+            <TrendingDown className="w-4 h-4 text-slate-500" />
+          </div>
+          <div>
+            <p className={`text-lg font-black ${
+              metrics.kpis.defaultRate > 20 ? 'text-rose-600' :
+              metrics.kpis.defaultRate > 10 ? 'text-amber-600' : 'text-emerald-600'
+            }`}>{metrics.kpis.defaultRate.toFixed(1)}%</p>
+            <p className="text-[10px] text-slate-500 font-medium leading-tight">Inadimplência</p>
+          </div>
+        </div>
+
+        {/* Recuperação */}
+        <div className="flex items-center gap-3 p-4 rounded-2xl border border-slate-200 bg-slate-50">
+          <div className="w-8 h-8 rounded-xl bg-white border border-slate-200 flex items-center justify-center shrink-0">
+            <RefreshCw className="w-4 h-4 text-teal-500" />
+          </div>
+          <div>
+            <p className={`text-lg font-black ${
+              metrics.kpis.recoveryRate > 50 ? 'text-emerald-600' :
+              metrics.kpis.recoveryRate > 20 ? 'text-amber-600' : 'text-slate-500'
+            }`}>{metrics.kpis.recoveryRate.toFixed(1)}%</p>
+            <p className="text-[10px] text-slate-500 font-medium leading-tight">Recuperação</p>
+          </div>
+        </div>
+
+        {/* Clientes Alto Risco */}
+        <div className="flex items-center gap-3 p-4 rounded-2xl border border-slate-200 bg-slate-50">
+          <div className="w-8 h-8 rounded-xl bg-white border border-slate-200 flex items-center justify-center shrink-0">
+            <Users className="w-4 h-4 text-rose-500" />
+          </div>
+          <div>
+            <p className={`text-lg font-black ${
+              metrics.kpis.criticalCustomersCount > 0 ? 'text-rose-600' : 'text-slate-500'
+            }`}>{metrics.kpis.criticalCustomersCount}</p>
+            <p className="text-[10px] text-slate-500 font-medium leading-tight">Alto risco</p>
+          </div>
+        </div>
+
+        {/* Comunicações Pendentes */}
+        <div className="flex items-center gap-3 p-4 rounded-2xl border border-slate-200 bg-slate-50">
+          <div className="w-8 h-8 rounded-xl bg-white border border-slate-200 flex items-center justify-center shrink-0">
+            <MessageSquare className="w-4 h-4 text-indigo-500" />
+          </div>
+          <div>
+            <p className={`text-lg font-black ${
+              metrics.kpis.pendingCommsCount > 0 ? 'text-amber-600' : 'text-emerald-600'
+            }`}>{metrics.kpis.pendingCommsCount}</p>
+            <p className="text-[10px] text-slate-500 font-medium leading-tight">Msg. pendentes</p>
+          </div>
+        </div>
 
       </div>
 
@@ -261,288 +240,323 @@ export default async function Dashboard() {
       <div className="grid gap-6 lg:grid-cols-12">
 
         {/* Próximos Vencimentos */}
-        <Card className="premium-card rounded-3xl lg:col-span-8 flex flex-col overflow-hidden">
-          <CardHeader className="border-b border-border bg-[#FAFAFB] pb-5 px-8">
+        <Card className="rounded-3xl border-slate-200 lg:col-span-8 flex flex-col overflow-hidden shadow-sm">
+          <CardHeader className="border-b border-slate-100 bg-slate-50/70 pb-4 px-6">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-base font-sans font-bold text-obsidian flex items-center gap-2">
+                <CardTitle className="text-sm font-bold text-slate-800 flex items-center gap-2">
                   <CalendarDays className="w-4 h-4 text-indigo-500" /> Próximos Vencimentos
                 </CardTitle>
-                <CardDescription className="text-xs mt-1">Títulos a vencer nos próximos 7 dias.</CardDescription>
+                <CardDescription className="text-xs mt-0.5">Títulos a vencer nos próximos 7 dias.</CardDescription>
               </div>
-              <Link href="/cobrancas"><Button variant="link" className="text-indigo-600 font-semibold px-0 text-sm">Ver todos</Button></Link>
+              <Link href="/cobrancas">
+                <Button variant="link" size="sm" className="text-indigo-600 font-semibold px-0 text-xs">Ver todos</Button>
+              </Link>
             </div>
           </CardHeader>
           <CardContent className="flex-1 p-4 overflow-x-auto">
-            <div className="space-y-1">
-              {metrics.upcomingDues.map((inv) => (
-                <div key={inv.id} className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-all">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-9 h-9 rounded-full flex justify-center items-center ${inv.isHighValue ? 'bg-amber-100 text-amber-600' : 'bg-indigo-50 text-indigo-600'}`}>
-                      {inv.isHighValue ? <AlertTriangle className="w-4 h-4" /> : <DollarSign className="w-4 h-4" />}
+            {metrics.upcomingDues.length === 0 ? (
+              <div className="py-10 flex flex-col items-center gap-2 text-center">
+                <CheckCircle2 className="w-8 h-8 text-emerald-300" />
+                <p className="text-sm font-semibold text-slate-700">Nenhum vencimento nos próximos 7 dias</p>
+                <p className="text-xs text-slate-400">Sua carteira está tranquila por agora.</p>
+              </div>
+            ) : (
+              <div className="space-y-1">
+                {metrics.upcomingDues.map((inv) => (
+                  <div key={inv.id} className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-all">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-xl flex justify-center items-center ${
+                        inv.isHighValue ? 'bg-amber-100 text-amber-600' : 'bg-indigo-50 text-indigo-600'
+                      }`}>
+                        {inv.isHighValue ? <AlertTriangle className="w-3.5 h-3.5" /> : <DollarSign className="w-3.5 h-3.5" />}
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-slate-800">{inv.customerName}</p>
+                        <p className="text-xs text-slate-400 flex items-center gap-1">
+                          <Clock className="w-3 h-3" /> {inv.dueDate.toLocaleDateString('pt-BR')}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-semibold text-obsidian">{inv.customerName}</p>
-                      <p className="text-xs text-muted-foreground flex items-center gap-1">
-                        <Clock className="w-3 h-3" /> {inv.dueDate.toLocaleDateString('pt-BR')}
-                      </p>
+                    <div className="text-right">
+                      <span className="font-bold text-[13px] text-slate-800">R$ {formatCurrency(inv.amount)}</span>
+                      {inv.isHighValue && <div className="text-[9px] text-amber-600 font-bold uppercase tracking-widest mt-0.5">Alto Valor</div>}
                     </div>
                   </div>
-                  <div className="text-right">
-                    <span className="font-bold text-[13px] text-obsidian">R$ {formatCurrency(inv.amount)}</span>
-                    {inv.isHighValue && <div className="text-[9px] text-amber-600 font-bold uppercase tracking-widest">Alto Valor</div>}
-                  </div>
-                </div>
-              ))}
-              {metrics.upcomingDues.length === 0 && (
-                <div className="py-10 text-center">
-                  <p className="text-muted-foreground text-sm">Sem vencimentos nos próximos 7 dias. 🎉</p>
-                </div>
-              )}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
+
         {/* Tarefas do Dia */}
-        <Card className="premium-card rounded-3xl lg:col-span-4 flex flex-col overflow-hidden">
-          <CardHeader className="border-b border-border bg-[#FAFAFB] pb-5 px-8">
-            <CardTitle className="text-base font-sans font-bold text-obsidian flex items-center gap-2">
+        <Card className="rounded-3xl border-slate-200 lg:col-span-4 flex flex-col overflow-hidden shadow-sm">
+          <CardHeader className="border-b border-slate-100 bg-slate-50/70 pb-4 px-6">
+            <CardTitle className="text-sm font-bold text-slate-800 flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Tarefas do Dia
             </CardTitle>
-            <CardDescription className="text-xs mt-1">Follow-ups pendentes.</CardDescription>
+            <CardDescription className="text-xs mt-0.5">Follow-ups pendentes para hoje.</CardDescription>
           </CardHeader>
-          <CardContent className="flex-1 p-4 overflow-y-auto max-h-[340px] bg-white">
-            <div className="space-y-2">
-              {metrics.todaysTasks.map(task => (
-                <div key={task.id} className={`p-3 rounded-xl border transition-all ${task.overdue ? 'border-rose-200 bg-rose-50/30' : 'border-border bg-white shadow-sm'}`}>
-                  <div className="flex justify-between items-start gap-2">
-                    <div>
-                      <h5 className="text-sm font-bold text-obsidian">{task.title}</h5>
-                      <p className="text-xs text-muted-foreground mt-0.5">{task.customerName}</p>
+          <CardContent className="flex-1 p-4 overflow-y-auto max-h-[340px]">
+            {metrics.todaysTasks.length === 0 ? (
+              <div className="py-10 flex flex-col items-center gap-2 text-center">
+                <CheckCircle2 className="w-8 h-8 text-emerald-300" />
+                <p className="text-sm font-semibold text-slate-700">Fila operacional limpa</p>
+                <p className="text-xs text-slate-400">Nenhuma tarefa pendente para hoje.</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {metrics.todaysTasks.map(task => (
+                  <div key={task.id} className={`p-3 rounded-xl border transition-all ${
+                    task.overdue ? 'border-rose-200 bg-rose-50/40' : 'border-slate-200 bg-white'
+                  }`}>
+                    <div className="flex justify-between items-start gap-2">
+                      <div>
+                        <h5 className="text-sm font-semibold text-slate-800">{task.title}</h5>
+                        <p className="text-xs text-slate-500 mt-0.5">{task.customerName}</p>
+                      </div>
+                      <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-lg shrink-0 ${
+                        task.overdue
+                          ? 'bg-rose-100 text-rose-700'
+                          : 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                      }`}>
+                        {task.overdue ? 'Atrasada' : 'Hoje'}
+                      </span>
                     </div>
-                    {task.overdue
-                      ? <Badge variant="destructive" className="text-[9px] uppercase tracking-widest px-1.5 py-0.5">Atrasada</Badge>
-                      : <Badge variant="outline" className="text-emerald-700 bg-emerald-50 border-emerald-200 text-[9px] uppercase tracking-widest px-1.5 py-0.5">Hoje</Badge>
-                    }
                   </div>
-                </div>
-              ))}
-              {metrics.todaysTasks.length === 0 && (
-                <div className="py-8 text-center">
-                  <CheckCircle2 className="w-8 h-8 mx-auto text-gray-300 mb-2" />
-                  <p className="text-muted-foreground text-sm">Fila operacional limpa.</p>
-                </div>
-              )}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
+
 
       </div>
 
       {/* ── Row 3: Gráfico de Recebimentos + Aging Distribution ──────────── */}
       <div className="grid gap-6 lg:grid-cols-12">
 
-        {/* Evolução de Recebimentos */}
-        <Card className="premium-card rounded-3xl lg:col-span-8 flex flex-col overflow-hidden">
-          <CardHeader className="border-b border-border/50 pb-5 px-8">
-            <CardTitle className="text-base font-sans font-bold text-obsidian flex items-center gap-2">
+        {/* Fluxo de Recebimentos */}
+        <Card className="rounded-3xl border-slate-200 lg:col-span-8 flex flex-col overflow-hidden shadow-sm">
+          <CardHeader className="border-b border-slate-100 bg-slate-50/70 pb-4 px-6">
+            <CardTitle className="text-sm font-bold text-slate-800 flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-indigo-500" /> Fluxo de Recebimentos
             </CardTitle>
-            <CardDescription className="text-xs mt-1">Últimos 30 dias (recebido) vs. próximos 30 dias (a receber)</CardDescription>
+            <CardDescription className="text-xs mt-0.5">Últimos 30 dias vs. próximos 30 dias.</CardDescription>
           </CardHeader>
-          <CardContent className="flex-1 p-4 bg-[#FAFAFB]">
+          <CardContent className="flex-1 p-4 bg-slate-50/50">
             <DashboardChart data={metrics.receiptsChart} />
           </CardContent>
         </Card>
 
-        {/* Aging Distribution */}
-        <Card className="premium-card rounded-3xl lg:col-span-4 flex flex-col overflow-hidden">
-          <CardHeader className="border-b border-border bg-[#FAFAFB] pb-5 px-8">
-            <CardTitle className="text-base font-sans font-bold text-obsidian flex items-center gap-2">
-              <Activity className="w-4 h-4 text-indigo-500" /> Aging de Recebíveis
+        {/* Aging de Recebíveis */}
+        <Card className="rounded-3xl border-slate-200 lg:col-span-4 flex flex-col overflow-hidden shadow-sm">
+          <CardHeader className="border-b border-slate-100 bg-slate-50/70 pb-4 px-6">
+            <CardTitle className="text-sm font-bold text-slate-800 flex items-center gap-2">
+              <BarChart3 className="w-4 h-4 text-indigo-500" /> Aging de Recebíveis
             </CardTitle>
-            <CardDescription className="text-xs mt-1">Distribuição por prazo de vencimento.</CardDescription>
+            <CardDescription className="text-xs mt-0.5">Distribuição por prazo de vencimento.</CardDescription>
           </CardHeader>
-          <CardContent className="flex-1 p-6 bg-white">
-            {metrics.agingDistribution.every(b => b.amount === 0)
-              ? <p className="text-center text-sm text-muted-foreground py-8">Sem recebíveis em aberto.</p>
-              : (
-                <div className="space-y-4">
-                  {metrics.agingDistribution.map((bucket, idx) => {
-                    const pct = totalAgingAmount > 0 ? (bucket.amount / totalAgingAmount) * 100 : 0;
-                    const color = AGING_COLORS[idx] ?? AGING_COLORS[4];
-                    return (
-                      <div key={bucket.label}>
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs font-semibold text-obsidian">{bucket.label}</span>
-                          <div className="flex items-center gap-2">
-                            <span className="text-[10px] text-muted-foreground">{bucket.count} títulos</span>
-                            <span className={`text-xs font-bold ${color.text}`}>{fmtCurrencyFull(bucket.amount)}</span>
-                          </div>
-                        </div>
-                        <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                          <div className={`h-full rounded-full ${color.bg} transition-all duration-500`} style={{ width: `${Math.max(pct, 2)}%` }} />
+          <CardContent className="flex-1 p-5">
+            {metrics.agingDistribution.every(b => b.amount === 0) ? (
+              <div className="py-8 flex flex-col items-center gap-2 text-center">
+                <BarChart3 className="w-8 h-8 text-slate-300" />
+                <p className="text-sm font-semibold text-slate-700">Sem recebíveis em aberto</p>
+                <p className="text-xs text-slate-400">O aging aparecerá assim que houver faturas ativas.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {metrics.agingDistribution.map((bucket, idx) => {
+                  const pct = totalAgingAmount > 0 ? (bucket.amount / totalAgingAmount) * 100 : 0;
+                  const color = AGING_COLORS[idx] ?? AGING_COLORS[4];
+                  return (
+                    <div key={bucket.label}>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-xs font-semibold text-slate-700">{bucket.label}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] text-slate-400">{bucket.count} títulos</span>
+                          <span className={`text-xs font-bold ${color.text}`}>{fmtCurrencyFull(bucket.amount)}</span>
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
-              )
-            }
+                      <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                        <div className={`h-full rounded-full ${color.bg} transition-all duration-500`} style={{ width: `${Math.max(pct, 2)}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </CardContent>
         </Card>
+
 
       </div>
 
       {/* ── Row 4: Overdue Snapshot + Recent Comms + Risk Ranking ─────────── */}
       <div className="grid gap-6 lg:grid-cols-12">
 
-        {/* Overdue Snapshot */}
-        <Card className="premium-card rounded-3xl lg:col-span-5 flex flex-col overflow-hidden">
-          <CardHeader className="border-b border-border bg-[#FAFAFB] pb-5 px-8">
+        {/* Faturas Vencidas */}
+        <Card className="rounded-3xl border-slate-200 lg:col-span-5 flex flex-col overflow-hidden shadow-sm">
+          <CardHeader className="border-b border-slate-100 bg-slate-50/70 pb-4 px-6">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-base font-sans font-bold text-obsidian flex items-center gap-2">
+                <CardTitle className="text-sm font-bold text-slate-800 flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-rose-500" /> Faturas Vencidas
                 </CardTitle>
-                <CardDescription className="text-xs mt-1">As mais críticas por prazo e valor.</CardDescription>
+                <CardDescription className="text-xs mt-0.5">As mais críticas por prazo e valor.</CardDescription>
               </div>
-              <Link href="/cobrancas?status=overdue"><Button variant="link" className="text-rose-600 font-semibold px-0 text-sm">Ver todas</Button></Link>
+              <Link href="/cobrancas?status=overdue">
+                <Button variant="link" size="sm" className="text-rose-600 font-semibold px-0 text-xs">Ver todas</Button>
+              </Link>
             </div>
           </CardHeader>
-          <CardContent className="flex-1 p-4 overflow-y-auto max-h-[380px] bg-white">
-            {metrics.overdueSnapshot.length === 0
-              ? <div className="py-10 text-center"><CheckCircle2 className="w-8 h-8 mx-auto text-emerald-300 mb-2" /><p className="text-sm text-muted-foreground">Sem faturas vencidas! 🎉</p></div>
-              : (
-                <div className="space-y-2">
-                  {metrics.overdueSnapshot.map(inv => (
-                    <div key={inv.id} className="flex items-center justify-between p-3 rounded-xl border border-rose-100 bg-rose-50/20 hover:bg-rose-50/50 transition-colors">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-8 h-8 rounded-full bg-rose-100 flex items-center justify-center shrink-0">
-                          <FileText className="w-3.5 h-3.5 text-rose-600" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold text-obsidian truncate">{inv.customerName}</p>
-                          <p className="text-[10px] text-muted-foreground font-mono">#{inv.invoiceNumber}</p>
-                        </div>
+          <CardContent className="flex-1 p-4 overflow-y-auto max-h-[380px]">
+            {metrics.overdueSnapshot.length === 0 ? (
+              <div className="py-10 flex flex-col items-center gap-2 text-center">
+                <CheckCircle2 className="w-8 h-8 text-emerald-300" />
+                <p className="text-sm font-semibold text-slate-700">Sem faturas vencidas</p>
+                <p className="text-xs text-slate-400">Continue assim! Sua carteira está em dia.</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {metrics.overdueSnapshot.map(inv => (
+                  <div key={inv.id} className="flex items-center justify-between p-3 rounded-xl border border-rose-100 bg-rose-50/20 hover:bg-rose-50/50 transition-colors">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-8 h-8 rounded-xl bg-rose-100 flex items-center justify-center shrink-0">
+                        <FileText className="w-3.5 h-3.5 text-rose-600" />
                       </div>
-                      <div className="text-right shrink-0 ml-2">
-                        <p className="text-sm font-bold text-rose-700">{fmtCurrencyFull(inv.amount)}</p>
-                        <p className="text-[10px] font-bold text-rose-500 uppercase tracking-wider">{inv.daysOverdue}d atraso</p>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-slate-800 truncate">{inv.customerName}</p>
+                        <p className="text-[10px] text-slate-400 font-mono">#{inv.invoiceNumber}</p>
                       </div>
                     </div>
-                  ))}
-                </div>
-              )
-            }
+                    <div className="text-right shrink-0 ml-3">
+                      <p className="text-sm font-bold text-rose-700">{fmtCurrencyFull(inv.amount)}</p>
+                      <p className="text-[10px] font-bold text-rose-500 uppercase tracking-wider">{inv.daysOverdue}d atraso</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
-        {/* Recent Communication Activity */}
-        <Card className="premium-card rounded-3xl lg:col-span-3 flex flex-col overflow-hidden">
-          <CardHeader className="border-b border-border bg-[#FAFAFB] pb-5 px-8">
-            <CardTitle className="text-base font-sans font-bold text-obsidian flex items-center gap-2">
+
+        {/* Atividade de Comunicações */}
+        <Card className="rounded-3xl border-slate-200 lg:col-span-3 flex flex-col overflow-hidden shadow-sm">
+          <CardHeader className="border-b border-slate-100 bg-slate-50/70 pb-4 px-6">
+            <CardTitle className="text-sm font-bold text-slate-800 flex items-center gap-2">
               <MessageSquare className="w-4 h-4 text-emerald-500" /> Comunicações
             </CardTitle>
-            <CardDescription className="text-xs mt-1">Atividade recente do fluxo de cobrança.</CardDescription>
+            <CardDescription className="text-xs mt-0.5">Atividade recente do fluxo de cobrança.</CardDescription>
           </CardHeader>
-          <CardContent className="flex-1 p-4 overflow-y-auto max-h-[380px] bg-white">
-            {metrics.recentCommActivity.length === 0
-              ? <p className="text-center text-sm text-muted-foreground py-8">Nenhuma comunicação registrada.</p>
-              : (
-                <div className="space-y-2">
-                  {metrics.recentCommActivity.map(comm => {
-                    const isSent = comm.status === 'sent';
-                    const isSkipped = comm.status === 'skipped';
-                    const isFailed = comm.status === 'failed';
-                    return (
-                      <div key={comm.id} className="flex items-start gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100">
-                        <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${
-                          isSent ? 'bg-emerald-100' : isSkipped ? 'bg-amber-100' : isFailed ? 'bg-rose-100' : 'bg-slate-100'
-                        }`}>
-                          {isSent ? <Send className="w-3 h-3 text-emerald-600" />
-                            : isSkipped ? <SkipForward className="w-3 h-3 text-amber-600" />
-                            : isFailed ? <XCircle className="w-3 h-3 text-rose-600" />
-                            : <Clock className="w-3 h-3 text-slate-500" />}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-semibold text-obsidian truncate">{comm.customerName}</p>
-                          <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                            <span className="text-[10px] bg-slate-100 rounded px-1.5 py-0.5 font-mono text-slate-600">
-                              {RULE_LABELS[comm.ruleType] ?? comm.ruleType}
-                            </span>
-                            <span className="text-[10px] text-muted-foreground">
-                              {CHANNEL_LABELS[comm.channel] ?? comm.channel}
-                            </span>
-                          </div>
-                        </div>
-                        <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded shrink-0 ${
-                          isSent ? 'bg-emerald-50 text-emerald-700' :
-                          isSkipped ? 'bg-amber-50 text-amber-700' :
-                          isFailed ? 'bg-rose-50 text-rose-700' :
-                          'bg-slate-100 text-slate-600'
-                        }`}>
-                          {comm.status}
-                        </span>
+          <CardContent className="flex-1 p-4 overflow-y-auto max-h-[380px]">
+            {metrics.recentCommActivity.length === 0 ? (
+              <div className="py-10 flex flex-col items-center gap-2 text-center">
+                <Inbox className="w-8 h-8 text-slate-300" />
+                <p className="text-sm font-semibold text-slate-700">Nenhuma comunicação ainda</p>
+                <p className="text-xs text-slate-400 max-w-[160px]">
+                  Configure a régua para que o sistema comece a disparar mensagens.
+                </p>
+                <Link href="/automacao">
+                  <Button variant="outline" size="sm" className="mt-1 text-xs rounded-xl border-slate-200 font-semibold">Configurar Régua</Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                {metrics.recentCommActivity.map(comm => {
+                  const isSent    = comm.status === 'sent';
+                  const isSkipped = comm.status === 'skipped';
+                  const isFailed  = comm.status === 'failed';
+                  const label = COMM_STATUS_LABELS[comm.status] ?? comm.status;
+                  return (
+                    <div key={comm.id} className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100">
+                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                        isSent ? 'bg-emerald-100' : isSkipped ? 'bg-amber-100' : isFailed ? 'bg-rose-100' : 'bg-slate-100'
+                      }`}>
+                        {isSent    ? <Send       className="w-3 h-3 text-emerald-600" />
+                         : isSkipped ? <SkipForward className="w-3 h-3 text-amber-600" />
+                         : isFailed  ? <XCircle    className="w-3 h-3 text-rose-600" />
+                         :             <Clock      className="w-3 h-3 text-slate-500" />}
                       </div>
-                    );
-                  })}
-                </div>
-              )
-            }
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-slate-800 truncate">{comm.customerName}</p>
+                        <p className="text-[10px] text-slate-400">{comm.channel}</p>
+                      </div>
+                      <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md shrink-0 ${
+                        isSent    ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
+                        isSkipped ? 'bg-amber-50  text-amber-700  border border-amber-100'  :
+                        isFailed  ? 'bg-rose-50   text-rose-700   border border-rose-100'   :
+                        'bg-slate-100 text-slate-600'
+                      }`}>
+                        {label}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </CardContent>
         </Card>
 
-        {/* Risk Ranking */}
-        <Card className="premium-card rounded-3xl lg:col-span-4 flex flex-col overflow-hidden">
-          <CardHeader className="border-b border-border bg-[#FAFAFB] pb-5 px-8">
-            <CardTitle className="text-base font-sans font-bold text-obsidian flex items-center gap-2">
+
+        {/* Ranking de Risco */}
+        <Card className="rounded-3xl border-slate-200 lg:col-span-4 flex flex-col overflow-hidden shadow-sm">
+          <CardHeader className="border-b border-slate-100 bg-slate-50/70 pb-4 px-6">
+            <CardTitle className="text-sm font-bold text-slate-800 flex items-center gap-2">
               <ShieldAlert className="w-4 h-4 text-rose-500" /> Ranking de Risco
             </CardTitle>
-            <CardDescription className="text-xs mt-1">Clientes classificados por score 0–100.</CardDescription>
+            <CardDescription className="text-xs mt-0.5">Clientes classificados por score 0–100.</CardDescription>
           </CardHeader>
-          <CardContent className="flex-1 p-4 overflow-y-auto max-h-[380px] bg-white">
-            <div className="space-y-1.5">
-              {metrics.riskRanking.map((rank, idx) => (
-                <div key={rank.customerId} className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-all">
-                  <div className="flex items-center gap-2.5 flex-1 min-w-0">
-                    <div className="w-7 h-7 rounded-full flex justify-center items-center text-xs font-bold font-mono border flex-shrink-0" style={{
-                      backgroundColor: rank.level === 'Baixo' ? '#ecfdf5' : rank.level === 'Médio' ? '#fef3c7' : rank.level === 'Alto' ? '#ffedd5' : '#fee2e2',
-                      color: rank.level === 'Baixo' ? '#059669' : rank.level === 'Médio' ? '#d97706' : rank.level === 'Alto' ? '#ea580c' : '#dc2626',
-                      borderColor: rank.level === 'Baixo' ? '#a7f3d0' : rank.level === 'Médio' ? '#fcd34d' : rank.level === 'Alto' ? '#fed7aa' : '#fecaca',
-                    }}>
-                      {idx + 1}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold text-obsidian truncate">{rank.customerName}</p>
-                      <p className="text-[10px] text-muted-foreground truncate">{rank.justification}</p>
-                    </div>
-                  </div>
-                  <div className="text-right flex flex-col items-end gap-0.5 flex-shrink-0 ml-2">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-sm font-black" style={{ color: rank.level === 'Baixo' ? '#059669' : rank.level === 'Médio' ? '#d97706' : rank.level === 'Alto' ? '#ea580c' : '#dc2626' }}>
-                        {rank.score}
-                      </span>
-                      <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded" style={{
-                        backgroundColor: rank.level === 'Baixo' ? '#d1fae5' : rank.level === 'Médio' ? '#fed7aa' : '#fee2e2',
-                        color: rank.level === 'Baixo' ? '#047857' : rank.level === 'Médio' ? '#92400e' : '#7f1d1d',
+          <CardContent className="flex-1 p-4 overflow-y-auto max-h-[380px]">
+            {metrics.riskRanking.length === 0 ? (
+              <div className="py-10 flex flex-col items-center gap-2 text-center">
+                <Users className="w-8 h-8 text-slate-300" />
+                <p className="text-sm font-semibold text-slate-700">Sem clientes cadastrados</p>
+                <p className="text-xs text-slate-400">Adicione clientes para visualizar o ranking de risco.</p>
+                <Link href="/clientes">
+                  <Button variant="outline" size="sm" className="mt-1 text-xs rounded-xl border-slate-200 font-semibold">Ir para Clientes</Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                {metrics.riskRanking.map((rank, idx) => (
+                  <div key={rank.customerId} className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-100 transition-all">
+                    <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                      <div className="w-7 h-7 rounded-lg flex justify-center items-center text-xs font-bold font-mono border flex-shrink-0" style={{
+                        backgroundColor: rank.level === 'Baixo' ? '#ecfdf5' : rank.level === 'Médio' ? '#fef3c7' : rank.level === 'Alto' ? '#ffedd5' : '#fee2e2',
+                        color:           rank.level === 'Baixo' ? '#059669' : rank.level === 'Médio' ? '#d97706' : rank.level === 'Alto' ? '#ea580c' : '#dc2626',
+                        borderColor:     rank.level === 'Baixo' ? '#a7f3d0' : rank.level === 'Médio' ? '#fcd34d' : rank.level === 'Alto' ? '#fed7aa' : '#fecaca',
                       }}>
-                        {rank.level}
-                      </span>
+                        {idx + 1}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-slate-800 truncate">{rank.customerName}</p>
+                        <p className="text-[10px] text-slate-400 truncate">{rank.justification}</p>
+                      </div>
                     </div>
-                    <span className="font-mono text-[10px] font-bold text-rose-600">{fmtCurrencyFull(rank.overdueAmount)}</span>
+                    <div className="text-right flex flex-col items-end gap-0.5 flex-shrink-0 ml-2">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-sm font-black" style={{
+                          color: rank.level === 'Baixo' ? '#059669' : rank.level === 'Médio' ? '#d97706' : rank.level === 'Alto' ? '#ea580c' : '#dc2626'
+                        }}>{rank.score}</span>
+                        <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-md" style={{
+                          backgroundColor: rank.level === 'Baixo' ? '#d1fae5' : rank.level === 'Médio' ? '#fed7aa' : '#fee2e2',
+                          color:           rank.level === 'Baixo' ? '#047857' : rank.level === 'Médio' ? '#92400e' : '#7f1d1d',
+                        }}>{rank.level}</span>
+                      </div>
+                      <span className="font-mono text-[10px] font-bold text-rose-600">{fmtCurrencyFull(rank.overdueAmount)}</span>
+                    </div>
                   </div>
-                </div>
-              ))}
-              {metrics.riskRanking.length === 0 && (
-                <div className="py-8 text-center"><p className="text-muted-foreground text-sm">Sem clientes na base.</p></div>
-              )}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
       </div>
 
     </div>
-  )
+  );
 }
