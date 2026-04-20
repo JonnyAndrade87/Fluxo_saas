@@ -989,3 +989,110 @@ Tokens legados removidos em todas as telas do beta:
 - `bg-fluxeer-blue`, `bg-fluxeer-blue-hover`, `btn-beam`
 - `font-heading`, `text-obsidian`, `text-muted-foreground` (substituído por `text-slate-*`)
 - `premium-card`, `bg-[#FAFAFB]`, `border-border/60`
+
+> **Nota:** tokens legados ainda existem em telas fora do escopo das sprints de polimento
+> (`ReguaClient.tsx`, `NewInvoiceModal.tsx`, auth pages, onboarding pages, superadmin).
+> Classificados como dívida cosmética aceita — serão endereçados na v1.0.
+
+---
+
+## 14. Bugfixes de RC — Pré-release
+
+**Data:** Abril 2026  
+**Status:** ✅ Todos os P1 fechados — Release Candidate ativo
+
+### B01 — Eliminação de `window.alert`, `window.prompt`, `window.confirm`
+
+**Commit:** `8a66d2b`  
+**Arquivo:** `ReceivablesClient.tsx`
+
+Todas as APIs nativas de browser que bloqueiam a UI em mobile foram substituídas por modais controlados:
+
+| Código anterior | Substituído por |
+| :--- | :--- |
+| `alert(e.message)` no catch de server action | `ErrorToast` inline — bottom-center, auto-dismiss 4s, botão X |
+| `window.prompt("Data prometida…")` | `PromessaDialog` — `<input type="date">` nativo, min=hoje, foco automático |
+| `alert("Data inválida")` | Validação interna no `PromessaDialog` com erro inline rose |
+| `window.prompt("Valor pago…")` | `PayDialog` — `<input type="number">` com prefixo R$, valor sugerido pré-preenchido |
+| `alert("Valor inválido")` | Validação interna no `PayDialog` com erro inline rose |
+| `window.prompt("Motivo do cancelamento")` | `CancelDialog` — `<textarea>` obrigatório, placeholder orientador |
+| `window.confirm("Deseja reabrir…")` | `ConfirmDialog` — modal com "Sim, reabrir" e Cancelar |
+
+Sistema de modais: `DialogBackdrop` (overlay com `backdrop-blur-sm`, fecha ao clicar fora, `aria-modal`),
+sheet de baixo em mobile (`items-end`), modal clássico em desktop (`sm:items-center`).
+Todos os botões desabilitam durante `isPending`. Zero ocorrências residuais confirmadas por grep.
+
+### B03 — Acesso direto a `/importar/mapeamento` sem sessionStorage
+
+**Commit:** `3923ed4`  
+**Arquivo:** `/importar/mapeamento/page.tsx`
+
+**Problema:** usuário navegando diretamente para `/importar/mapeamento` encontrava tabela com "0 registros", sem contexto, sem next action.
+
+**Solução:**
+- `useEffect` de leitura do sessionStorage agora seta `noSessionData = true` se os dados estiverem ausentes, inválidos ou vazios
+- Antes do render principal, o componente retorna um early return com empty state B2B:
+  - `FileX` icon + "Nenhum arquivo carregado" + descrição de 1 linha + CTA "Fazer upload do arquivo"
+  - Botão usa `router.push('/importar')` para retorno limpo ao fluxo
+- Cobre também o edge case de parse bem-sucedido mas array vazio (B08 chegando nesta rota)
+
+### B08 — CSV com 0 linhas válidas não gerava erro
+
+**Commit:** `3923ed4`  
+**Arquivo:** `/importar/page.tsx`
+
+**Problema:** `Papa.parse` com `skipEmptyLines: true` retorna array vazio sem lançar erro — o arquivo era aceito, salvo no sessionStorage e o usuário navegava para mapeamento sem registros.
+
+**Solução:**
+- Após o parse, duas guardas antes do `sessionStorage.setItem`:
+  1. `rows.length === 0` → erro humano: "Nenhum dado válido encontrado no arquivo. Verifique se há linhas preenchidas abaixo do cabeçalho e se o separador é vírgula (,)."
+  2. `fields.length === 0` → erro: "O arquivo não possui cabeçalho de colunas reconhecível."
+- Ambos os casos: `setIsProcessing(false)` + `return` — drop zone volta ao estado inicial para novo upload
+- Nenhum dado inválido chega ao sessionStorage
+
+### Arquivos alterados
+- `src/app/(dashboard)/cobrancas/ReceivablesClient.tsx` (B01)
+- `src/app/(dashboard)/importar/page.tsx` (B08)
+- `src/app/(dashboard)/importar/mapeamento/page.tsx` (B03)
+
+---
+
+## 15. Release Candidate RC-1
+
+**Data:** Abril 2026  
+**Status:** 🚀 RC-1 declarado
+
+### Critérios de pronto — status
+
+| Critério | Status |
+| :--- | :--- |
+| B01: zero `window.alert/prompt/confirm` em código ativo | ✅ |
+| B03: acesso direto a `/importar/mapeamento` tem recovery path | ✅ |
+| B08: CSV com 0 linhas válidas gera erro explícito | ✅ |
+| TSC limpo (exceto erro legado em `billing-stripe.test.ts`) | ✅ |
+| Scan de APIs nativas de browser: zero ocorrências reais | ✅ |
+| Deploy push para `main` sem erros de build | ✅ |
+
+### Pendências pré-go-live (fora do código)
+
+| Item | Responsável |
+| :--- | :--- |
+| Template CSV em `/public/templates/modelo-importacao.csv` | Infra / Conteúdo |
+| Variáveis de ambiente de produção verificadas no Vercel | Infra |
+| `<title>` e `<meta description>` por page verificados | QA |
+| Teste manual do fluxo: Login → Setup → Importar → Cobranças → Histórico | QA |
+| Banco de dados com tenant de demonstração | Produto |
+
+### Known issues aceitos (v1.0)
+- Tokens legados (`fluxeer-blue`, `font-heading`, `text-obsidian`) em telas fora do escopo das sprints — impacto puramente cosmético
+- KPI strip de Cobranças calcula sobre página atual, não total do banco (exibir tooltip "desta página" quando conveniente)
+- Select de mapeamento com "✱" não é acessível para screen readers
+- `toLocaleDateString` com `pt-BR` depende do ambiente do servidor Vercel
+
+### Commits do RC
+| Commit | Descrição |
+| :--- | :--- |
+| `ac16328` | Sprint 6: UX Cobranças + Importação/Mapeamento |
+| `472833f` | Docs: Sprint 6 + freeze de escopo no FLUXEER.md |
+| `8a66d2b` | fix(B01): window.alert/prompt/confirm → modais controlados |
+| `3923ed4` | fix(B03,B08): importação — guarda sessionStorage + validação CSV vazio |
