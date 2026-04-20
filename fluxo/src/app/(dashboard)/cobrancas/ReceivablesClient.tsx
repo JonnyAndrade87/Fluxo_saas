@@ -1,14 +1,14 @@
 'use client';
 
-import { useState, useEffect, useTransition } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useEffect, useTransition, useRef, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { 
   Search, Plus, FileText, ArrowUpDown, AlertTriangle,
   MoreHorizontal, CheckCircle, CalendarClock, Trash2, X, User, Phone, Mail,
-  Clock, Edit3, XCircle, RefreshCcw, DollarSign, Handshake, TrendingDown, TrendingUp
+  Clock, Edit3, XCircle, RefreshCcw, DollarSign, Handshake, TrendingDown, TrendingUp,
+  AlertCircle, Loader2
 } from "lucide-react";
 import { 
   getFilteredInvoices, 
@@ -22,6 +22,42 @@ import { getInvoiceTimeline } from "@/actions/timeline";
 import type { TimelineEvent } from "@/types/timeline.types";
 import { getInvoiceVisualState, calculateInvoiceFinancials, VisualStatus } from "@/lib/invoice-utils";
 import BillingTimeline from "@/components/timeline/BillingTimeline";
+
+// ─── Inline Modal System (replaces window.alert / prompt / confirm) ───────────
+
+type DialogState =
+  | { type: 'confirm'; invoiceId: string; title: string; body: string; confirmLabel?: string; danger?: boolean }
+  | { type: 'pay';   invoiceId: string; suggested: number }
+  | { type: 'promise'; invoiceId: string }
+  | { type: 'cancel'; invoiceId: string }
+  | null;
+
+function DialogBackdrop({ onClose, children }: { onClose: () => void; children: React.ReactNode }) {
+  return (
+    <div
+      className="fixed inset-0 z-[80] flex items-end sm:items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+      onClick={e => { if (e.target === e.currentTarget) onClose(); }}
+      role="dialog"
+      aria-modal="true"
+    >
+      <div className="w-full max-w-sm bg-white rounded-2xl shadow-2xl animate-in slide-in-from-bottom-4 sm:slide-in-from-bottom-0 duration-200">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function ErrorToast({ message, onClose }: { message: string; onClose: () => void }) {
+  return (
+    <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-[90] flex items-center gap-2.5 bg-slate-900 text-white text-sm px-4 py-3 rounded-xl shadow-xl animate-in slide-in-from-bottom-4 duration-300 max-w-sm w-full mx-4">
+      <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+      <p className="flex-1">{message}</p>
+      <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
+        <X className="w-4 h-4" />
+      </button>
+    </div>
+  );
+}
 
 export default function ReceivablesClient({ initialData, initialTotalPages = 1 }: { initialData: any[], initialTotalPages?: number }) {
   const [invoices, setInvoices] = useState(initialData);
@@ -45,6 +81,14 @@ export default function ReceivablesClient({ initialData, initialTotalPages = 1 }
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [invoiceTimeline, setInvoiceTimeline] = useState<TimelineEvent[]>([]);
 
+  // Dialog + Toast State (replaces window.alert/prompt/confirm)
+  const [dialog, setDialog] = useState<DialogState>(null);
+  const [toastError, setToastError] = useState<string | null>(null);
+  const showError = useCallback((msg: string) => {
+    setToastError(msg);
+    setTimeout(() => setToastError(null), 4000);
+  }, []);;
+
 
   useEffect(() => {
     // Debounce fetch on any filter or page change
@@ -61,6 +105,7 @@ export default function ReceivablesClient({ initialData, initialTotalPages = 1 }
   // Actions
   const handleAction = async (actionFn: (...args: any[]) => Promise<any>, ...args: any[]) => {
      setActiveDropdown(null);
+     setDialog(null);
      startTransition(async () => {
        try {
          await actionFn(...args);
@@ -72,7 +117,7 @@ export default function ReceivablesClient({ initialData, initialTotalPages = 1 }
             setSelectedInvoice(data.invoices?.find((i: any) => i.id === args[0]));
          }
        } catch(e: any) {
-         alert(e.message || "Erro ao processar ação.");
+         showError(e.message || 'Erro ao processar a ação. Tente novamente.');
        }
      });
   };
@@ -88,52 +133,32 @@ export default function ReceivablesClient({ initialData, initialTotalPages = 1 }
     }
   };
 
-  const handlePromessa = (id: string, currentAmount: number) => {
+  // Open dialogs — no window.prompt/confirm
+  const handlePromessa = (id: string, _currentAmount: number) => {
     setActiveDropdown(null);
-    const dateStr = window.prompt("Data prometida pelo cliente (DD/MM/AAAA):", "");
-    if (!dateStr) return;
-    
-    let promDate;
-    if (dateStr.includes('/')) {
-       const parts = dateStr.split('/');
-       promDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}T12:00:00Z`);
-    } else {
-       promDate = new Date(`${dateStr}T12:00:00Z`);
-    }
-
-    if (isNaN(promDate.getTime())) {
-       alert("Data inválida. Use o formato DD/MM/AAAA.");
-       return;
-    }
-    
-    handleAction(registerPromiseToPay, id, promDate.toISOString());
+    setDialog({ type: 'promise', invoiceId: id });
   };
 
   const handlePay = (id: string, currentUpdateAmount: number) => {
     setActiveDropdown(null);
-    const amountStr = window.prompt("Valor pago pelo cliente (Ex: 1500.50):", currentUpdateAmount.toFixed(2));
-    if (!amountStr) return;
-    const amount = parseFloat(amountStr.replace(',', '.'));
-    if (isNaN(amount) || amount <= 0) {
-      alert("Valor inválido.");
-      return;
-    }
-    handleAction(markInvoiceAsPaid, id, amount);
+    setDialog({ type: 'pay', invoiceId: id, suggested: currentUpdateAmount });
   };
 
   const handleCancel = (id: string) => {
     setActiveDropdown(null);
-    const reason = window.prompt("Motivo do cancelamento:", "");
-    if (!reason) return;
-    handleAction(cancelInvoice, id, reason);
+    setDialog({ type: 'cancel', invoiceId: id });
   };
 
   const handleReopen = (id: string) => {
     setActiveDropdown(null);
-    if (window.confirm("Deseja reabrir esta fatura? Isso removerá o registro de pagamento ou cancelamento atual.")) {
-       handleAction(reopenInvoice, id);
-    }
-  }
+    setDialog({
+      type: 'confirm',
+      invoiceId: id,
+      title: 'Reabrir fatura',
+      body: 'Isso removerá o registro de pagamento ou cancelamento atual. A fatura voltará ao status Em Aberto.',
+      confirmLabel: 'Sim, reabrir',
+    });
+  };
 
   const formatDate = (date: Date) => new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(date));
   const formatCurrency = (val: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
@@ -604,6 +629,189 @@ export default function ReceivablesClient({ initialData, initialTotalPages = 1 }
          </div>
          );
       })()}
+
+      {/* ── Inline Dialogs (B01 fix — no window.alert/prompt/confirm) ─────── */}
+      {toastError && (
+        <ErrorToast message={toastError} onClose={() => setToastError(null)} />
+      )}
+
+      {dialog?.type === 'confirm' && (
+        <ConfirmDialog
+          title={dialog.title}
+          body={dialog.body}
+          confirmLabel={dialog.confirmLabel}
+          danger={dialog.danger}
+          busy={isPending}
+          onConfirm={() => handleAction(reopenInvoice, dialog.invoiceId)}
+          onClose={() => setDialog(null)}
+        />
+      )}
+
+      {dialog?.type === 'pay' && (
+        <PayDialog
+          suggested={dialog.suggested}
+          busy={isPending}
+          formatCurrency={formatCurrency}
+          onConfirm={(amount) => handleAction(markInvoiceAsPaid, dialog.invoiceId, amount)}
+          onClose={() => setDialog(null)}
+        />
+      )}
+
+      {dialog?.type === 'promise' && (
+        <PromessaDialog
+          busy={isPending}
+          onConfirm={(iso) => handleAction(registerPromiseToPay, dialog.invoiceId, iso)}
+          onClose={() => setDialog(null)}
+        />
+      )}
+
+      {dialog?.type === 'cancel' && (
+        <CancelDialog
+          busy={isPending}
+          onConfirm={(reason) => handleAction(cancelInvoice, dialog.invoiceId, reason)}
+          onClose={() => setDialog(null)}
+        />
+      )}
     </div>
   )
+}
+
+// ─── PayDialog ────────────────────────────────────────────────────────────────
+function PayDialog({ suggested, busy, onConfirm, onClose, formatCurrency }: {
+  suggested: number; busy: boolean;
+  onConfirm: (amount: number) => void;
+  onClose: () => void;
+  formatCurrency: (v: number) => string;
+}) {
+  const [value, setValue] = useState(suggested.toFixed(2));
+  const [err, setErr] = useState('');
+  const ref = useRef<HTMLInputElement>(null);
+  useEffect(() => { ref.current?.select(); }, []);
+  const submit = () => {
+    const amount = parseFloat(value.replace(',', '.'));
+    if (isNaN(amount) || amount <= 0) { setErr('Digite um valor válido maior que zero.'); return; }
+    onConfirm(amount);
+  };
+  return (
+    <DialogBackdrop onClose={onClose}>
+      <div className="p-6">
+        <h3 className="text-base font-bold text-slate-900 mb-1">Confirmar pagamento</h3>
+        <p className="text-xs text-slate-400 mb-4">Valor padrão: <span className="font-semibold text-slate-600">{formatCurrency(suggested)}</span>. Ajuste se necessário.</p>
+        <label className="text-xs font-semibold text-slate-600 block mb-1.5">Valor recebido (R$)</label>
+        <div className="relative">
+          <span className="absolute left-3 top-2.5 text-sm text-slate-400 font-semibold">R$</span>
+          <Input ref={ref} type="number" min="0.01" step="0.01" value={value}
+            onChange={e => { setValue(e.target.value); setErr(''); }}
+            onKeyDown={e => e.key === 'Enter' && submit()}
+            className={`pl-9 h-10 rounded-xl text-sm border-slate-200 ${err ? 'border-rose-400' : ''}`}
+            aria-label="Valor recebido" />
+        </div>
+        {err && <p className="text-xs text-rose-600 mt-1.5">{err}</p>}
+      </div>
+      <div className="flex gap-2 px-6 pb-6">
+        <Button variant="outline" className="flex-1 rounded-xl border-slate-200 text-slate-600 h-11" onClick={onClose} disabled={busy}>Cancelar</Button>
+        <Button className="flex-1 rounded-xl h-11 font-semibold bg-emerald-600 hover:bg-emerald-700 text-white" onClick={submit} disabled={busy}>
+          {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <><DollarSign className="w-4 h-4 mr-1" />Confirmar Baixa</>}
+        </Button>
+      </div>
+    </DialogBackdrop>
+  );
+}
+
+// ─── PromessaDialog ───────────────────────────────────────────────────────────
+function PromessaDialog({ busy, onConfirm, onClose }: {
+  busy: boolean; onConfirm: (iso: string) => void; onClose: () => void;
+}) {
+  const [value, setValue] = useState('');
+  const [err, setErr] = useState('');
+  const ref = useRef<HTMLInputElement>(null);
+  useEffect(() => { ref.current?.focus(); }, []);
+  const submit = () => {
+    if (!value) { setErr('Selecione uma data.'); return; }
+    const d = new Date(`${value}T12:00:00Z`);
+    if (isNaN(d.getTime())) { setErr('Data inválida.'); return; }
+    onConfirm(d.toISOString());
+  };
+  return (
+    <DialogBackdrop onClose={onClose}>
+      <div className="p-6">
+        <h3 className="text-base font-bold text-slate-900 mb-1">Registrar promessa de pagamento</h3>
+        <p className="text-xs text-slate-400 mb-4">Data em que o cliente prometeu pagar.</p>
+        <label className="text-xs font-semibold text-slate-600 block mb-1.5">Data prometida</label>
+        <Input ref={ref} type="date" value={value}
+          min={new Date().toISOString().split('T')[0]}
+          onChange={e => { setValue(e.target.value); setErr(''); }}
+          onKeyDown={e => e.key === 'Enter' && submit()}
+          className={`h-10 rounded-xl text-sm border-slate-200 ${err ? 'border-rose-400' : ''}`}
+          aria-label="Data prometida" />
+        {err && <p className="text-xs text-rose-600 mt-1.5">{err}</p>}
+      </div>
+      <div className="flex gap-2 px-6 pb-6">
+        <Button variant="outline" className="flex-1 rounded-xl border-slate-200 text-slate-600 h-11" onClick={onClose} disabled={busy}>Cancelar</Button>
+        <Button className="flex-1 rounded-xl h-11 font-semibold bg-indigo-600 hover:bg-indigo-700 text-white" onClick={submit} disabled={busy}>
+          {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <><CalendarClock className="w-4 h-4 mr-1" />Registrar Acordo</>}
+        </Button>
+      </div>
+    </DialogBackdrop>
+  );
+}
+
+// ─── CancelDialog ─────────────────────────────────────────────────────────────
+function CancelDialog({ busy, onConfirm, onClose }: {
+  busy: boolean; onConfirm: (reason: string) => void; onClose: () => void;
+}) {
+  const [value, setValue] = useState('');
+  const [err, setErr] = useState('');
+  const submit = () => {
+    if (!value.trim()) { setErr('O motivo é obrigatório.'); return; }
+    onConfirm(value.trim());
+  };
+  return (
+    <DialogBackdrop onClose={onClose}>
+      <div className="p-6">
+        <h3 className="text-base font-bold text-slate-900 mb-1">Cancelar título</h3>
+        <p className="text-xs text-slate-400 mb-4">Esta ação é reversível. Informe o motivo.</p>
+        <label className="text-xs font-semibold text-slate-600 block mb-1.5">Motivo</label>
+        <textarea autoFocus value={value}
+          onChange={e => { setValue(e.target.value); setErr(''); }}
+          onKeyDown={e => e.key === 'Enter' && e.metaKey && submit()}
+          rows={3}
+          placeholder="Ex: Acordo extrajudicial, duplicidade, cliente encerrado..."
+          className={`w-full rounded-xl border text-sm px-3 py-2.5 resize-none outline-none transition-colors focus:ring-1 focus:ring-indigo-500/30 ${err ? 'border-rose-400' : 'border-slate-200 focus:border-indigo-500'}`}
+          aria-label="Motivo do cancelamento" />
+        {err && <p className="text-xs text-rose-600 mt-1">{err}</p>}
+      </div>
+      <div className="flex gap-2 px-6 pb-6">
+        <Button variant="outline" className="flex-1 rounded-xl border-slate-200 text-slate-600 h-11" onClick={onClose} disabled={busy}>Cancelar</Button>
+        <Button className="flex-1 rounded-xl h-11 font-semibold bg-rose-600 hover:bg-rose-700 text-white" onClick={submit} disabled={busy}>
+          {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <><XCircle className="w-4 h-4 mr-1" />Confirmar Cancelamento</>}
+        </Button>
+      </div>
+    </DialogBackdrop>
+  );
+}
+
+// ─── ConfirmDialog ────────────────────────────────────────────────────────────
+function ConfirmDialog({ title, body, confirmLabel = 'Confirmar', danger = false, busy, onConfirm, onClose }: {
+  title: string; body: string; confirmLabel?: string;
+  danger?: boolean; busy: boolean;
+  onConfirm: () => void; onClose: () => void;
+}) {
+  return (
+    <DialogBackdrop onClose={onClose}>
+      <div className="p-6">
+        <h3 className="text-base font-bold text-slate-900 mb-2">{title}</h3>
+        <p className="text-sm text-slate-500 leading-relaxed">{body}</p>
+      </div>
+      <div className="flex gap-2 px-6 pb-6">
+        <Button variant="outline" className="flex-1 rounded-xl border-slate-200 text-slate-600 h-11" onClick={onClose} disabled={busy}>Cancelar</Button>
+        <Button
+          className={`flex-1 rounded-xl h-11 font-semibold text-white ${danger ? 'bg-rose-600 hover:bg-rose-700' : 'bg-indigo-600 hover:bg-indigo-700'}`}
+          onClick={onConfirm} disabled={busy}
+        >
+          {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : confirmLabel}
+        </Button>
+      </div>
+    </DialogBackdrop>
+  );
 }
