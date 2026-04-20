@@ -6,7 +6,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import {
   ArrowRight, ShieldCheck, Loader2, AlertCircle,
-  CheckCircle, ChevronRight, AlertTriangle
+  CheckCircle, ChevronRight, AlertTriangle, FileX, Upload
 } from "lucide-react"
 import { importReceivables, ParsedReceivable } from "@/actions/import"
 
@@ -57,20 +57,33 @@ const REQUIRED_LABELS: Record<string, string> = {
 
 export default function GenericMappingPage() {
   const router = useRouter();
-  const [headers, setHeaders]       = useState<string[]>([]);
-  const [rawData, setRawData]       = useState<any[]>([]);
-  const [mapping, setMapping]       = useState<Record<string, string>>({});
+  const [headers, setHeaders]           = useState<string[]>([]);
+  const [rawData, setRawData]           = useState<any[]>([]);
+  const [mapping, setMapping]           = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError]           = useState<string | null>(null);
+  const [error, setError]               = useState<string | null>(null);
+  const [noSessionData, setNoSessionData] = useState(false); // B03: tracks missing sessionStorage
 
   useEffect(() => {
     const storedRaw     = sessionStorage.getItem('fluxo_csv_raw');
     const storedHeaders = sessionStorage.getItem('fluxo_csv_headers');
     if (storedRaw && storedHeaders) {
       try {
-        setRawData(JSON.parse(storedRaw));
-        setHeaders(JSON.parse(storedHeaders));
-      } catch { /* ignore */ }
+        const parsed = JSON.parse(storedRaw);
+        const hdrs   = JSON.parse(storedHeaders);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setRawData(parsed);
+          setHeaders(hdrs);
+        } else {
+          // Data present but empty — treat as missing (edge case of B08 reaching here)
+          setNoSessionData(true);
+        }
+      } catch {
+        setNoSessionData(true);
+      }
+    } else {
+      // B03: no sessionStorage — user navigated here directly
+      setNoSessionData(true);
     }
   }, []);
 
@@ -132,6 +145,29 @@ export default function GenericMappingPage() {
       setIsSubmitting(false);
     }
   };
+
+  // B03: recovery empty state — shown when user lands here without a file
+  if (noSessionData) {
+    return (
+      <div className="animate-in fade-in duration-500 w-full max-w-3xl mx-auto pt-16 pb-16 px-4 flex flex-col items-center text-center">
+        <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mb-6">
+          <FileX className="w-8 h-8 text-slate-400" />
+        </div>
+        <h2 className="text-lg font-bold text-slate-800 mb-2">Nenhum arquivo carregado</h2>
+        <p className="text-sm text-slate-500 max-w-sm mb-8">
+          Para mapear colunas, você precisa primeiro fazer o upload de um arquivo CSV.
+          Volte para a etapa anterior e envie o arquivo.
+        </p>
+        <Button
+          className="h-11 px-8 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-md gap-2"
+          onClick={() => router.push('/importar')}
+        >
+          <Upload className="w-4 h-4" />
+          Fazer upload do arquivo
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="animate-in fade-in slide-in-from-right-8 duration-500 w-full pt-8 pb-16 px-4">

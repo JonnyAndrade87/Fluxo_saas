@@ -68,8 +68,30 @@ export default function GenericImportPage() {
       skipEmptyLines: true,
       complete: (results) => {
         try {
-          sessionStorage.setItem('fluxo_csv_raw', JSON.stringify(results.data));
-          sessionStorage.setItem('fluxo_csv_headers', JSON.stringify(results.meta.fields || []));
+          // B08: block empty or header-only CSVs
+          const rows    = results.data as any[];
+          const fields  = results.meta.fields ?? [];
+
+          if (rows.length === 0) {
+            setError(
+              'Nenhum dado válido encontrado no arquivo. ' +
+              'Verifique se há linhas preenchidas abaixo do cabeçalho e se o separador é vírgula (,).'
+            );
+            setIsProcessing(false);
+            return;
+          }
+
+          if (fields.length === 0) {
+            setError(
+              'O arquivo não possui cabeçalho de colunas reconhecível. ' +
+              'A primeira linha deve conter os nomes das colunas.'
+            );
+            setIsProcessing(false);
+            return;
+          }
+
+          sessionStorage.setItem('fluxo_csv_raw', JSON.stringify(rows));
+          sessionStorage.setItem('fluxo_csv_headers', JSON.stringify(fields));
           router.push('/importar/mapeamento');
         } catch {
           setError('Arquivo muito pesado ou com estrutura incorreta.');
