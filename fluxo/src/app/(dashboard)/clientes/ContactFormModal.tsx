@@ -54,14 +54,14 @@ export default function ContactFormModal({ customerId, initialData, onClose, onS
       onSuccess();
     } catch (error) {
       console.error(error);
-      alert("Erro ao salvar contato.");
+      // Error logged; form stays open for retry
     } finally {
       setIsSaving(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-obsidian/40 backdrop-blur-sm animate-in fade-in">
+    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-obsidian/40 backdrop-blur-sm animate-in fade-in p-4">
       <div className="bg-white w-full max-w-sm rounded-2xl shadow-2xl border border-border/60 overflow-hidden animate-in zoom-in-95 duration-300">
         
         <div className="px-5 py-4 border-b border-border/50 bg-[#FAFAFB] flex items-center justify-between">

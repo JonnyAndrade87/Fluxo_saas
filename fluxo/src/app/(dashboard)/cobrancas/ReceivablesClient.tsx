@@ -49,12 +49,14 @@ function DialogBackdrop({ onClose, children }: { onClose: () => void; children: 
 
 function ErrorToast({ message, onClose }: { message: string; onClose: () => void }) {
   return (
-    <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-[90] flex items-center gap-2.5 bg-slate-900 text-white text-sm px-4 py-3 rounded-xl shadow-xl animate-in slide-in-from-bottom-4 duration-300 max-w-sm w-full mx-4">
-      <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
-      <p className="flex-1">{message}</p>
-      <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
-        <X className="w-4 h-4" />
-      </button>
+    <div className="fixed bottom-5 left-4 right-4 z-[90] flex justify-center animate-in slide-in-from-bottom-4 duration-300">
+      <div className="flex items-center gap-2.5 bg-slate-900 text-white text-sm px-4 py-3 rounded-xl shadow-xl w-full max-w-sm">
+        <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+        <p className="flex-1">{message}</p>
+        <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
+          <X className="w-4 h-4" />
+        </button>
+      </div>
     </div>
   );
 }
@@ -460,7 +462,7 @@ export default function ReceivablesClient({ initialData, initialTotalPages = 1 }
 
          return (
          <div className="fixed inset-0 z-[60] flex justify-end bg-slate-900/20 backdrop-blur-sm animate-in fade-in">
-            <div className="w-full max-w-md bg-white h-full shadow-2xl border-l border-slate-200 animate-in slide-in-from-right-full duration-300 flex flex-col">
+            <div className="w-full max-w-md bg-white h-full shadow-2xl border-l border-slate-200 animate-in slide-in-from-right-full duration-300 flex flex-col overflow-hidden min-w-0">
                {/* Drawer Header */}
                <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-slate-50/60">
                   <div>

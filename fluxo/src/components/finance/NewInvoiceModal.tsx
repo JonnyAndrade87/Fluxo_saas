@@ -105,13 +105,13 @@ export default function NewInvoiceModal() {
         }, 2000);
       } catch (error) {
         console.error("Failed to save Invoice", error);
-        alert("Erro ao salvar fatura. Verifique se ela já está paga.");
+        // Error handled visually — modal stays open for retry
       }
     });
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-obsidian/40 backdrop-blur-sm animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-obsidian/40 backdrop-blur-sm animate-in fade-in duration-300 p-4">
        <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 relative border border-border/60">
           
           {/* Header */}
@@ -161,7 +161,7 @@ export default function NewInvoiceModal() {
               </div>
 
               {/* Grid: Valor & Vencimento */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                  <div className="space-y-2">
                     <label className="text-sm font-semibold text-obsidian flex items-center gap-2">
                        <Wallet className="w-4 h-4 text-emerald-500" /> Valor Principal

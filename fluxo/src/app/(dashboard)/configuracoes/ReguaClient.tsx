@@ -302,7 +302,7 @@ export default function ReguaClient() {
 
                {/* Template Editors for Active Stage */}
                {flowData.stages.map((stage: any) => stage.id === activeTemplateStage && (
-                  <div key={`edit-${stage.id}`} className="grid lg:grid-cols-2 gap-6 pt-2 animate-in slide-in-from-right-2 duration-300">
+                  <div key={`edit-${stage.id}`} className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2 animate-in slide-in-from-right-2 duration-300">
                      {/* Template Card 1 - WhatsApp */}
                      <Card className="bg-white shadow-sm border-border/80 flex flex-col h-full opacity-100">
                         <CardHeader className="p-5 border-b border-border/50 bg-[#FAFAFB]">
@@ -454,8 +454,8 @@ export default function ReguaClient() {
 
       {/* LOG MODAL OVERLAY */}
       {isLogModalOpen && selectedLog && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-obsidian/40 backdrop-blur-sm animate-in fade-in duration-200">
-           <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-5 duration-300">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-obsidian/40 backdrop-blur-sm animate-in fade-in duration-200 p-4">
+           <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-5 duration-300 max-h-[90vh] flex flex-col">
               <div className="flex items-center justify-between p-5 border-b border-border/60 bg-[#FAFAFB]">
                  <div>
                     <h3 className="font-heading font-extrabold text-obsidian text-lg">Detalhes da Transação</h3>
@@ -479,8 +479,8 @@ export default function ReguaClient() {
 
       {/* CUSTOM TOAST NOTIFICATION */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 animate-in slide-in-from-bottom-5 fade-in duration-300">
-          <div className="bg-slate-900 text-white px-5 py-3 rounded-lg shadow-xl shadow-slate-900/20 font-medium text-[13px] flex items-center gap-3 border border-slate-700">
+        <div className="fixed bottom-4 left-4 right-4 z-50 flex justify-center animate-in slide-in-from-bottom-5 fade-in duration-300">
+          <div className="bg-slate-900 text-white px-5 py-3 rounded-xl shadow-xl shadow-slate-900/20 font-medium text-[13px] flex items-center gap-3 border border-slate-700 w-full max-w-sm">
              <CheckCircle className="w-4 h-4 text-emerald-400" />
              {toastMessage}
           </div>

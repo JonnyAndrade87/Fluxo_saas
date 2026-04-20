@@ -39,12 +39,12 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="flex h-screen w-full bg-background overflow-x-hidden">
+    <div className="flex h-screen w-full bg-background overflow-x-clip">
       <Sidebar user={user} />
-      <div className="flex flex-col flex-1 min-w-0 overflow-x-hidden">
+      <div className="flex flex-col flex-1 min-w-0 overflow-x-clip">
         <Topbar tenantName={tenantName} user={user} />
-        <main className="flex-1 overflow-y-auto overflow-x-hidden bg-muted/20 p-4 sm:p-6 relative min-w-0">
-          <div className="max-w-7xl mx-auto space-y-6 w-full min-w-0 max-w-full">
+        <main className="flex-1 overflow-y-auto bg-muted/20 p-4 sm:p-6 relative min-w-0">
+          <div className="max-w-7xl mx-auto w-full min-w-0">
             {children}
           </div>
         </main>

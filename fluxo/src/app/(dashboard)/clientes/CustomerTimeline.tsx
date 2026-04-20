@@ -28,7 +28,7 @@ export default function CustomerTimeline({ customerId, timelineEvents, onNoteAdd
       onNoteAdded();
     } catch (e) {
       console.error(e);
-      alert('Erro ao salvar nota.');
+      console.error('Erro ao salvar nota.', err);
     } finally {
       setIsSaving(false);
     }
