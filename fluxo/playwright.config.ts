@@ -3,14 +3,11 @@ import { defineConfig, devices } from '@playwright/test';
 const PORT = 3007;
 const baseURL = `http://localhost:${PORT}`;
 
-/**
- * String de conexão do Supabase via Session Pooler (IPv4).
- * Usa a DIRECT_URL para o servidor de dev E2E pois não há pooler local.
- * IMPORTANTE: nunca commitar credenciais reais — use env var em CI.
- */
 const E2E_DATABASE_URL =
-  process.env.E2E_DATABASE_URL ||
-  'postgresql://postgres.hgvdegznbcrtqouicdib:%40Joaquimlucca09@aws-1-us-east-2.pooler.supabase.com:5432/postgres';
+  process.env.E2E_DATABASE_URL || process.env.DIRECT_URL || process.env.DATABASE_URL;
+
+// AUTH_SECRET is the canonical env; NEXTAUTH_SECRET stays as temporary fallback.
+const AUTH_SECRET = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET;
 
 export default defineConfig({
   testDir: './e2e',
@@ -34,12 +31,12 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
     env: {
-      // Segredo JWT — deve ser idêntico ao que o servidor usará para assinar tokens
-      AUTH_SECRET: process.env.AUTH_SECRET || 'fluxo-super-secret-key-for-jwt-session-encryption-2026',
+      // Reaproveita os segredos já definidos no ambiente local/CI
+      AUTH_SECRET: AUTH_SECRET ?? '',
 
       // Banco — Supabase Session Pooler (IPv4 compatível)
-      DATABASE_URL: E2E_DATABASE_URL,
-      DIRECT_URL: E2E_DATABASE_URL,
+      DATABASE_URL: E2E_DATABASE_URL ?? '',
+      DIRECT_URL: E2E_DATABASE_URL ?? '',
 
       // URL base para Auth.js construir callbacks corretamente
       NEXTAUTH_URL: baseURL,
