@@ -11,11 +11,23 @@ import Link from 'next/link';
 import GoogleSignInButton from './GoogleSignInButton';
 
 const OAUTH_ERROR_MESSAGES: Record<string, string> = {
+  // Erros de cadastro e status de conta
   AccountNotRegistered: 'Este e-mail do Google não está cadastrado na plataforma. Crie uma conta primeiro ou entre em contato com o administrador.',
-  OAuthCallbackError: 'Ocorreu um erro ao autenticar com o Google. Tente novamente.',
-  OAuthSignin: 'Não foi possível iniciar o login com Google. Tente novamente.',
   EmailNotVerified: 'Sua conta ainda não foi verificada. Acesse seu e-mail e clique no link de ativação.',
   AccountInactive: 'Sua conta está desativada. Entre em contato com o suporte.',
+
+  // Erros de banco de dados
+  DatabaseError: 'Serviço temporariamente indisponível. Aguarde alguns segundos e tente novamente.',
+
+  // Erros nativos do Auth.js v5
+  AccessDenied: 'Acesso negado. Verifique se sua conta está ativa e tente novamente.',
+  OAuthSignin: 'Não foi possível iniciar o login com Google. Tente novamente.',
+  OAuthCallbackError: 'Ocorreu um erro ao autenticar com o Google. Tente novamente.',
+  OAuthAccountNotLinked: 'Este e-mail já está registrado com senha. Faça login com seu e-mail e senha.',
+  CallbackRouteError: 'Erro interno ao processar o login. Tente novamente em alguns segundos.',
+  Configuration: 'Erro de configuração do servidor. Entre em contato com o suporte.',
+  Verification: 'O link de verificação expirou ou já foi utilizado.',
+  Default: 'Ocorreu um erro inesperado. Tente novamente.',
 };
 
 function CallbackInput() {
