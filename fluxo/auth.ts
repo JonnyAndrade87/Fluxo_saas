@@ -146,10 +146,16 @@ export const { auth, signIn, signOut, handlers: { GET, POST } } = NextAuth({
         }
 
         const email = user.email!;
-        
-        const dbUser = await prisma.user.findUnique({
-          where: { email }
-        });
+
+        let dbUser;
+        try {
+          dbUser = await prisma.user.findUnique({
+            where: { email }
+          });
+        } catch (dbErr) {
+          console.error('[GOOGLE_SIGNIN] Prisma error - DB may be unavailable:', dbErr);
+          return `/login?error=DatabaseError`;
+        }
 
         if (!dbUser) {
           // E-mail não cadastrado na plataforma — bloqueia o acesso
@@ -166,10 +172,15 @@ export const { auth, signIn, signOut, handlers: { GET, POST } } = NextAuth({
 
         // Usuário existente: vincula o googleId se ainda não estiver salvo
         if (!dbUser.googleId) {
-          await prisma.user.update({
-            where: { id: dbUser.id },
-            data: { googleId: account.providerAccountId }
-          });
+          try {
+            await prisma.user.update({
+              where: { id: dbUser.id },
+              data: { googleId: account.providerAccountId }
+            });
+          } catch (updateErr) {
+            // Non-fatal: link attempt failed, but login is allowed
+            console.error('[GOOGLE_SIGNIN] Failed to link googleId:', updateErr);
+          }
         }
 
         return true;
