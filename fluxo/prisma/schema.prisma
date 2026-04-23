@@ -512,3 +512,18 @@ model StripeEvent {
   @@map("stripe_events")
 }
 
+// ==========================================
+// LANDING PAGE LEADS
+// ==========================================
+model Lead {
+  id            String   @id @default(uuid())
+  name          String
+  company       String
+  email         String
+  whatsapp      String
+  monthlyVolume String   @map("monthly_volume")
+  source        String   @default("lp_fluxeer")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@map("leads")
+}

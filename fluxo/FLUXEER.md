@@ -1153,3 +1153,38 @@ Nesta versão, o Fluxeer ganha maturidade como produto SaaS B2B, permitindo que 
   - O painel escuro esquerdo da tela de Auth (`/login` e `/register` na pasta `layout.tsx` do auth) agora roda as partículas de maneira otimizada.
   - O uso de `pointer-events-none` permite as animações visuais globais ao interagir sem bloquear a usabilidade do restante do painel.
   - O load otimizado foi feito via pacote `Next/Script` oficial.
+
+---
+
+## 18. Landing Page & Conversion Engine (Abril 2026)
+
+**Data:** Abril 2026  
+**Status:** 🚀 Produção — Conversão & Institucional
+
+Transformação da página inicial em uma ferramenta de vendas de alta conversão, integrada com backend e automação de leads.
+
+### Arquitetura de Conversão
+- **Lead Capture System:** Implementação do `LeadFormSection` com validação Zod server-side e estados de UI (`loading`, `success`, `error`).
+- **Data Persistence:** Integração com o modelo `Lead` no Prisma para armazenamento centralizado de potenciais clientes.
+- **Notificações Automáticas:** Server Action aciona a API do **Resend** para notificar o time comercial instantaneamente a cada nova demonstração solicitada.
+- **Smooth Navigation:** Implementação de navegação fluida (`scroll-behavior: smooth`) com âncoras para as dobras de Solução, Plataforma, FAQ e Demonstração.
+
+### Expansão Institucional
+- **Páginas Obrigatórias:** Criação das rotas `/suporte`, `/privacidade`, `/termos` e `/contato` com design premium consistente.
+- **Institutional Layout:** Shared layout encapsulando Header escuro e Footer institucional para reuso entre páginas legais e de ajuda.
+- **Footer Sync:** Rodapé global atualizado para refletir a nova estrutura de rotas e seções da Landing Page.
+
+### Refinamento Visual & Branding
+- **Official Assets:** Substituição de ícones genéricos por logotipos oficiais (`logo_fluxeer.png`, `logo-icone2.png`).
+- **Watermark Branding:** Implementação de marca d'água em grayscale no rodapé para reforço de marca premium.
+- **Credit Attribution:** Atualização da assinatura para "Desenvolvido por Studio Elephill".
+
+### Status de Pronto
+| Critério | Status |
+| :--- | :--- |
+| Captura de Leads funcional (DB + Email) | ✅ |
+| Navegação Smooth Scroll (Header/Footer) | ✅ |
+| Páginas Institucionais (Suporte/Privacidade/Termos/Contato) | ✅ |
+| Responsividade Mobile completa | ✅ |
+| Atribuição "Studio Elephill" | ✅ |
+| Build de Produção Verificado | ✅ |

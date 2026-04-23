@@ -164,10 +164,6 @@
   body {
     @apply bg-background text-foreground font-sans tracking-tight;
     -webkit-font-smoothing: antialiased;
-    /* Structurally prevent any child from creating horizontal page scroll.
-       `overflow-x: clip` is intentional: unlike `hidden` it does NOT create a
-       new scroll container, so fixed-position elements (drawers, modals) are unaffected. */
-    overflow-x: clip;
   }
 
   /* Ensure media/embeds never exceed the viewport */
@@ -177,8 +173,8 @@
 
   /* Hard-cap the html root so iOS Safari also respects the boundary */
   html {
-    overflow-x: clip;
     max-width: 100%;
+    scroll-behavior: smooth;
   }
 }
 
