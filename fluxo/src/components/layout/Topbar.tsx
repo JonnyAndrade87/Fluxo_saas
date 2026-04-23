@@ -1,10 +1,11 @@
 'use client';
 
-import { Bell, Search, Command, X, CheckCircle2, AlertTriangle, Clock, LogOut } from "lucide-react";
+import { Bell, Search, Command, X, CheckCircle2, AlertTriangle, Clock, LogOut, Sun, Moon } from "lucide-react";
 import { MobileSidebar } from "./MobileSidebar";
 import { useRouter } from "next/navigation";
 import { logout } from "@/actions/auth";
 import { useEffect, useRef, useState } from "react";
+import { useTheme } from "next-themes";
 
 const QUICK_LINKS = [
   { label: "Clientes", href: "/clientes", description: "Listar e gerenciar clientes" },
