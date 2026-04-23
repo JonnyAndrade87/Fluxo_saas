@@ -3,6 +3,7 @@ import Image from "next/image";
 import { ArrowRight, CheckCircle2, Clock, ShieldCheck, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import logoLogin from "../../assets/logo_dashboard.png";
+import { LeadForm } from "@/components/landing/LeadForm";
 
 export default function LandingPage() {
   return (
@@ -107,32 +108,7 @@ export default function LandingPage() {
               Nossa equipe entrará em contato para entender a estrutura dos seus recebíveis e apresentar a melhor configuração no Fluxeer para o seu perfil comercial.
             </p>
 
-            <form className="max-w-md mx-auto bg-[#0a0c0f] p-8 rounded-2xl border border-white/10 shadow-2xl flex flex-col gap-4 text-left" onSubmit={(e) => e.preventDefault()}>
-              <div>
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">Seu E-mail Corporativo</label>
-                <input 
-                  type="email" 
-                  placeholder="voce@empresa.com.br" 
-                  className="w-full bg-[#1c2129] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#00D2C8] focus:ring-1 focus:ring-[#00D2C8] transition-all"
-                  required
-                />
-              </div>
-              <div>
-                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">Nome da Empresa</label>
-                <input 
-                  type="text" 
-                  placeholder="Qual empresa você representa?" 
-                  className="w-full bg-[#1c2129] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-[#00D2C8] focus:ring-1 focus:ring-[#00D2C8] transition-all"
-                  required
-                />
-              </div>
-              <Button type="submit" className="w-full bg-[#00D2C8] hover:bg-[#00bda5] text-slate-900 font-bold h-12 text-base mt-2">
-                Agendar Reunião de Demonstração
-              </Button>
-              <p className="text-center text-xs text-slate-500 mt-2">
-                Suas informações estão seguras. Sem spam.
-              </p>
-            </form>
+            <LeadForm />
           </div>
         </section>
 
