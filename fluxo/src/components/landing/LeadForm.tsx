@@ -16,12 +16,12 @@ export function LeadForm() {
 
   if (submitted) {
     return (
-      <div className="w-full bg-slate-900/90 backdrop-blur-xl p-8 rounded-[2rem] border border-white/5 shadow-2xl flex flex-col items-center justify-center gap-4 text-center animate-[fadeSlideIn_0.8s_ease-out_0.2s_both]">
+      <div className="w-full bg-slate-900/80 backdrop-blur-2xl p-10 rounded-[2.5rem] border border-white/10 shadow-2xl flex flex-col items-center justify-center gap-5 text-center">
         <div className="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center mb-2 border border-emerald-500/20">
           <ShieldCheck className="w-8 h-8 text-emerald-400" />
         </div>
-        <h3 className="text-xl font-manrope font-medium text-white">Solicitação enviada!</h3>
-        <p className="text-sm font-geist text-white/60">
+        <h3 className="text-2xl font-manrope font-bold text-white">Solicitação enviada!</h3>
+        <p className="text-sm font-geist text-white/70">
           Nossa equipe comercial entrará em contato em breve para agendar sua demonstração.
         </p>
       </div>
@@ -29,7 +29,10 @@ export function LeadForm() {
   }
 
   return (
-    <form action={action} className="w-full bg-slate-900/90 backdrop-blur-xl p-8 rounded-[2rem] border border-white/5 shadow-2xl flex flex-col gap-5 text-left animate-[fadeSlideIn_0.8s_ease-out_0.2s_both]">
+    <form action={action} className="w-full bg-slate-900/80 backdrop-blur-2xl p-10 rounded-[2.5rem] border border-white/10 shadow-2xl flex flex-col gap-6 text-left relative overflow-hidden">
+      {/* Subtle top glow inside card */}
+      <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent" />
+      
       {state?.error && (
         <div className="flex items-center gap-2 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm font-geist">
           <AlertCircle className="w-4 h-4 shrink-0" />
@@ -70,7 +73,7 @@ export function LeadForm() {
       <button 
         type="submit" 
         disabled={isPending}
-        className="w-full btn-shimmer btn-shimmer-dark inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-white font-geist font-semibold px-6 py-3.5 rounded-xl transition-colors shadow-[0_0_20px_rgba(16,185,129,0.3)] disabled:opacity-70 disabled:cursor-not-allowed mt-2"
+        className="w-full btn-shimmer btn-shimmer-dark inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-6 py-4 rounded-xl transition-all shadow-[0_0_30px_rgba(16,185,129,0.2)] disabled:opacity-70 disabled:cursor-not-allowed mt-2 active:scale-95"
       >
         {isPending ? (
           <>
