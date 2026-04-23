@@ -36,12 +36,10 @@ export default function LandingPage() {
         <header className="relative z-[20] w-full pt-8 flex justify-center">
           <nav className="bg-black/30 backdrop-blur-xl border border-white/10 rounded-full py-2 px-4 flex items-center gap-3 animate-[fadeSlideIn_0.8s_ease-out_0.1s_both]">
             {/* Logo */}
-            <div className="flex items-center gap-2 pr-3 border-r border-white/10">
-              <div className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shadow-[0_0_15px_rgba(16,185,129,0.3)]">
-                <BarChart3 className="w-4 h-4 text-emerald-400" />
-              </div>
-              <span className="font-geist font-semibold text-sm text-white tracking-tight">Fluxeer</span>
-            </div>
+            <Link href="/" className="flex items-center gap-2 pr-3 border-r border-white/10 hover:opacity-80 transition-opacity">
+              {/* @ts-ignore */}
+              <Image src={logoLogin} alt="Fluxeer" width={120} height={28} className="w-auto h-7 object-contain" />
+            </Link>
             
             <a className="text-xs font-medium text-white/50 hover:text-white transition-colors px-3 py-1.5 rounded-full hover:bg-white/5 font-geist" href="#solucao">A Solução</a>
             <a className="text-xs font-medium text-white/50 hover:text-white transition-colors px-3 py-1.5 rounded-full hover:bg-white/5 font-geist" href="#demonstracao">Demonstração</a>

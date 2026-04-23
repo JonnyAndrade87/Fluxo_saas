@@ -49,7 +49,7 @@ export function ParticlesBackground() {
   return (
     <div 
       id="particles-js" 
-      className="absolute inset-0 z-10 w-full h-full mix-blend-screen pointer-events-none opacity-100" 
+      className="absolute inset-0 z-0 w-full h-full mix-blend-screen opacity-100" 
     />
   );
 }
