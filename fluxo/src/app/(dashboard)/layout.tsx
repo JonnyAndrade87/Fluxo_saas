@@ -75,7 +75,7 @@ export default async function DashboardLayout({
           user={user} 
           logoUrl={isPro ? tenantData.logoUrl : null}
         />
-        <main className="flex-1 overflow-y-auto bg-muted/20 p-4 sm:p-6 relative min-w-0">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 relative min-w-0 bg-muted/20 dark:bg-[#111113] dark:shadow-[inset_0_10px_30px_rgba(0,0,0,0.8)]">
           <div className="max-w-7xl mx-auto w-full min-w-0">
             {children}
           </div>

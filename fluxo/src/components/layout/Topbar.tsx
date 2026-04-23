@@ -89,7 +89,7 @@ export function Topbar({
 
   return (
     <>
-      <header data-topbar className="h-16 w-full flex items-center justify-between px-4 md:px-8 bg-background/80 backdrop-blur-md border-b border-border/50 sticky top-0 z-10 transition-all gap-4">
+      <header data-topbar className="h-16 w-full flex items-center justify-between px-4 md:px-8 sticky top-0 z-10 transition-all gap-4 bg-background/80 backdrop-blur-md border-b border-border/50 dark:bg-gradient-to-b dark:from-[#222225] dark:to-[#151517] dark:border-[#050505] dark:shadow-[0_4px_15px_rgba(0,0,0,0.6),inset_0_-1px_0_rgba(255,255,255,0.02)]">
         {/* Left: Hamburger & Context badge */}
         <div className="flex items-center gap-3">
           <MobileSidebar user={user} />
@@ -109,7 +109,7 @@ export function Topbar({
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <Search className="h-4 w-4 text-muted-foreground group-hover:text-indigo-500 transition-colors" />
             </div>
-            <div className="block w-full pl-10 pr-16 py-2 border border-border rounded-xl text-sm bg-muted/30 hover:bg-accent hover:ring-2 hover:ring-brand/20 hover:border-brand transition-all text-muted-foreground text-left">
+            <div className="block w-full pl-10 pr-16 py-2 border border-border rounded-xl text-sm bg-muted/30 hover:bg-accent hover:ring-2 hover:ring-brand/20 hover:border-brand transition-all text-muted-foreground text-left dark:bg-[#0a0a0c] dark:border-[#1a1a1c] dark:shadow-[inset_0_2px_5px_rgba(0,0,0,0.8)] dark:text-zinc-500">
               Buscar clientes, faturas ou relatórios...
             </div>
             <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
@@ -144,10 +144,12 @@ export function Topbar({
           {/* Notifications */}
           <button
             onClick={() => setNotifOpen(v => !v)}
-            className="relative w-10 h-10 rounded-full bg-fluxeer-blue flex items-center justify-center text-white/80 hover:text-white transition-colors group shadow-md shrink-0"
+            className="relative w-10 h-10 rounded-xl bg-fluxeer-blue flex items-center justify-center text-white/80 hover:text-white transition-all group shadow-md shrink-0 dark:bg-gradient-to-b dark:from-[#2a2a2d] dark:to-[#1c1c1f] dark:border dark:border-[#050505] dark:shadow-[0_4px_6px_rgba(0,0,0,0.5),inset_0_1px_1px_rgba(255,255,255,0.1)] active:translate-y-[2px] active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.6)]"
           >
-            <Bell className="w-5 h-5 group-hover:scale-110 transition-transform" />
-            {hasUnread && <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-rose-500 border-2 border-fluxeer-blue"></span>}
+            <Bell className="w-5 h-5 group-hover:scale-110 transition-transform dark:text-zinc-400 group-hover:dark:text-brand dark:neu-glow-blue" />
+            {hasUnread && (
+              <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-rose-500 border border-[#050505] shadow-[0_0_8px_rgba(244,63,94,0.8),inset_0_1px_1px_rgba(255,255,255,0.6)]"></span>
+            )}
           </button>
 
           {/* Notifications panel */}
@@ -200,17 +202,17 @@ export function Topbar({
           <form action={logout}>
             <button
               type="submit"
-              className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-foreground border border-border hover:bg-muted transition-all shadow-sm group relative cursor-pointer overflow-hidden"
+              className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-foreground border border-border hover:bg-muted transition-all shadow-sm group relative cursor-pointer overflow-hidden dark:bg-[#1c1c1f] dark:border-2 dark:border-[#2a2a2d] dark:shadow-[0_4px_8px_rgba(0,0,0,0.6),0_0_0_1px_#050505]"
               title="Sair do sistema"
             >
               {logoUrl ? (
                 <img 
                   src={logoUrl} 
                   alt={tenantName} 
-                  className="w-full h-full object-cover group-hover:opacity-0 transition-opacity" 
+                  className="w-full h-full object-cover group-hover:opacity-0 transition-opacity grayscale hover:grayscale-0 transition-all" 
                 />
               ) : (
-                <span className="text-sm font-bold tracking-tight group-hover:opacity-0 transition-opacity">
+                <span className="text-sm font-bold tracking-tight group-hover:opacity-0 transition-opacity dark:text-zinc-400">
                   {user?.name ? user.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'US'}
                 </span>
               )}

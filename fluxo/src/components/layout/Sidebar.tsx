@@ -65,13 +65,15 @@ export function Sidebar({ user }: SidebarProps) {
   return (
     <aside 
       className={cn(
-        "hidden lg:flex flex-col h-full bg-[#1c2129] border-r border-white/5 py-6 relative transition-all duration-300 ease-in-out",
+        "hidden lg:flex flex-col h-full py-6 relative transition-all duration-300 ease-in-out z-20",
+        "bg-[#1c2129] border-r border-white/5", // Light mode fallback
+        "dark:bg-gradient-to-b dark:from-[#222225] dark:to-[#151517] dark:border-[#050505] dark:shadow-[4px_0_15px_rgba(0,0,0,0.6),inset_-1px_0_0_rgba(255,255,255,0.02)]",
         isCollapsed ? "w-[88px]" : "w-[280px]"
       )}
     >
       <button 
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className="absolute -right-3.5 top-8 bg-[#1c2129] border border-white/10 w-7 h-7 rounded-full flex items-center justify-center text-white/50 hover:text-white hover:bg-[#2d3748] transition-colors z-50 shadow-md"
+        className="absolute -right-3.5 top-8 bg-[#1c2129] border border-white/10 w-7 h-7 rounded-full flex items-center justify-center text-white/50 hover:text-white hover:bg-[#2d3748] transition-colors z-50 shadow-md dark:bg-[#2a2a2d] dark:border-[#050505] dark:shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
       >
         {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
       </button>
@@ -88,7 +90,7 @@ export function Sidebar({ user }: SidebarProps) {
             <img 
               src="/logo_fluxeer_dashboard.png" 
               alt="Fluxeer Logo" 
-              className="w-full h-full object-contain object-left drop-shadow-lg"
+              className="w-full h-full object-contain object-left drop-shadow-lg dark:neu-glow-white"
             />
           </div>
           {/* Logo Ícone */}
@@ -96,7 +98,7 @@ export function Sidebar({ user }: SidebarProps) {
              <img 
               src="/logo_fluxeer_icone.png" 
               alt="Fluxeer Icone" 
-              className="w-full h-full object-contain object-center drop-shadow-lg"
+              className="w-full h-full object-contain object-center drop-shadow-lg dark:neu-glow-white"
             />
           </div>
         </div>
@@ -106,7 +108,7 @@ export function Sidebar({ user }: SidebarProps) {
         {navGroups.map((group, idx) => (
           <div key={idx}>
             {!isCollapsed && (
-              <h3 className="px-3 text-[10px] font-bold uppercase tracking-widest text-white/40 mb-3 font-mono">
+              <h3 className="px-3 text-[10px] font-bold uppercase tracking-widest text-white/40 mb-3 font-mono dark:text-zinc-500">
                 {group.label}
               </h3>
             )}
@@ -119,16 +121,19 @@ export function Sidebar({ user }: SidebarProps) {
                     href={item.href}
                     title={isCollapsed ? item.name : undefined}
                     className={cn(
-                      "group flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 border",
+                      "group flex items-center px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 border",
                       isActive 
-                        ? "bg-[#2d3748] text-[#00D2C8] shadow-sm border-white/5" 
-                        : "text-white/60 hover:bg-white/5 hover:text-white border-transparent",
+                        ? "bg-[#2d3748] text-[#00D2C8] shadow-sm border-white/5 dark:bg-[#0a0a0c] dark:text-brand dark:border-brand/30 dark:shadow-[inset_0_3px_6px_rgba(0,0,0,0.8),0_1px_0_rgba(255,255,255,0.05)]" 
+                        : "text-white/60 hover:bg-white/5 hover:text-white border-transparent dark:text-zinc-500 dark:hover:text-zinc-300 dark:hover:bg-gradient-to-b dark:from-[#2a2a2d] dark:to-[#1c1c1f] dark:hover:border-[#050505]",
                       isCollapsed ? "justify-center" : "justify-start"
                     )}
                   >
                     <div className="flex items-center gap-3">
-                      <item.icon className={cn("w-5 h-5 transition-transform duration-300", isActive ? "text-[#00D2C8]" : "text-white/50 group-hover:text-white group-hover:scale-110")} strokeWidth={isActive ? 2.5 : 2} />
-                      {!isCollapsed && <span>{item.name}</span>}
+                      <item.icon className={cn(
+                        "w-5 h-5 transition-transform duration-300", 
+                        isActive ? "text-[#00D2C8] dark:text-brand dark:neu-glow-blue" : "text-white/50 group-hover:text-white group-hover:scale-110 dark:text-zinc-500"
+                      )} strokeWidth={isActive ? 2.5 : 2} />
+                      {!isCollapsed && <span className={isActive ? "dark:screen-glow" : ""}>{item.name}</span>}
                     </div>
                   </Link>
                 )
