@@ -14,19 +14,19 @@ export function ParticlesBackground() {
 
         (window as any).particlesJS("particles-js", {
           particles: {
-            number: { value: 60, density: { enable: true, value_area: 800 } },
+            number: { value: 80, density: { enable: true, value_area: 800 } },
             color: { value: "#ffffff" },
             shape: { type: "circle" },
-            opacity: { value: 0.3, random: false },
+            opacity: { value: 0.4, random: false },
             size: { value: 2, random: true },
-            line_linked: { enable: true, distance: 150, color: "#ffffff", opacity: 0.2, width: 1 },
-            move: { enable: true, speed: 1.5, direction: "none", random: false, straight: false, out_mode: "out", bounce: false }
+            line_linked: { enable: true, distance: 150, color: "#ffffff", opacity: 0.3, width: 1 },
+            move: { enable: true, speed: 1.8, direction: "none", random: false, straight: false, out_mode: "out", bounce: false }
           },
           interactivity: {
-            detect_on: "canvas",
+            detect_on: "window",
             events: { onhover: { enable: true, mode: "grab" }, onclick: { enable: true, mode: "push" }, resize: true },
             modes: { 
-              grab: { distance: 200, line_linked: { opacity: 0.5 } }, 
+              grab: { distance: 250, line_linked: { opacity: 0.6 } }, 
               push: { particles_nb: 4 }
             }
           },
@@ -40,14 +40,13 @@ export function ParticlesBackground() {
   }, []);
 
   useEffect(() => {
-    // Check every 100ms if particlesJS is available, up to 5 times
     let checks = 0;
     const interval = setInterval(() => {
       if ((window as any).particlesJS) {
         initParticles();
         clearInterval(interval);
       }
-      if (++checks > 10) clearInterval(interval);
+      if (++checks > 15) clearInterval(interval);
     }, 200);
 
     return () => clearInterval(interval);
@@ -62,7 +61,7 @@ export function ParticlesBackground() {
       />
       <div 
         id="particles-js" 
-        className="absolute inset-0 z-0 w-full h-full pointer-events-auto" 
+        className="absolute inset-0 z-0 w-full h-full pointer-events-none" 
         style={{ mixBlendMode: 'screen' }}
       />
     </>
