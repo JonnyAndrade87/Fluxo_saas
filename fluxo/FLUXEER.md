@@ -1138,3 +1138,18 @@ Nesta versão, o Fluxeer ganha maturidade como produto SaaS B2B, permitindo que 
 | Theme Toggle funcional | ✅ |
 | Bloqueio de funcionalidade (Plan Gating) | ✅ |
 | Migração de banco aplicada | ✅ |
+
+---
+
+## 17. Evolução Design System & Auth (Abril 2026)
+
+**Data:** Abril 2026  
+**Status:** ✅ Concluído
+
+### O que foi feito
+- **Design System Modular:** Criadas iterações de Design System até a v6 (`assets/design_system6.html`), equilibrando uma estética Light B2B (Financial SaaS) com Hero Dark imersivo.
+- **Engine de Partículas (Particles.js):** O efeito interativo de rede neural (hover=grab, click=push) oriundo do tema "ai-digital-systems-47" foi encapsulado e configurado perfeitamente no novo componente React `ParticlesBackground.tsx`.
+- **Auth Layout Refinements:**
+  - O painel escuro esquerdo da tela de Auth (`/login` e `/register` na pasta `layout.tsx` do auth) agora roda as partículas de maneira otimizada.
+  - O uso de `pointer-events-none` permite as animações visuais globais ao interagir sem bloquear a usabilidade do restante do painel.
+  - O load otimizado foi feito via pacote `Next/Script` oficial.

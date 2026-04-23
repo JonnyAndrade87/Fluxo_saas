@@ -3,6 +3,7 @@ import Image from "next/image";
 import logoLogin from "../../assets/logo_dashboard.png";
 import textureBg from "../../assets/texture.webp";
 import { AdvantagesSlider } from "./AdvantagesSlider";
+import { ParticlesBackground } from "../../components/ui/ParticlesBackground";
 
 export default function AuthLayout({
   children,
@@ -30,6 +31,8 @@ export default function AuthLayout({
           <div className="absolute inset-0 z-0">
             <Image src={textureBg} alt="Abstract Texture" className="opacity-60 mix-blend-overlay object-cover w-full h-full" priority placeholder="blur" />
             <div className="absolute inset-0 bg-gradient-to-t from-[#0f1115] via-transparent to-[#0f1115]/80 pointer-events-none" />
+            {/* Injecting the Particles JS Effect */}
+            <ParticlesBackground />
           </div>
 
           {/* Content Wrapper */}

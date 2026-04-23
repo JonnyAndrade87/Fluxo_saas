@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html class="scroll-smooth" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Fluxeer Design System v5 — Full Spec</title>
+
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet"/>
+<style id="all-fonts-style-font-geist">.font-geist { font-family: 'Geist', 'Inter', sans-serif !important; }</style>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap" rel="stylesheet"/>
+<style>.font-mono-geist { font-family: 'Geist Mono', 'ui-monospace', monospace !important; }</style>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+
+<!-- Iconify -->
+<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+
+<!-- Tailwind CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: { extend: {} },
+  plugins: [
+    function({ addUtilities }) {
+      const rotateXUtilities = {};
+      const rotateYUtilities = {};
+      const rotateZUtilities = {};
+      const rotateValues = [0, 5, 10, 15, 20, 30, 45, 75];
+      rotateValues.forEach((value) => {
+        const xform = (rx, ry, rz) =>
+          `translate3d(var(--tw-translate-x,0),var(--tw-translate-y,0),var(--tw-translate-z,0)) rotateX(var(--tw-rotate-x,0)) rotateY(var(--tw-rotate-y,0)) rotateZ(var(--tw-rotate-z,0)) skewX(var(--tw-skew-x,0)) skewY(var(--tw-skew-y,0)) scaleX(var(--tw-scale-x,1)) scaleY(var(--tw-scale-y,1))`;
+        rotateXUtilities[`.rotate-x-${value}`] = { '--tw-rotate-x': `${value}deg`, transform: xform() };
+        if (value !== 0) rotateXUtilities[`.-rotate-x-${value}`] = { '--tw-rotate-x': `-${value}deg`, transform: xform() };
+        rotateYUtilities[`.rotate-y-${value}`] = { '--tw-rotate-y': `${value}deg`, transform: xform() };
+        if (value !== 0) rotateYUtilities[`.-rotate-y-${value}`] = { '--tw-rotate-y': `-${value}deg`, transform: xform() };
+        rotateZUtilities[`.rotate-z-${value}`] = { '--tw-rotate-z': `${value}deg`, transform: xform() };
+        if (value !== 0) rotateZUtilities[`.-rotate-z-${value}`] = { '--tw-rotate-z': `-${value}deg`, transform: xform() };
+      });
+      addUtilities({
+        ...rotateXUtilities, ...rotateYUtilities, ...rotateZUtilities,
+        ".perspective-none":    { perspective: "none" },
+        ".perspective-dramatic":{ perspective: "100px" },
+        ".perspective-near":    { perspective: "300px" },
+        ".perspective-normal":  { perspective: "500px" },
+        ".perspective-midrange":{ perspective: "800px" },
+        ".perspective-distant": { perspective: "1200px" },
+        ".transform-style-preserve-3d": { "transform-style": "preserve-3d" },
+        ".transform-style-flat": { "transform-style": "flat" },
+      });
+    }
+  ]
+};
+</script>
+
+<!-- Keyframes -->
+<style>
+@keyframes fadeSlideIn {
+  0%   { opacity: 0; transform: translateY(30px); filter: blur(8px); }
+  100% { opacity: 1; transform: translateY(0);    filter: blur(0px); }
+}
+@keyframes ticker {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+@keyframes shimmer {
+  from { transform: translateX(-100%) skewX(-15deg); }
+  to   { transform: translateX(200%)  skewX(-15deg); }
+}
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.3; }
+  50%       { opacity: 0.8; }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0);    }
+  50%       { transform: translateY(-10px); }
+}
+@keyframes beam-spin { to { transform: rotate(360deg); } }
+
+/* DS5 specific visual roots */
+:root {
+  --bg-page: #040816;
+  --bg-card: #0b1120;
+  --brand:   #6366f1; /* indigo-500 */
+}
+
+body {
+  background: var(--bg-page);
+  color: #f8fafc;
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-page); }
+::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #334155; }
+
+::selection { background: rgba(99,102,241,0.25); color: #e0e7ff; }
+
+/* Grid Background */
+.section-grid {
+  pointer-events: none; position: absolute; inset: 0; z-index: 0;
+}
+.gl-v { position: absolute; top: 0; bottom: 0; width: 1px;
+  background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.06) 20%, rgba(255,255,255,0.06) 80%, transparent); }
+.gl-h { position: absolute; left: 0; right: 0; height: 1px;
+  background: linear-gradient(to right, transparent, rgba(255,255,255,0.06) 20%, rgba(255,255,255,0.06) 80%, transparent); }
+
+/* Flashlight interactive card */
+.flashlight { position: relative; }
+.flashlight::before {
+  content: ""; position: absolute; inset: 0;
+  background: radial-gradient(600px circle at var(--mx, 50%) var(--my, 50%), rgba(255,255,255,0.07), transparent 40%);
+  opacity: 0; transition: opacity 0.4s;
+  pointer-events: none; border-radius: inherit; z-index: 2;
+}
+.flashlight:hover::before { opacity: 1; }
+
+/* Shimmer Button */
+.shimmer-btn { position: relative; overflow: hidden; }
+.shimmer-btn .shimmer-sweep {
+  position: absolute; inset: 0;
+  background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.25) 50%, transparent 60%);
+  transform: translateX(-150%) skewX(-15deg);
+  pointer-events: none;
+}
+.shimmer-btn:hover .shimmer-sweep { animation: shimmer 0.8s ease; }
+
+/* Beam Button */
+.btn-beam { position: relative; overflow: hidden; z-index: 0; }
+.btn-beam .beam-layer {
+  position: absolute; inset: -1000%;
+  animation: beam-spin 3.5s linear infinite;
+  background: conic-gradient(from 0deg, transparent 0 340deg, var(--brand) 360deg);
+  z-index: -1;
+}
+
+/* Tooltips */
+.tip-host { position: relative; display: inline-flex; }
+.tip-host .tip {
+  position: absolute; bottom: calc(100% + 8px); left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: #0f172a; color: #fff; border: 1px solid rgba(255,255,255,0.15);
+  font-family: 'Geist Mono', monospace; font-size: 11px;
+  padding: 6px 12px; border-radius: 6px; white-space: nowrap;
+  opacity: 0; pointer-events: none; transition: opacity 0.2s, transform 0.2s;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5); z-index: 50;
+}
+.tip-host .tip::after {
+  content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+  border: 5px solid transparent; border-top-color: #0f172a;
+}
+.tip-host:hover .tip { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* Ticker */
+.ticker-track { animation: ticker 40s linear infinite; }
+.ticker-track:hover { animation-play-state: paused; }
+
+.grad-text { background: linear-gradient(to right, #fff, rgba(255,255,255,0.5)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+
+.ds-backdrop { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+
+/* Observe Animation */
+.animate-on-scroll { animation-play-state: paused !important; }
+.animate-on-scroll.animate { animation-play-state: running !important; }
+</style>
+
+<script>
+(function () {
+  const once = true;
+  if (!window.__inViewIO) {
+    window.__inViewIO = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("animate");
+          if (once) window.__inViewIO.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15, rootMargin: "0px 0px -10% 0px" });
+  }
+  window.initInViewAnimations = function (selector = ".animate-on-scroll") {
+    document.querySelectorAll(selector).forEach((el) => window.__inViewIO.observe(el));
+  };
+  document.addEventListener("DOMContentLoaded", () => initInViewAnimations());
+})();
+</script>
+</head>
+
+<body>
+
+<!-- ==========================================
+     GLOBAL REUSABLE PARTICLES COMPONENT
+     ========================================== -->
+<!-- To reuse this background, just copy this block. Requires particles.js included at the bottom of the document -->
+<div class="fixed inset-0 z-0 pointer-events-none mix-blend-screen opacity-100">
+  <div class="absolute inset-0 w-full h-full" id="particles-js"></div>
+</div>
+<!-- ========================================== -->
+
+
+<!-- 1. HERO SECTION -->
+<div class="relative min-h-[90vh] flex flex-col overflow-hidden" id="hero">
+  <!-- Grid Lines -->
+  <div class="section-grid">
+    <div class="gl-v" style="left:12.5%"></div><div class="gl-v" style="left:25%"></div><div class="gl-v" style="left:37.5%"></div>
+    <div class="gl-v" style="left:50%; background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.1) 20%, rgba(255,255,255,0.1) 80%, transparent)"></div>
+    <div class="gl-v" style="left:62.5%"></div><div class="gl-v" style="left:75%"></div><div class="gl-v" style="left:87.5%"></div>
+    <div class="gl-h" style="top:20%"></div><div class="gl-h" style="top:40%"></div><div class="gl-h" style="top:60%"></div><div class="gl-h" style="top:80%"></div>
+  </div>
+
+  <!-- Background overlay & ambient glows -->
+  <div class="absolute inset-0 z-0">
+    <img alt="" class="pointer-events-none w-full h-full object-cover absolute top-0 right-0 bottom-0 left-0 opacity-20" src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop"/>
+    <div class="absolute inset-0 bg-gradient-to-b from-transparent via-[#040816]/80 to-[#040816]"></div>
+    
+    <div class="absolute top-[-10%] left-[-5%] w-[55%] h-[55%] rounded-full" style="background:radial-gradient(ellipse, rgba(99,102,241,0.15) 0%, transparent 70%); animation:glow-pulse 8s ease-in-out infinite;"></div>
+  </div>
+
+  <!-- Header -->
+  <header class="z-20 border-white/5 border-b relative">
+    <div class="flex max-w-7xl mx-auto py-5 px-6 md:px-8 items-center justify-between">
+      <div class="flex md:gap-6 ring-white/10 ring-1 [animation:fadeSlideIn_1s_ease-out_0.1s_both] rounded-full p-1 gap-4 items-center bg-white/[0.02] ds-backdrop">
+        <a class="inline-flex items-center gap-2 pl-3 pr-2" href="#hero">
+          <div class="w-7 h-7 rounded bg-indigo-600 flex items-center justify-center shadow-[0_0_15px_rgba(99,102,241,0.5)]">
+            <iconify-icon icon="solar:command-bold-duotone" class="text-white text-sm"></iconify-icon>
+          </div>
+          <span class="font-geist font-semibold text-sm text-white tracking-tight">SystemV5</span>
+        </a>
+        <nav class="hidden md:flex gap-1 items-center pr-1">
+          <a class="inline-flex items-center text-xs font-medium text-white/70 font-geist px-3 py-1.5 rounded-full hover:bg-white/10 hover:text-white transition-all" href="#typography">Typography</a>
+          <a class="inline-flex items-center text-xs font-medium text-white/70 font-geist px-3 py-1.5 rounded-full hover:bg-white/10 hover:text-white transition-all" href="#colors">Colors</a>
+          <a class="inline-flex items-center text-xs font-medium text-white/70 font-geist px-3 py-1.5 rounded-full hover:bg-white/10 hover:text-white transition-all" href="#components">Components</a>
+          <a class="inline-flex items-center text-xs font-medium text-white/70 font-geist px-3 py-1.5 rounded-full hover:bg-white/10 hover:text-white transition-all" href="#motion">Motion</a>
+        </nav>
+      </div>
+      <div class="flex ring-white/10 ring-1 rounded-full p-1 gap-2 items-center bg-white/[0.02] ds-backdrop">
+        <a class="hidden sm:inline-flex items-center px-4 py-1.5 text-xs font-medium text-white/80 font-geist border border-transparent hover:bg-white/5 rounded-full transition-all [animation:fadeSlideIn_1s_ease-out_0.2s_both]" href="#components">
+          Components
+        </a>
+        <a class="shimmer-btn inline-flex items-center gap-2 text-xs font-semibold text-black font-geist bg-white hover:bg-neutral-200 rounded-full px-5 py-2 transition-all [animation:fadeSlideIn_1s_ease-out_0.3s_both] shadow-[0_0_20px_rgba(255,255,255,0.2)]" href="#typography">
+          <span class="shimmer-sweep" style="background:linear-gradient(105deg,transparent 40%,rgba(0,0,0,0.1) 50%,transparent 60%)"></span>
+          Explore System
+          <iconify-icon icon="solar:arrow-right-linear"></iconify-icon>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Content -->
+  <main class="z-20 flex-1 flex items-center relative py-16">
+    <div class="max-w-7xl mx-auto px-6 md:px-8 w-full">
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-10 items-center">
+        <!-- Headline -->
+        <div class="md:col-span-6 relative">
+          <div class="inline-flex text-[11px] font-medium text-indigo-300 font-mono bg-indigo-500/10 border border-indigo-500/20 rounded-full mb-6 py-1.5 px-3 gap-2 items-center [animation:fadeSlideIn_1s_ease-out_0.1s_both] uppercase tracking-widest">
+            <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></span>
+            Interactive Specification
+          </div>
+          <h1 class="text-5xl sm:text-6xl lg:text-7xl font-geist tracking-tighter leading-[1.05] [animation:fadeSlideIn_1s_ease-out_0.2s_both]">
+            <span class="text-white">Engineering</span><br/>
+            <span class="grad-text font-light">Digital Aesthetics</span>
+          </h1>
+          <p class="mt-6 text-lg text-white/60 font-geist leading-relaxed max-w-lg [animation:fadeSlideIn_1s_ease-out_0.3s_both]">
+            A meticulously crafted system. We blend architectural rigor with fluid motion, dynamic particles, and uncompromising attention to detail.
+          </p>
+          <div class="mt-10 flex gap-4 [animation:fadeSlideIn_1s_ease-out_0.4s_both]">
+            <a class="shimmer-btn btn-beam inline-flex items-center gap-2 text-sm font-semibold text-white font-geist bg-indigo-600 rounded-full px-6 py-3 transition-colors hover:bg-indigo-500 shadow-[0_0_30px_rgba(99,102,241,0.4)] active:scale-95" href="#components">
+              <span class="beam-layer"></span>
+              <span class="shimmer-sweep"></span>
+              <span class="relative z-10">Get Started</span>
+              <iconify-icon icon="solar:rocket-linear" class="relative z-10"></iconify-icon>
+            </a>
+          </div>
+        </div>
+
+        <!-- Hero 3D Card Visuals -->
+        <div class="hidden md:block md:col-span-6 relative h-[450px] [animation:fadeSlideIn_1s_ease-out_0.4s_both]">
+          <div class="absolute inset-0 flex items-center justify-center transform-style-preserve-3d" style="perspective:1000px;">
+            <div class="relative w-72 h-80 animate-[float_6s_ease-in-out_infinite]" style="transform: rotateX(15deg) rotateY(-15deg);">
+              
+              <!-- Back layer -->
+              <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-transparent border border-indigo-500/20 rounded-[2rem] transform translate-z-[-40px] translate-x-4 translate-y-4 backdrop-blur-sm"></div>
+              
+              <!-- Middle layer -->
+              <div class="absolute inset-0 bg-[#0a0f1d]/80 border border-white/10 rounded-[2rem] transform translate-z-[0px] backdrop-blur-md overflow-hidden">
+                <div class="p-6 h-full flex flex-col">
+                  <div class="flex justify-between items-center mb-6">
+                    <div class="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center">
+                      <iconify-icon icon="solar:chart-square-bold-duotone" class="text-indigo-400 text-xl"></iconify-icon>
+                    </div>
+                    <span class="text-xs font-mono text-white/40">v5.0</span>
+                  </div>
+                  <div class="space-y-3 flex-1">
+                    <div class="h-2 w-2/3 bg-white/5 rounded-full"></div>
+                    <div class="h-2 w-1/2 bg-white/5 rounded-full"></div>
+                    <div class="h-2 w-4/5 bg-white/5 rounded-full"></div>
+                  </div>
+                  <div class="w-full h-24 bg-gradient-to-t from-indigo-500/20 to-transparent mt-auto rounded-xl border border-indigo-500/10 relative overflow-hidden">
+                     <svg viewBox="0 0 100 40" class="absolute bottom-0 w-full" preserveAspectRatio="none">
+                       <path d="M0,40 Q25,20 50,30 T100,10 L100,40 Z" fill="rgba(99,102,241,0.2)"/>
+                       <path d="M0,40 Q25,20 50,30 T100,10" fill="none" stroke="#6366f1" stroke-width="2"/>
+                     </svg>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Front floating badge -->
+              <div class="absolute -right-6 top-1/4 bg-[#111827]/90 border border-white/10 rounded-xl p-4 transform translate-z-[50px] shadow-2xl backdrop-blur-lg flex items-center gap-3">
+                <div class="w-3 h-3 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.6)]"></div>
+                <div class="font-geist">
+                  <p class="text-xs font-medium text-white">System Active</p>
+                  <p class="text-[10px] text-white/50">All checks passed</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ==========================================
+     TICKER INFINITO
+     ========================================== -->
+<div class="z-10 relative bg-white/[0.01] border-y border-white/5 py-5 ds-backdrop">
+  <div class="overflow-hidden relative max-w-7xl mx-auto" style="mask-image:linear-gradient(to right, transparent, black 15%, black 85%, transparent);">
+    <div class="ticker-track flex gap-12 items-center w-max">
+      <!-- Loop content -->
+      <div class="flex items-center gap-12 text-sm text-white/40 font-mono tracking-widest uppercase">
+        <span>Component API</span><span class="w-1.5 h-1.5 bg-indigo-500 rounded-full"></span>
+        <span>Semantic Tokens</span><span class="w-1.5 h-1.5 bg-white/20 rounded-full"></span>
+        <span class="text-white/80 font-bold">Particles.js Engine</span><span class="w-1.5 h-1.5 bg-white/20 rounded-full"></span>
+        <span>Geist Typography</span><span class="w-1.5 h-1.5 bg-white/20 rounded-full"></span>
+        <span>WCAG Compliant</span><span class="w-1.5 h-1.5 bg-indigo-500 rounded-full"></span>
+      </div>
+      <!-- Duplicate for seamless loop -->
+      <div class="flex items-center gap-12 text-sm text-white/40 font-mono tracking-widest uppercase">
+        <span>Component API</span><span class="w-1.5 h-1.5 bg-indigo-500 rounded-full"></span>
+        <span>Semantic Tokens</span><span class="w-1.5 h-1.5 bg-white/20 rounded-full"></span>
+        <span class="text-white/80 font-bold">Particles.js Engine</span><span class="w-1.5 h-1.5 bg-white/20 rounded-full"></span>
+        <span>Geist Typography</span><span class="w-1.5 h-1.5 bg-white/20 rounded-full"></span>
+        <span>WCAG Compliant</span><span class="w-1.5 h-1.5 bg-indigo-500 rounded-full"></span>
+      </div>
+      <!-- Triplicate -->
+      <div class="flex items-center gap-12 text-sm text-white/40 font-mono tracking-widest uppercase">
+        <span>Component API</span><span class="w-1.5 h-1.5 bg-indigo-500 rounded-full"></span>
+        <span>Semantic Tokens</span><span class="w-1.5 h-1.5 bg-white/20 rounded-full"></span>
+        <span class="text-white/80 font-bold">Particles.js Engine</span><span class="w-1.5 h-1.5 bg-white/20 rounded-full"></span>
+        <span>Geist Typography</span><span class="w-1.5 h-1.5 bg-white/20 rounded-full"></span>
+        <span>WCAG Compliant</span><span class="w-1.5 h-1.5 bg-indigo-500 rounded-full"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==========================================
+     2. TYPOGRAPHY
+     ========================================== -->
+<section class="relative z-10 py-32 px-6 overflow-hidden" id="typography">
+  <div class="section-grid"><div class="gl-v" style="left:50%"></div></div>
+  <div class="max-w-7xl mx-auto">
+    <div class="flex flex-col md:flex-row justify-between items-start mb-16 gap-8">
+      <div class="animate-on-scroll [animation:fadeSlideIn_1s_ease-out_0.05s_both]">
+        <p class="text-[10px] text-indigo-400 uppercase tracking-[0.2em] font-mono mb-3">01 — Specification</p>
+        <h2 class="text-4xl md:text-5xl font-geist font-semibold tracking-tighter text-white">Typography</h2>
+      </div>
+      <div class="max-w-md animate-on-scroll [animation:fadeSlideIn_1s_ease-out_0.1s_both]">
+        <p class="text-white/60 font-geist text-sm leading-relaxed">Geist and Inter define the core structural foundation. Loaded via CDN with <code class="bg-white/10 px-1 rounded text-xs text-white/80">display=swap</code> and explicit weight ranges.</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <!-- Font Families -->
+      <div class="lg:col-span-4 space-y-4 animate-on-scroll [animation:fadeSlideIn_1s_ease-out_0.2s_both]">
+        <div class="bg-card flashlight bg-[#080d1a] border border-white/5 rounded-3xl p-6" onmousemove="track(event,this)">
+          <p class="font-mono text-[10px] text-white/40 uppercase tracking-widest mb-2">Primary Display</p>
+          <p class="font-geist text-3xl text-white font-medium mb-1">Geist</p>
+          <p class="font-mono text-xs text-white/40 mb-4">Weights: 300, 400, 500, 600, 700</p>
+          <div class="flex gap-2"><span class="px-2 py-1 rounded bg-indigo-500/10 text-indigo-400 text-xs font-mono border border-indigo-500/20">.font-geist</span></div>
+        </div>
+        <div class="bg-card flashlight bg-[#080d1a] border border-white/5 rounded-3xl p-6" onmousemove="track(event,this)">
+          <p class="font-mono text-[10px] text-white/40 uppercase tracking-widest mb-2">Body Fallback</p>
+          <p class="font-sans text-2xl text-white font-medium mb-1">Inter / sans-serif</p>
+          <div class="mt-4"><span class="px-2 py-1 rounded bg-white/5 text-white/60 text-xs font-mono border border-white/10">.font-sans</span></div>
+        </div>
+        <div class="bg-card flashlight bg-[#080d1a] border border-white/5 rounded-3xl p-6" onmousemove="track(event,this)">
+          <p class="font-mono text-[10px] text-white/40 uppercase tracking-widest mb-2">Technical / Data</p>
+          <p class="font-mono-geist text-xl text-white font-medium mb-1">Geist Mono</p>
+          <div class="mt-4"><span class="px-2 py-1 rounded bg-white/5 text-white/60 text-xs font-mono border border-white/10">.font-mono</span></div>
+        </div>
+      </div>
+
+      <!-- Type Scale Table -->
+      <div class="lg:col-span-8 animate-on-scroll [animation:fadeSlideIn_1s_ease-out_0.3s_both]">
+        <div class="bg-[#080d1a] border border-white/5 rounded-3xl overflow-hidden flashlight" onmousemove="track(event,this)">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="border-b border-white/10">
+                  <th class="py-4 px-6 text-[10px] text-white/40 uppercase tracking-widest font-mono">Token</th>
+                  <th class="py-4 px-6 text-[10px] text-white/40 uppercase tracking-widest font-mono">Live Demo</th>
+                  <th class="py-4 px-6 text-[10px] text-white/40 uppercase tracking-widest font-mono hidden md:table-cell">Specs (Size / Wght / LH)</th>
+                </tr>
+              </thead>
+              <tbody class="text-sm font-geist text-white/80">
+                <tr class="border-b border-white/5 hover:bg-white/[0.02]">
+                  <td class="py-5 px-6"><span class="bg-white/10 text-white font-mono text-[10px] px-2 py-1 rounded">h1-display</span></td>
+                  <td class="py-5 px-6 font-geist text-4xl font-semibold tracking-tighter text-white">Platform</td>
+                  <td class="py-5 px-6 font-mono text-xs text-white/40 hidden md:table-cell">48px / 600 / 1.1 / -0.04em</td>
+                </tr>
+                <tr class="border-b border-white/5 hover:bg-white/[0.02]">
+                  <td class="py-5 px-6"><span class="bg-white/10 text-white font-mono text-[10px] px-2 py-1 rounded">h2-section</span></td>
+                  <td class="py-5 px-6 font-geist text-3xl font-semibold tracking-tight text-white">Overview</td>
+                  <td class="py-5 px-6 font-mono text-xs text-white/40 hidden md:table-cell">36px / 600 / 1.2 / -0.02em</td>
+                </tr>
+                <tr class="border-b border-white/5 hover:bg-white/[0.02]">
+                  <td class="py-5 px-6"><span class="bg-white/10 text-white font-mono text-[10px] px-2 py-1 rounded">h3-card</span></td>
+                  <td class="py-5 px-6 font-geist text-xl font-medium tracking-tight text-white">Feature Item</td>
+                  <td class="py-5 px-6 font-mono text-xs text-white/40 hidden md:table-cell">20px / 500 / 1.3 / 0em</td>
+                </tr>
+                <tr class="border-b border-white/5 hover:bg-white/[0.02]">
+                  <td class="py-5 px-6"><span class="bg-white/10 text-white font-mono text-[10px] px-2 py-1 rounded">body-lg</span></td>
+                  <td class="py-5 px-6 font-geist text-lg font-light text-white/70">Large leading description.</td>
+                  <td class="py-5 px-6 font-mono text-xs text-white/40 hidden md:table-cell">18px / 300 / 1.6 / 0em</td>
+                </tr>
+                <tr class="border-b border-white/5 hover:bg-white/[0.02]">
+                  <td class="py-5 px-6"><span class="bg-white/10 text-white font-mono text-[10px] px-2 py-1 rounded">body</span></td>
+                  <td class="py-5 px-6 font-sans text-base text-white/60">Standard paragraph text body.</td>
+                  <td class="py-5 px-6 font-mono text-xs text-white/40 hidden md:table-cell">16px / 400 / 1.5 / 0em</td>
+                </tr>
+                <tr class="border-b border-white/5 hover:bg-white/[0.02]">
+                  <td class="py-5 px-6"><span class="bg-white/10 text-white font-mono text-[10px] px-2 py-1 rounded">body-sm</span></td>
+                  <td class="py-5 px-6 font-sans text-sm text-white/50">Secondary helper information.</td>
+                  <td class="py-5 px-6 font-mono text-xs text-white/40 hidden md:table-cell">14px / 400 / 1.5 / 0em</td>
+                </tr>
+                <tr class="hover:bg-white/[0.02]">
+                  <td class="py-5 px-6"><span class="bg-white/10 text-white font-mono text-[10px] px-2 py-1 rounded">caption</span></td>
+                  <td class="py-5 px-6 font-mono-geist text-xs uppercase tracking-widest text-indigo-400">Metadata Data</td>
+                  <td class="py-5 px-6 font-mono text-xs text-white/40 hidden md:table-cell">12px / 500 / 1.4 / +0.1em</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+
+<!-- ==========================================
+     3. COLORS
+     ========================================== -->
+<section class="relative z-10 py-32 px-6 overflow-hidden" id="colors">
+  <div class="max-w-7xl mx-auto">
+    <div class="flex flex-col md:flex-row justify-between items-start mb-16 gap-8">
+      <div class="animate-on-scroll [animation:fadeSlideIn_1s_ease-out_0.05s_both]">
+        <p class="text-[10px] text-indigo-400 uppercase tracking-[0.2em] font-mono mb-3">02 — Specification</p>
+        <h2 class="text-4xl md:text-5xl font-geist font-semibold tracking-tighter text-white">Color Tokens</h2>
+      </div>
+    </div>
+
+    <!-- Color Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+      
+      <!-- Primary -->
+      <div class="group bg-[#080d1a] border border-white/5 rounded-3xl overflow-hidden flashlight animate-on-scroll [animation:fadeSlideIn_1s_ease-out_0.1s_both]" onmousemove="track(event,this)">
+        <div class="h-28 bg-indigo-500 relative flex items-end p-4">
+          <div class="absolute inset-0 bg-gradient-to-tr from-indigo-700 to-indigo-400 opacity-80"></div>
+          <span class="relative z-10 font-mono text-sm text-white font-semibold">#6366F1</span>
+        </div>
+        <div class="p-6">
+          <div class="flex justify-between items-center mb-2">
+            <h3 class="font-geist font-semibold text-white">Primary Brand</h3>
+            <span class="text-[10px] font-mono bg-white/10 px-2 py-0.5 rounded text-white/70">AA</span>
+          </div>
+          <p class="text-xs text-white/50 font-geist mb-4">Focus rings, main CTAs, active selections.</p>
+          <div class="flex gap-2 h-8 w-full">
+            <div class="flex-1 bg-indigo-500/10 rounded border border-indigo-500/20"></div>
+            <div class="flex-1 bg-indigo-500/30 rounded"></div>
+            <div class="flex-1 bg-indigo-500/60 rounded"></div>
+            <div class="flex-1 bg-indigo-500 rounded"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Accent / Success -->
+      <div class="group bg-[#080d1a] border border-white/5 rounded-3xl overflow-hidden flashlight animate-on-scroll [animation:fadeSlideIn_1s_ease-out_0.2s_both]" onmousemove="track(event,this)">
+        <div class="h-28 bg-emerald-500 relative flex items-end p-4">
+          <div class="absolute inset-0 bg-gradient-to-tr from-emerald-700 to-emerald-400 opacity-80"></div>
+          <span class="relative z-10 font-mono text-sm text-white font-semibold">#10B981</span>
+        </div>
+        <div class="p-6">
+          <div class="flex justify-between items-center mb-2">
+            <h3 class="font-geist font-semibold text-white">Success / Accent</h3>
+            <span class="text-[10px] font-mono bg-white/10 px-2 py-0.5 rounded text-white/70">AA</span>
+          </div>
+          <p class="text-xs text-white/50 font-geist mb-4">Positive indicators, completed states, graphs.</p>
+          <div class="flex gap-2 h-8 w-full">
+            <div class="flex-1 bg-emerald-500/10 rounded border border-emerald-500/20"></div>
+            <div class="flex-1 bg-emerald-500/30 rounded"></div>
+            <div class="flex-1 bg-emerald-500/60 rounded"></div>
+            <div class="flex-1 bg-emerald-500 rounded"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Surface / Neutral -->
+      <div class="group bg-[#080d1a] border border-white/5 rounded-3xl overflow-hidden flashlight animate-on-scroll [animation:fadeSlideIn_1s_ease-out_0.3s_both]" onmousemove="track(event,this)">
+        <div class="h-28 bg-slate-900 relative flex items-end p-4">
+          <div class="absolute inset-0 bg-gradient-to-tr from-slate-950 to-slate-800 opacity-80"></div>
+          <span class="relative z-10 font-mono text-sm text-white font-semibold">#0F172A</span>
+        </div>
+        <div class="p-6">
+          <div class="flex justify-between items-center mb-2">
+            <h3 class="font-geist font-semibold text-white">Surface Base</h3>
+            <span class="text-[10px] font-mono bg-white/10 px-2 py-0.5 rounded text-white/70">AAA</span>
+          </div>
+          <p class="text-xs text-white/50 font-geist mb-4">Cards, dropdowns, modal backgrounds, borders.</p>
+          <div class="flex gap-2 h-8 w-full">
+            <div class="flex-1 bg-slate-950 rounded border border-white/5"></div>
+            <div class="flex-1 bg-slate-900 rounded border border-white/5"></div>
+            <div class="flex-1 bg-slate-800 rounded"></div>
+            <div class="flex-1 bg-slate-700 rounded"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Status row -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 animate-on-scroll [animation:fadeSlideIn_1s_ease-out_0.4s_both]">
+      <div class="p-5 rounded-2xl bg-[#080d1a] border border-red-500/20 flashlight" onmousemove="track(event,this)">
+        <div class="w-8 h-8 rounded-full bg-red-500 shadow-[0_0_15px_rgba(239,68,68,0.5)] mb-3"></div>
+        <p class="font-geist font-medium text-white text-sm">Danger (#EF4444)</p>
+      </div>
+      <div class="p-5 rounded-2xl bg-[#080d1a] border border-amber-500/20 flashlight" onmousemove="track(event,this)">
+        <div class="w-8 h-8 rounded-full bg-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.5)] mb-3"></div>
+        <p class="font-geist font-medium text-white text-sm">Warning (#F59E0B)</p>
+      </div>
+      <div class="p-5 rounded-2xl bg-[#080d1a] border border-sky-500/20 flashlight" onmousemove="track(event,this)">
+        <div class="w-8 h-8 rounded-full bg-sky-500 shadow-[0_0_15px_rgba(14,165,233,0.5)] mb-3"></div>
+        <p class="font-geist font-medium text-white text-sm">Info (#0EA5E9)</p>
+      </div>
+      <div class="p-5 rounded-2xl bg-[#080d1a] border border-purple-500/20 flashlight" onmousemove="track(event,this)">
+        <div class="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 shadow-[0_0_15px_rgba(168,85,247,0.5)] mb-3"></div>
+        <p class="font-geist font-medium text-white text-sm">Decorative</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+
+<!-- ==========================================
+     4. UI COMPONENTS
+     ========================================== -->
+<section class="relative z-10 py-32 px-6 overflow-hidden" id="components">
+  <div class="max-w-7xl mx-auto">
+    <div class="flex flex-col md:flex-row justify-between items-start mb-16 gap-8">
+      <div class="animate-on-scroll [animation:fadeSlideIn_1s_ease-out_0.05s_both]">
+        <p class="text-[10px] text-indigo-400 uppercase tracking-[0.2em] font-mono mb-3">03 — Specification</p>
+        <h2 class="text-4xl md:text-5xl font-geist font-semibold tracking-tighter text-white">UI Components</h2>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+      
+      <!-- Interactive Cards Left -->
+      <div class="space-y-10">
+        
+        <!-- Buttons preview -->
+        <div class="p-8 rounded-[2rem] bg-[#0a0f1d] border border-white/5 flashlight animate-on-scroll [animation:fadeSlideIn_1s_ease-out_0.1s_both]" onmousemove="track(event,this)">
+          <h3 class="text-sm font-mono text-white/40 uppercase tracking-widest mb-6 border-b border-white/5 pb-3">Buttons & Actions</h3>
+          <div class="flex flex-wrap gap-4 items-center">
+            
+            <button class="shimmer-btn btn-beam inline-flex items-center gap-2 rounded-xl py-2.5 px-6 text-sm font-semibold text-white font-geist bg-indigo-600 hover:bg-indigo-500 transition-colors shadow-[0_0_15px_rgba(99,102,241,0.3)] active:scale-95">
+              <span class="beam-layer"></span><span class="shimmer-sweep"></span>
+              Primary Action
+            </button>
+            
+            <button class="shimmer-btn inline-flex items-center gap-2 rounded-xl py-2.5 px-5 text-sm font-medium text-white/90 font-geist bg-white/5 border border-white/10 hover:bg-white/10 transition-all active:scale-95">
+              <span class="shimmer-sweep"></span>
+              <iconify-icon icon="solar:upload-linear" class="text-lg text-white/50"></iconify-icon>
+              Secondary
+            </button>
+            
+            <button class="inline-flex items-center gap-2 rounded-xl py-2.5 px-4 text-sm font-medium text-white/50 font-geist hover:bg-white/5 hover:text-white transition-colors active:scale-95">
+              Cancel
+            </button>
+
+            <button class="inline-flex items-center gap-2 rounded-xl py-2.5 px-4 text-sm font-medium text-white/20 font-geist bg-white/5 border border-white/5 cursor-not-allowed">
+              Disabled
+            </button>
+          </div>
+        </div>
+
+        <!-- Badges & Tooltips -->
+        <div class="p-8 rounded-[2rem] bg-[#0a0f1d] border border-white/5 flashlight animate-on-scroll [animation:fadeSlideIn_1s_ease-out_0.2s_both]" onmousemove="track(event,this)">
+          <h3 class="text-sm font-mono text-white/40 uppercase tracking-widest mb-6 border-b border-white/5 pb-3">Badges & Tooltips</h3>
+          <div class="flex flex-wrap gap-3">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[11px] font-bold tracking-widest uppercase font-mono">
+              <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span> Active
+            </span>
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-white/70 text-[11px] font-bold tracking-widest uppercase font-mono">
+              Draft
+            </span>
+            <span class="tip-host">
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-[11px] font-bold tracking-widest uppercase font-mono cursor-help">
+                <iconify-icon icon="solar:info-circle-linear" class="text-sm"></iconify-icon> Hover
+              </span>
+              <span class="tip">Information presented clearly.</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive Cards Right -->
+      <div class="space-y-10">
+        
+        <!-- Forms -->
+        <div class="p-8 rounded-[2rem] bg-[#0a0f1d] border border-white/5 flashlight animate-on-scroll [animation:fadeSlideIn_1s_ease-out_0.15s_both]" onmousemove="track(event,this)">
+          <h3 class="text-sm font-mono text-white/40 uppercase tracking-widest mb-6 border-b border-white/5 pb-3">Form Controls</h3>
+          
+          <div class="space-y-6">
+            <div>
+              <label class="block text-[11px] font-mono text-white/50 uppercase tracking-widest mb-2">Project Name</label>
+              <div class="relative">
+                <iconify-icon icon="solar:folder-with-files-linear" class="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 text-lg"></iconify-icon>
+                <input type="text" placeholder="Design System v5" class="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-11 pr-4 text-sm text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-geist placeholder:text-white/20">
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-2">
+              <div>
+                <p class="text-sm font-medium text-white font-geist mb-0.5">Push Notifications</p>
+                <p class="text-[11px] text-white/40 font-geist">Receive alerts for build completion</p>
+              </div>
+              <div class="relative w-12 h-6 bg-indigo-600 rounded-full cursor-pointer transition-colors shadow-[0_0_10px_rgba(99,102,241,0.3)] border border-indigo-400/50">
+                <div class="absolute left-7 top-[3px] w-4 h-4 bg-white rounded-full shadow transition-transform"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mini Card / Modal Demo -->
+        <div class="p-6 rounded-[2rem] bg-[#111827]/80 border border-white/10 shadow-2xl relative overflow-hidden animate-on-scroll [animation:fadeSlideIn_1s_ease-out_0.25s_both]">
+           <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-indigo-500 to-transparent"></div>
+           <div class="flex justify-between items-start mb-4">
+             <div class="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
+               <iconify-icon icon="solar:shield-keyhole-bold-duotone" class="text-indigo-400 text-xl"></iconify-icon>
+             </div>
+             <button class="text-white/30 hover:text-white mt-1"><iconify-icon icon="solar:close-circle-line-duotone" class="text-xl"></iconify-icon></button>
+           </div>
+           <h4 class="font-geist font-semibold text-white mb-2">Authentication Required</h4>
+           <p class="text-sm text-white/50 font-geist mb-6 leading-relaxed">You must verify your identity to access the primary architectural blueprints.</p>
+           <button class="w-full text-center py-2.5 bg-white text-black text-sm font-medium rounded-xl hover:bg-neutral-200 transition-colors">Authenticate</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+
+<!-- ==========================================
+     5 & 6. ICONS & ANIMATIONS
+     ========================================== -->
+<section class="relative z-10 py-32 px-6 overflow-hidden" id="motion">
+  <div class="max-w-7xl mx-auto">
+    <div class="flex flex-col md:flex-row justify-between items-start mb-16 gap-8">
+      <div class="animate-on-scroll [animation:fadeSlideIn_1s_ease-out_0.05s_both]">
+        <p class="text-[10px] text-indigo-400 uppercase tracking-[0.2em] font-mono mb-3">04 — Specification</p>
+        <h2 class="text-4xl md:text-5xl font-geist font-semibold tracking-tighter text-white">Icons & Motion</h2>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+      
+      <!-- Icons -->
+      <div class="bg-[#080d1a] border border-white/5 rounded-[2rem] p-8 flashlight animate-on-scroll [animation:fadeSlideIn_1s_ease-out_0.1s_both]" onmousemove="track(event,this)">
+        <h3 class="text-sm font-mono text-white/40 uppercase tracking-widest mb-6 border-b border-white/5 pb-3">Solar Icon Set</h3>
+        <p class="text-sm text-white/50 font-geist mb-8">Strict use of Solar icons. <code class="bg-white/10 px-1 rounded">-linear</code> for structural UI, <code class="bg-white/10 px-1 rounded">-bold-duotone</code> for accents.</p>
+        
+        <div class="grid grid-cols-5 gap-4">
+          <div class="tip-host flex flex-col items-center p-3 rounded-xl bg-white/5 border border-white/5 hover:border-indigo-500/30 hover:bg-indigo-500/10 transition-all cursor-default group">
+            <iconify-icon icon="solar:graph-bold-duotone" class="text-2xl text-indigo-400 group-hover:scale-125 transition-transform"></iconify-icon>
+            <span class="tip">solar:graph-bold-duotone</span>
+          </div>
+          <div class="tip-host flex flex-col items-center p-3 rounded-xl bg-white/5 border border-white/5 hover:border-emerald-500/30 hover:bg-emerald-500/10 transition-all cursor-default group">
+            <iconify-icon icon="solar:check-circle-bold-duotone" class="text-2xl text-emerald-400 group-hover:scale-125 transition-transform"></iconify-icon>
+            <span class="tip">solar:check-circle-bold-duotone</span>
+          </div>
+          <div class="tip-host flex flex-col items-center p-3 rounded-xl bg-white/5 border border-white/5 hover:border-white/20 transition-all cursor-default group">
+            <iconify-icon icon="solar:settings-linear" class="text-2xl text-white/50 group-hover:scale-125 group-hover:text-white transition-all"></iconify-icon>
+            <span class="tip">solar:settings-linear</span>
+          </div>
+          <div class="tip-host flex flex-col items-center p-3 rounded-xl bg-white/5 border border-white/5 hover:border-white/20 transition-all cursor-default group">
+            <iconify-icon icon="solar:user-linear" class="text-2xl text-white/50 group-hover:scale-125 group-hover:text-white transition-all"></iconify-icon>
+            <span class="tip">solar:user-linear</span>
+          </div>
+          <div class="tip-host flex flex-col items-center p-3 rounded-xl bg-white/5 border border-white/5 hover:border-amber-500/30 hover:bg-amber-500/10 transition-all cursor-default group">
+            <iconify-icon icon="solar:star-fall-bold-duotone" class="text-2xl text-amber-400 group-hover:scale-125 transition-transform"></iconify-icon>
+            <span class="tip">solar:star-fall-bold-duotone</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Motion -->
+      <div class="bg-[#080d1a] border border-white/5 rounded-[2rem] p-8 flashlight animate-on-scroll [animation:fadeSlideIn_1s_ease-out_0.2s_both]" onmousemove="track(event,this)">
+        <h3 class="text-sm font-mono text-white/40 uppercase tracking-widest mb-6 border-b border-white/5 pb-3">Animation Keys</h3>
+        
+        <div class="space-y-4">
+          <div class="flex items-center gap-4 p-4 bg-white/5 rounded-xl border border-white/5">
+            <iconify-icon icon="solar:arrow-up-linear" class="text-xl text-white/40"></iconify-icon>
+            <div class="flex-1">
+              <p class="text-sm font-medium text-white font-geist">fadeSlideIn</p>
+              <p class="text-[10px] text-white/40 font-mono">1s cubic-bezier(0.16,1,0.3,1)</p>
+            </div>
+            <div class="w-4 h-4 bg-white/20 rounded animate-[fadeSlideIn_2s_ease-in-out_infinite_alternate]"></div>
+          </div>
+          
+          <div class="flex items-center gap-4 p-4 bg-white/5 rounded-xl border border-white/5">
+            <iconify-icon icon="solar:magic-stick-3-linear" class="text-xl text-indigo-400"></iconify-icon>
+            <div class="flex-1">
+              <p class="text-sm font-medium text-white font-geist">shimmer (hover)</p>
+              <p class="text-[10px] text-white/40 font-mono">0.8s ease translateX(-150%) -> 200%</p>
+            </div>
+            <div class="shimmer-btn w-12 h-4 bg-white/10 rounded cursor-pointer"><div class="shimmer-sweep"></div></div>
+          </div>
+
+          <div class="flex items-center gap-4 p-4 bg-white/5 rounded-xl border border-white/5">
+            <iconify-icon icon="solar:arrow-up-down-linear" class="text-xl text-white/40"></iconify-icon>
+            <div class="flex-1">
+              <p class="text-sm font-medium text-white font-geist">float</p>
+              <p class="text-[10px] text-white/40 font-mono">6s ease-in-out infinite Y(0 ↔ -10px)</p>
+            </div>
+            <div class="w-4 h-4 bg-white/20 rounded animate-[float_2s_ease-in-out_infinite]"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="border-t border-white/5 bg-[#040816] py-12 px-6 relative z-10">
+  <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded bg-indigo-600 flex items-center justify-center">
+        <iconify-icon icon="solar:command-bold-duotone" class="text-white text-sm"></iconify-icon>
+      </div>
+      <span class="font-geist font-semibold text-white/80 text-sm">Design System V5</span>
+    </div>
+    <p class="font-mono text-xs text-white/40">Dark · Reusable Particles Background · 2026</p>
+  </div>
+</footer>
+
+<!-- IMPORTANT: particles.js script MUST be loaded for the background to work -->
+<script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+      // Replicating exactly original ai-digital-systems-47 config
+      if (typeof particlesJS !== 'undefined') {
+        particlesJS('particles-js', {
+            particles: {
+                number: { value: 60, density: { enable: true, value_area: 800 } },
+                color: { value: "#ffffff" },
+                shape: { type: "circle" },
+                opacity: { value: 0.5, random: false },
+                size: { value: 3, random: true },
+                line_linked: { enable: true, distance: 150, color: "#ffffff", opacity: 0.4, width: 1 },
+                move: { enable: true, speed: 2, direction: "none", random: false, straight: false, out_mode: "out", bounce: false }
+            },
+            interactivity: {
+                detect_on: "window",
+                events: { onhover: { enable: true, mode: "grab" }, onclick: { enable: true, mode: "push" }, resize: true },
+                modes: { grab: { distance: 200, line_linked: { opacity: 0.8 } }, bubble: { distance: 400, size: 40, duration: 2, opacity: 8, speed: 3 }, repulse: { distance: 200, duration: 0.4 }, push: { particles_nb: 4 }, remove: { particles_nb: 2 } }
+            },
+            retina_detect: true
+        });
+      }
+  });
+
+  // Track cursor for flashlight cards
+  function track(e, el) {
+    const r = el.getBoundingClientRect();
+    el.style.setProperty('--mx', `${e.clientX - r.left}px`);
+    el.style.setProperty('--my', `${e.clientY - r.top}px`);
+  }
+</script>
+
+</body>
+</html>

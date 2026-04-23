@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html class="scroll-smooth" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>PSYCHO MAKER — Design System v4</title>
+
+<!-- Fonts: identical loading strategy to ai-digital-systems-47 -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet"/>
+
+<!-- Iconify cdn -->
+<script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+
+<!-- Tailwind CDN (same as ai-digital-systems) -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Geist font -->
+<style id="all-fonts-style-font-geist">.font-geist { font-family: 'Geist', 'Inter', sans-serif !important; }</style>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap" id="all-fonts-link-font-geist" rel="stylesheet"/>
+
+<!-- Geist Mono -->
+<style>.font-mono-geist { font-family: 'Geist Mono', 'ui-monospace', monospace !important; }</style>
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+
+<!-- Tailwind 3D + custom config (direct from ai-digital-systems-47) -->
+<style>/* 3D Transform utilities */</style>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {}
+  },
+  plugins: [
+    function({ addUtilities }) {
+      const rotateXUtilities = {};
+      const rotateYUtilities = {};
+      const rotateZUtilities = {};
+      const rotateValues = [0, 5, 10, 15, 20, 30, 45, 75];
+      rotateValues.forEach((value) => {
+        const xform = (rx, ry, rz) =>
+          `translate3d(var(--tw-translate-x,0),var(--tw-translate-y,0),var(--tw-translate-z,0)) rotateX(var(--tw-rotate-x,0)) rotateY(var(--tw-rotate-y,0)) rotateZ(var(--tw-rotate-z,0)) skewX(var(--tw-skew-x,0)) skewY(var(--tw-skew-y,0)) scaleX(var(--tw-scale-x,1)) scaleY(var(--tw-scale-y,1))`;
+        rotateXUtilities[`.rotate-x-${value}`] = { '--tw-rotate-x': `${value}deg`, transform: xform() };
+        if (value !== 0) rotateXUtilities[`.-rotate-x-${value}`] = { '--tw-rotate-x': `-${value}deg`, transform: xform() };
+        rotateYUtilities[`.rotate-y-${value}`] = { '--tw-rotate-y': `${value}deg`, transform: xform() };
+        if (value !== 0) rotateYUtilities[`.-rotate-y-${value}`] = { '--tw-rotate-y': `-${value}deg`, transform: xform() };
+        rotateZUtilities[`.rotate-z-${value}`] = { '--tw-rotate-z': `${value}deg`, transform: xform() };
+        if (value !== 0) rotateZUtilities[`.-rotate-z-${value}`] = { '--tw-rotate-z': `-${value}deg`, transform: xform() };
+      });
+      addUtilities({
+        ...rotateXUtilities, ...rotateYUtilities, ...rotateZUtilities,
+        ".perspective-none":    { perspective: "none" },
+        ".perspective-dramatic":{ perspective: "100px" },
+        ".perspective-near":    { perspective: "300px" },
+        ".perspective-normal":  { perspective: "500px" },
+        ".perspective-midrange":{ perspective: "800px" },
+        ".perspective-distant": { perspective: "1200px" },
+        ".transform-style-preserve-3d": { "transform-style": "preserve-3d" },
+        ".transform-style-flat": { "transform-style": "flat" },
+      });
+    }
+  ]
+};
+</script>
+
+<!-- Keyframes (direct from ai-digital-systems-47) -->
+<style>
+@keyframes fadeSlideIn {
+  0%   { opacity: 0; transform: translateY(30px); filter: blur(8px); }
+  100% { opacity: 1; transform: translateY(0);    filter: blur(0px); }
+}
+@keyframes parallaxElement {
+  from { transform: translateY(-12%); }
+  to   { transform: translateY(12%);  }
+}
+@keyframes ticker {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+/* --- DS4 custom keyframes --- */
+@keyframes shimmer {
+  from { transform: translateX(-100%) skewX(-15deg); }
+  to   { transform: translateX(200%)  skewX(-15deg); }
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 1;   }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0);    }
+  50%       { transform: translateY(-10px); }
+}
+@keyframes beam-spin { to { transform: rotate(360deg); } }
+@keyframes stripe-scan {
+  from { background-position: 0% 50%; }
+  to   { background-position: 100% 50%; }
+}
+@keyframes draw-line {
+  from { stroke-dashoffset: 800; }
+  to   { stroke-dashoffset: 0;   }
+}
+</style>
+
+<!-- IntersectionObserver (identical to ai-digital-systems-47) -->
+<script>
+(function () {
+  const style = document.createElement("style");
+  style.textContent = `
+    .animate-on-scroll { animation-play-state: paused !important; }
+    .animate-on-scroll.animate { animation-play-state: running !important; }
+  `;
+  document.head.appendChild(style);
+  const once = true;
+  if (!window.__inViewIO) {
+    window.__inViewIO = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("animate");
+          if (once) window.__inViewIO.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.2, rootMargin: "0px 0px -10% 0px" });
+  }
+  window.initInViewAnimations = function (selector = ".animate-on-scroll") {
+    document.querySelectorAll(selector).forEach((el) => window.__inViewIO.observe(el));
+  };
+  document.addEventListener("DOMContentLoaded", () => initInViewAnimations());
+})();
+</script>
+
+<!-- Component & layout styles -->
+<style>
+/* ======= BASE ======= */
+:root {
+  --col: 1fr;
+  --bg-page:    #020617;  /* slate-950  */
+  --bg-card:    #0a0a0a;  /* near-black */
+  --border-sub: rgba(255,255,255,0.05);
+  --border-std: rgba(255,255,255,0.10);
+  --brand:      hsl(243,75%,65%);
+  --accent:     hsl(160,72%,45%);
+  --danger:     hsl(348,83%,47%);
+  --warn:       hsl(38,92%,50%);
+}
+body {
+  background: var(--bg-page);
+  color: #f1f5f9;
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+  overflow-x: hidden;
+}
+
+/* ======= SCROLLBAR ======= */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--bg-page); }
+::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #334155; }
+
+/* ======= SELECTION ======= */
+::selection { background: rgba(99,102,241,0.25); color: #e0e7ff; }
+
+/* ======= GRID LINES (exact ai-digital-systems pattern) ======= */
+.section-grid {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+.gl-v { position: absolute; top: 0; bottom: 0; width: 1px;
+  background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.05) 20%, rgba(255,255,255,0.05) 80%, transparent); }
+.gl-h { position: absolute; left: 0; right: 0; height: 1px;
+  background: linear-gradient(to right, transparent, rgba(255,255,255,0.05) 20%, rgba(255,255,255,0.05) 80%, transparent); }
+
+/* ======= GLASS PANEL ======= */
+.glass {
+  background: rgba(15,23,42,0.5);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.07);
+}
+
+/* ======= FLASHLIGHT CARD (cursor track) ======= */
+.flashlight { position: relative; }
+.flashlight::before {
+  content: "";
+  position: absolute; inset: 0;
+  background: radial-gradient(700px circle at var(--mx, 50%) var(--my, 50%),
+    rgba(255,255,255,0.06), transparent 40%);
+  opacity: 0; transition: opacity 0.4s;
+  pointer-events: none; border-radius: inherit; z-index: 2;
+}
+.flashlight:hover::before { opacity: 1; }
+
+/* ======= BEAM BUTTON ======= */
+.btn-beam { position: relative; overflow: hidden; z-index: 0; }
+.btn-beam .beam-layer {
+  position: absolute; inset: -1000%;
+  animation: beam-spin 3s linear infinite;
+  background: conic-gradient(from 0deg, transparent 0 340deg, var(--brand) 360deg);
+  z-index: -1;
+}
+
+/* ======= SHIMMER SWEEP ======= */
+.shimmer-btn { position: relative; overflow: hidden; }
+.shimmer-btn .shimmer-sweep {
+  position: absolute; inset: 0;
+  background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.18) 50%, transparent 60%);
+  transform: translateX(-150%) skewX(-15deg);
+  pointer-events: none;
+}
+.shimmer-btn:hover .shimmer-sweep { animation: shimmer 0.8s ease; }
+
+/* ======= TOOLTIP ======= */
+.tip-host { position: relative; display: inline-flex; }
+.tip-host .tip {
+  position: absolute; bottom: calc(100% + 8px); left: 50%;
+  transform: translateX(-50%) translateY(6px);
+  background: #0f172a; color: #e2e8f0; border: 1px solid rgba(255,255,255,0.1);
+  font-family: 'Geist Mono', monospace; font-size: 11px;
+  padding: 6px 12px; border-radius: 8px; white-space: nowrap;
+  opacity: 0; pointer-events: none; transition: opacity 0.2s, transform 0.2s;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+.tip-host .tip::after {
+  content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+  border: 5px solid transparent; border-top-color: #0f172a;
+}
+.tip-host:hover .tip { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ======= SECTION DIVIDER ======= */
+.sep { width: 100%; height: 1px; background: linear-gradient(to right, transparent, rgba(255,255,255,0.08), transparent); }
+
+/* ======= TICKER (ai-digital-systems exact) ======= */
+.ticker-track { animation: ticker 50s linear infinite; }
+.ticker-track:hover { animation-play-state: paused; }
+
+/* ======= SCROLL INDICATOR ======= */
+#scroll-prog {
+  position: fixed; top: 0; left: 0; height: 2px; z-index: 9999;
+  background: linear-gradient(to right, var(--brand), var(--accent));
+  transition: width 0.1s linear;
+}
+
+/* ======= NOISE ======= */
+.noise {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.04; mix-blend-mode: screen;
+}
+
+/* ======= COLOR SWATCH ======= */
+.swatch-grid { display:grid; grid-template-columns: repeat(6, 1fr); gap:6px; }
+.swatch { height: 32px; border-radius: 6px; transition: transform 0.2s; cursor: default; }
+.swatch:hover { transform: scale(1.15); }
+
+/* ======= TABLE ======= */
+.spec-table { width: 100%; border-collapse: collapse; }
+.spec-table th { font-family:'Geist Mono',monospace; font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:rgba(148,163,184,0.7); font-weight:400; padding:12px 16px; border-bottom:1px solid rgba(255,255,255,0.06); text-align:left; }
+.spec-table td { padding:14px 16px; border-bottom:1px solid rgba(255,255,255,0.04); vertical-align:middle; }
+.spec-table tr:last-child td { border-bottom:none; }
+.spec-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+/* ======= INPUT ======= */
+.ds-input {
+  width:100%; background:#0f172a; border:1px solid rgba(255,255,255,0.1);
+  border-radius:12px; color:#f1f5f9; padding:12px 16px;
+  font-family:'Geist',sans-serif; font-size:14px; outline:none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.ds-input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
+.ds-input::placeholder { color: rgba(148,163,184,0.4); }
+
+/* ======= BADGE ======= */
+.badge { display:inline-flex; align-items:center; gap:6px; border-radius:9999px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; padding:4px 12px; }
+
+/* ======= GRADIENT TEXT ======= */
+.grad-text { background: linear-gradient(to right, #fff, rgba(255,255,255,0.6)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+</style>
+</head>
+
+<body class="relative min-h-screen">
+
+<!-- Scroll progress -->
+<div id="scroll-prog" style="width:0%"></div>
+
+<!-- ╔════════════════════════════════════════════╗
+     ║  HERO — Full viewport, particles, dark bg  ║
+     ╚════════════════════════════════════════════╝ -->
+<div class="relative h-screen overflow-hidden" id="hero">
+
+  <!-- 1. PARTICLES (cursor-reactive, exact ai-digital-systems config) -->
+  <div class="fixed inset-0 z-[5] pointer-events-none mix-blend-screen">
+    <div class="absolute inset-0 w-full h-full" id="particles-js">
+      <!-- loaded below in script -->
+    </div>
+  </div>
+
+  <!-- 2. GRID LINES (exact ai-digital-systems markup) -->
+  <div class="pointer-events-none absolute inset-0 z-0">
+    <div class="absolute inset-y-0 left-[12.5%] w-px bg-gradient-to-b from-transparent via-white/5 to-transparent"></div>
+    <div class="absolute inset-y-0 left-[25%]   w-px bg-gradient-to-b from-transparent via-white/5 to-transparent"></div>
+    <div class="absolute inset-y-0 left-[37.5%] w-px bg-gradient-to-b from-transparent via-white/5 to-transparent"></div>
+    <div class="absolute inset-y-0 left-[50%]   w-px bg-gradient-to-b from-transparent via-white/8 to-transparent"></div>
+    <div class="absolute inset-y-0 left-[62.5%] w-px bg-gradient-to-b from-transparent via-white/5 to-transparent"></div>
+    <div class="absolute inset-y-0 left-[75%]   w-px bg-gradient-to-b from-transparent via-white/5 to-transparent"></div>
+    <div class="absolute inset-y-0 left-[87.5%] w-px bg-gradient-to-b from-transparent via-white/5 to-transparent"></div>
+    <div class="absolute inset-x-0 top-[20%] h-px bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
+    <div class="absolute inset-x-0 top-[40%] h-px bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
+    <div class="absolute inset-x-0 top-[60%] h-px bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
+    <div class="absolute inset-x-0 top-[80%] h-px bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
+  </div>
+
+  <!-- 3. BG IMAGE + overlay (ai-digital-systems pattern) -->
+  <img alt="" class="pointer-events-none w-full h-full object-cover absolute inset-0"
+       src="../Design System/ai-digital-systems-47/assets/92a4234b-15fa-4d5f-8821-48d3f9_bbb70a1c82a0.jpg"
+       onerror="this.style.display='none'"/>
+  <!-- Ambient glows (from design_system.html) -->
+  <div class="absolute inset-0 pointer-events-none">
+    <div class="absolute top-[-10%] left-[-5%] w-[55%] h-[55%] rounded-full"
+         style="background:radial-gradient(ellipse, rgba(99,102,241,0.12) 0%, transparent 70%); animation:glow-pulse 8s ease-in-out infinite;"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full"
+         style="background:radial-gradient(ellipse, rgba(16,185,129,0.08) 0%, transparent 70%); animation:glow-pulse 11s ease-in-out infinite 2s;"></div>
+  </div>
+
+  <!-- NOISE overlay -->
+  <div class="absolute inset-0 noise pointer-events-none z-[1]"></div>
+
+  <!-- HEADER (ai-digital-systems exact structure) -->
+  <header class="z-20 border-white/5 border-b relative">
+    <div class="flex md:px-8 max-w-7xl mx-auto py-4 px-6 items-center justify-between">
+      <!-- Brand + nav pill -->
+      <div class="flex md:gap-6 ring-white/5 ring-1 [animation:fadeSlideIn_1s_ease-out_0.1s_both] rounded-full p-1 gap-4 items-center">
+        <a class="inline-flex items-center gap-2 px-3" href="#hero">
+          <div class="w-7 h-7 rounded-lg flex items-center justify-center"
+               style="background:linear-gradient(135deg,#6366f1,#8b5cf6);">
+            <iconify-icon icon="solar:atom-bold-duotone" class="text-white text-sm"></iconify-icon>
+          </div>
+          <span class="font-geist font-semibold text-sm text-white tracking-tight">DS v4</span>
+        </a>
+        <nav class="hidden md:flex gap-1 items-center">
+          <a class="inline-flex items-center gap-1.5 transition hover:bg-white/10 hover:ring-white/20 text-xs font-medium text-white/80 font-geist bg-white/5 ring-white/10 ring-1 rounded-full px-3 py-1.5" href="#section-typography">Typography</a>
+          <a class="inline-flex items-center gap-1.5 transition hover:bg-white/10 hover:ring-white/20 text-xs font-medium text-white/80 font-geist bg-white/5 ring-white/10 ring-1 rounded-full px-3 py-1.5" href="#section-colors">Colors</a>
+          <a class="inline-flex items-center gap-1.5 transition hover:bg-white/10 hover:ring-white/20 text-xs font-medium text-white/80 font-geist bg-white/5 ring-white/10 ring-1 rounded-full px-3 py-1.5" href="#section-components">Components</a>
+          <a class="inline-flex items-center gap-1.5 transition hover:bg-white/10 hover:ring-white/20 text-xs font-medium text-white/80 font-geist bg-white/5 ring-white/10 ring-1 rounded-full px-3 py-1.5" href="#section-motion">Motion</a>
+        </nav>
+      </div>
+      <!-- Right CTAs (ai-digital-systems structure) -->
+      <div class="flex ring-white/5 ring-1 rounded-full p-1 gap-2 items-center">
+        <a class="hidden sm:inline-flex items-center gap-2 transition hover:bg-white/10 [animation:fadeSlideIn_1s_ease-out_0.2s_both] text-xs font-medium text-white/80 font-geist bg-white/5 ring-white/10 ring-1 rounded-full px-3 py-1.5" href="#section-components">
+          View Tokens
+        </a>
+        <a class="inline-flex items-center gap-2 transition hover:bg-white/20 ring-white/25 ring-1 [animation:fadeSlideIn_1s_ease-out_0.3s_both] text-xs font-semibold text-white font-geist bg-white/10 rounded-full px-4 py-2" href="#section-components">
+          Export Kit
+          <iconify-icon icon="solar:arrow-right-linear" class="text-xs"></iconify-icon>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO MAIN CONTENT -->
+  <main class="z-20 flex h-[calc(100vh-64px)] relative items-end">
+    <section class="md:px-8 md:pb-16 lg:pb-20 w-full max-w-7xl mx-auto px-6 pb-12">
+
+      <!-- Separator line (ai-digital-systems exact) -->
+      <div class="mb-12 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
+
+      <div class="grid grid-cols-1 md:grid-cols-12 md:gap-6 lg:gap-10 gap-8 items-center">
+        <!-- Col 1: Headline -->
+        <div class="md:col-span-5 lg:col-span-5 relative">
+          <div class="inline-flex text-xs font-medium text-white/80 font-geist bg-white/5 ring-white/10 ring-1 rounded-full mb-5 py-1.5 px-3 gap-2 items-center [animation:fadeSlideIn_1s_ease-out_0.1s_both]">
+            <iconify-icon icon="solar:sparkles-linear" class="text-white/80"></iconify-icon>
+            <span>PSYCHO MAKER • Design System v4.0</span>
+          </div>
+          <h1 class="leading-tight sm:text-6xl md:text-5xl lg:text-7xl text-5xl tracking-tighter font-geist [animation:fadeSlideIn_1s_ease-out_0.2s_both]">
+            <span class="text-white">Build Digital</span>
+            <span class="block grad-text font-light tracking-tighter">Systems That Scale</span>
+          </h1>
+        </div>
+
+        <!-- Separator col (ai-digital-systems) -->
+        <div class="hidden md:block md:col-span-1 relative">
+          <div class="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-white/20 via-white/10 to-white/5 -translate-x-1/2"></div>
+        </div>
+
+        <!-- Col 2: Description + benefits -->
+        <div class="md:col-span-4 lg:col-span-3 [animation:fadeSlideIn_1s_ease-out_0.3s_both] relative">
+          <p class="leading-relaxed md:text-lg text-base text-white/60 font-geist">
+            A complete design language with cursor-reactive particles, premium dark aesthetics, living motion, and fully specified tokens — ready for production.
+          </p>
+          <div class="border-white/10 border-t mt-6 pt-6">
+            <div class="flex flex-col gap-3 text-sm text-white/50 font-geist">
+              <div class="flex items-center gap-2">
+                <iconify-icon icon="solar:bolt-linear" class="text-indigo-400 shrink-0"></iconify-icon>
+                <span>Cursor-reactive particle layer</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <iconify-icon icon="solar:palette-linear" class="text-indigo-400 shrink-0"></iconify-icon>
+                <span>246 design tokens spec'd</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <iconify-icon icon="solar:shield-check-linear" class="text-indigo-400 shrink-0"></iconify-icon>
+                <span>WCAG AA contrast validated</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Separator col -->
+        <div class="hidden lg:block lg:col-span-1 relative">
+          <div class="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-white/20 via-white/10 to-white/5 -translate-x-1/2"></div>
+        </div>
+
+        <!-- Col CTAs (ai-digital-systems) -->
+        <div class="md:col-span-12 lg:col-span-2 relative">
+          <div class="flex flex-row lg:flex-col gap-3">
+            <!-- Primary CTA with shimmer -->
+            <a class="shimmer-btn btn-beam inline-flex items-center justify-center gap-2 transition whitespace-nowrap text-sm font-semibold text-white font-geist bg-indigo-600 ring-indigo-500/40 ring-1 rounded-full py-3 px-5 [animation:fadeSlideIn_1s_ease-out_0.3s_both] hover:bg-indigo-500 active:scale-95 shadow-[0_0_20px_rgba(99,102,241,0.3)]" href="#section-components">
+              <span class="beam-layer"></span>
+              <span class="shimmer-sweep"></span>
+              <span class="relative z-10">Explore System</span>
+              <iconify-icon icon="solar:arrow-right-linear" class="relative z-10"></iconify-icon>
+            </a>
+            <!-- Secondary CTA -->
+            <a class="inline-flex items-center justify-center gap-2 ring-1 ring-white/20 transition hover:bg-white hover:text-neutral-900 whitespace-nowrap [animation:fadeSlideIn_1s_ease-out_0.5s_both] text-sm font-medium text-white font-geist bg-transparent rounded-full py-3 px-5 hover:shadow-[0_0_20px_rgba(255,255,255,0.15)] active:scale-95" href="#section-typography">
+              <iconify-icon icon="solar:text-field-focus-linear"></iconify-icon>
+              Type Scale
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- ─── TICKER (ai-digital-systems exact pattern) ─── -->
+<section class="z-10 sm:py-10 py-7 relative bg-black/20 border-y border-white/5">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6">
+    <div class="overflow-hidden relative" style="mask-image:linear-gradient(to right, transparent, black 12%, black 88%, transparent); -webkit-mask-image:linear-gradient(to right, transparent, black 12%, black 88%, transparent);">
+      <div class="ticker-track flex gap-16 pt-2 pb-2 items-center" style="width:max-content;">
+        <span class="text-lg text-zinc-400 font-geist tracking-tighter whitespace-nowrap">Design Tokens</span>
+        <span class="w-1 h-1 rounded-full bg-white/20 shrink-0"></span>
+        <span class="text-lg text-zinc-400 font-geist tracking-tighter whitespace-nowrap">Type Scale</span>
+        <span class="w-1 h-1 rounded-full bg-white/20 shrink-0"></span>
+        <span class="text-lg text-zinc-400 font-geist font-bold tracking-tighter whitespace-nowrap">Particle FX</span>
+        <span class="w-1 h-1 rounded-full bg-white/20 shrink-0"></span>
+        <span class="text-lg text-zinc-400 font-geist tracking-tighter whitespace-nowrap">Semantic Colors</span>
+        <span class="w-1 h-1 rounded-full bg-white/20 shrink-0"></span>
+        <span class="text-lg text-zinc-400 font-geist tracking-tighter whitespace-nowrap">WCAG AA</span>
+        <span class="w-1 h-1 rounded-full bg-white/20 shrink-0"></span>
+        <span class="text-lg text-zinc-400 font-geist font-semibold tracking-tighter whitespace-nowrap">Motion Profiles</span>
+        <span class="w-1 h-1 rounded-full bg-white/20 shrink-0"></span>
+        <span class="text-lg text-zinc-400 font-geist tracking-tighter whitespace-nowrap">Solar Icon System</span>
+        <span class="w-1 h-1 rounded-full bg-white/20 shrink-0"></span>
+        <span class="text-lg text-zinc-400 font-geist tracking-tighter whitespace-nowrap">Component Kit</span>
+        <span class="w-1 h-1 rounded-full bg-white/20 shrink-0"></span>
+        <!-- duplicate for seamless loop -->
+        <span class="text-lg text-zinc-400 font-geist tracking-tighter whitespace-nowrap">Design Tokens</span>
+        <span class="w-1 h-1 rounded-full bg-white/20 shrink-0"></span>
+        <span class="text-lg text-zinc-400 font-geist tracking-tighter whitespace-nowrap">Type Scale</span>
+        <span class="w-1 h-1 rounded-full bg-white/20 shrink-0"></span>
+        <span class="text-lg text-zinc-400 font-geist font-bold tracking-tighter whitespace-nowrap">Particle FX</span>
+        <span class="w-1 h-1 rounded-full bg-white/20 shrink-0"></span>
+        <span class="text-lg text-zinc-400 font-geist tracking-tighter whitespace-nowrap">Semantic Colors</span>
+        <span class="w-1 h-1 rounded-full bg-white/20 shrink-0"></span>
+        <span class="text-lg text-zinc-400 font-geist tracking-tighter whitespace-nowrap">WCAG AA</span>
+        <span class="w-1 h-1 rounded-full bg-white/20 shrink-0"></span>
+        <span class="text-lg text-zinc-400 font-geist font-semibold tracking-tighter whitespace-nowrap">Motion Profiles</span>
+        <span class="w-1 h-1 rounded-full bg-white/20 shrink-0"></span>
+        <span class="text-lg text-zinc-400 font-geist tracking-tighter whitespace-nowrap">Solar Icon System</span>
+        <span class="w-1 h-1 rounded-full bg-white/20 shrink-0"></span>
+        <span class="text-lg text-zinc-400 font-geist tracking-tighter whitespace-nowrap">Component Kit</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ╔══════════════════╗
+     ║  2. TYPOGRAPHY   ║
+     ╚══════════════════╝ -->
+<section class="relative z-10 py-32 px-6 lg:px-12 overflow-hidden" id="section-typography">
+  <!-- Section grid lines background -->
+  <div class="section-grid">
+    <div class="gl-v" style="left:25%"></div>
+    <div class="gl-v" style="left:50%"></div>
+    <div class="gl-v" style="left:75%"></div>
+    <div class="gl-h" style="top:50%"></div>
+  </div>
+  <!-- Ambient glow -->
+  <div class="absolute top-1/4 left-1/4 w-96 h-96 rounded-full pointer-events-none"
+       style="background:radial-gradient(ellipse, rgba(99,102,241,0.07) 0%, transparent 70%);"></div>
+
+  <div class="max-w-7xl mx-auto">
+    <!-- Header (ai-digital-systems layout pattern) -->
+    <div class="flex flex-col lg:flex-row justify-between items-start mb-16 gap-12">
+      <h2 class="text-5xl md:text-6xl font-geist font-semibold tracking-tighter text-white max-w-lg leading-[0.95] animate-on-scroll [animation:fadeSlideIn_1s_ease-out_0.05s_both]">
+        Typography<br/>System
+      </h2>
+      <div class="max-w-md flex flex-col gap-5 lg:pt-2 animate-on-scroll [animation:fadeSlideIn_1s_ease-out_0.15s_both]">
+        <p class="text-lg text-neutral-400 font-geist font-light leading-relaxed">Three-tier font system. Every token carries explicit size, weight, line-height, tracking, and transform — all CDN-loaded with <code class="text-indigo-400 bg-white/5 px-1.5 py-0.5 rounded text-sm">display=swap</code>.</p>
+        <div class="flex gap-3 flex-wrap">
+          <span class="badge bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">font-geist</span>
+          <span class="badge bg-white/5 text-white/60 border border-white/10">font-sans · Inter</span>
+          <span class="badge bg-white/5 text-white/60 border border-white/10">font-mono</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <!-- Font cards (left) -->
+      <div class="lg:col-span-4 space-y-4 animate-on-scroll [animation:fadeSlideIn_1s_ease-out_0.1s_both]">
+        <div class="flashlight bg-[#0a0a0a] border border-white/5 rounded-[2rem] p-7" onmousemove="track(event,this)">
+          <p class="text-[10px] text-white/40 uppercase tracking-[0.2em] font-mono mb-3">Primary Display</p>
+          <p class="font-geist text-4xl text-white font-medium tracking-tight mb-3">Geist</p>
+          <p class="text-xs text-white/40 font-mono mb-4">Weights 300–800 · via Google Fonts CDN</p>
+          <div class="space-y-1.5 text-sm font-geist">
+            <div class="flex justify-between text-white/60"><span>300 Light</span><span class="font-light">Agile</span></div>
+            <div class="flex justify-between text-white/60"><span>400 Regular</span><span class="font-normal">Platform</span></div>
+            <div class="flex justify-between text-white/60"><span>500 Medium</span><span class="font-medium">Velocity</span></div>
+            <div class="flex justify-between text-white/60"><span>600 Semibold</span><span class="font-semibold">Precision</span></div>
+            <div class="flex justify-between text-white/60"><span>700 Bold</span><span class="font-bold">Systems</span></div>
+          </div>
+        </div>
+        <div class="flashlight bg-[#0a0a0a] border border-white/5 rounded-2xl p-6" onmousemove="track(event,this)">
+          <p class="text-[10px] text-white/40 uppercase tracking-[0.2em] font-mono mb-2">Body Fallback</p>
+          <p class="font-sans text-2xl text-white font-medium mb-2">Inter / System UI</p>
+          <p class="text-xs text-white/40 font-mono">300–700 · <code class="text-white/60">font-sans</code></p>
+        </div>
+        <div class="flashlight bg-[#0a0a0a] border border-white/5 rounded-2xl p-6" onmousemove="track(event,this)">
+          <p class="text-[10px] text-white/40 uppercase tracking-[0.2em] font-mono mb-2">Monospace</p>
+          <p class="font-mono-geist text-2xl text-white font-medium mb-2">Geist Mono</p>
+          <p class="text-xs text-white/40 font-mono">400–600 · code · labels</p>
+        </div>
+      </div>
+
+      <!-- Type scale table (right) -->
+      <div class="lg:col-span-8 animate-on-scroll [animation:fadeSlideIn_1s_ease-out_0.2s_both]">
+        <div class="flashlight bg-[#0a0a0a] border border-white/5 rounded-[2rem] overflow-hidden" onmousemove="track(event,this)">
+          <table class="spec-table">
+            <thead>
+              <tr>
+                <th>Token</th>
+                <th>Live Example</th>
+                <th class="hidden md:table-cell">Size / LH / LS</th>
+                <th class="hidden lg:table-cell">Weight · Transform</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code class="text-[10px] bg-white/5 text-white/60 px-2 py-1 rounded font-mono">h1 · display</code></td>
+                <td class="font-geist text-4xl font-medium tracking-tighter text-white">Fluxeer</td>
+                <td class="font-mono text-xs text-white/40 hidden md:table-cell">60px / 1.05 / −0.04em</td>
+                <td class="text-sm text-white/50 hidden lg:table-cell">500 · none</td>
+              </tr>
+              <tr>
+                <td><code class="text-[10px] bg-white/5 text-white/60 px-2 py-1 rounded font-mono">h2 · section</code></td>
+                <td class="font-geist text-3xl font-medium tracking-tight text-white">Overview</td>
+                <td class="font-mono text-xs text-white/40 hidden md:table-cell">40px / 1.15 / −0.02em</td>
+                <td class="text-sm text-white/50 hidden lg:table-cell">500 · none</td>
+              </tr>
+              <tr>
+                <td><code class="text-[10px] bg-white/5 text-white/60 px-2 py-1 rounded font-mono">h3 · card</code></td>
+                <td class="font-geist text-xl font-semibold tracking-tight text-white">Vault Security</td>
+                <td class="font-mono text-xs text-white/40 hidden md:table-cell">24px / 1.3 / −0.01em</td>
+                <td class="text-sm text-white/50 hidden lg:table-cell">600 · none</td>
+              </tr>
+              <tr>
+                <td><code class="text-[10px] bg-white/5 text-white/60 px-2 py-1 rounded font-mono">h4 · sub</code></td>
+                <td class="font-geist text-lg font-semibold text-white">Settlement Engine</td>
+                <td class="font-mono text-xs text-white/40 hidden md:table-cell">18px / 1.4 / 0em</td>
+                <td class="text-sm text-white/50 hidden lg:table-cell">600 · none</td>
+              </tr>
+              <tr>
+                <td><code class="text-[10px] bg-white/5 text-white/60 px-2 py-1 rounded font-mono">body-lg</code></td>
+                <td class="font-geist text-lg text-white/70 font-light">Build scalable real-time systems.</td>
+                <td class="font-mono text-xs text-white/40 hidden md:table-cell">18px / 1.6 / 0em</td>
+                <td class="text-sm text-white/50 hidden lg:table-cell">300 · none</td>
+              </tr>
+              <tr>
+                <td><code class="text-[10px] bg-white/5 text-white/60 px-2 py-1 rounded font-mono">body</code></td>
+                <td class="font-geist text-base text-white/60">Automate financial reconciliation.</td>
+                <td class="font-mono text-xs text-white/40 hidden md:table-cell">16px / 1.5 / 0em</td>
+                <td class="text-sm text-white/50 hidden lg:table-cell">400 · none</td>
+              </tr>
+              <tr>
+                <td><code class="text-[10px] bg-white/5 text-white/60 px-2 py-1 rounded font-mono">body-sm</code></td>
+                <td class="font-sans text-sm text-white/50">Helper text below input fields.</td>
+                <td class="font-mono text-xs text-white/40 hidden md:table-cell">14px / 1.5 / 0em</td>
+                <td class="text-sm text-white/50 hidden lg:table-cell">400 · none</td>
+              </tr>
+              <tr>
+                <td><code class="text-[10px] bg-white/5 text-white/60 px-2 py-1 rounded font-mono">label / caption</code></td>
+                <td class="font-mono-geist text-xs uppercase tracking-[0.12em] text-white/40">Email Address</td>
+                <td class="font-mono text-xs text-white/40 hidden md:table-cell">11px / 1.4 / +0.12em</td>
+                <td class="text-sm text-white/50 hidden lg:table-cell">600 · UPPERCASE</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="sep"></div>
+
+<!-- ╔═════════════════╗
+     ║  3. COLORS      ║
+     ╚═════════════════╝ -->
+<section class="relative z-10 py-32 px-6 lg:px-12 overflow-hidden" id="section-colors">
+  <div class="section-grid">
+    <div class="gl-v" style="left:33.33%"></div>
+    <div class="gl-v" style="left:66.66%"></div>
+  </div>
+  <div class="absolute bottom-0 right-0 w-96 h-96 pointer-events-none"
+       style="background:radial-gradient(ellipse, rgba(99,102,241,0.08) 0%, transparent 70%);"></div>
+
+  <div class="max-w-7xl mx-auto">
+    <div class="flex flex-col lg:flex-row justify-between items-start mb-16 gap-12">
+      <h2 class="text-5xl md:text-6xl font-geist font-semibold tracking-tighter text-white max-w-sm leading-[0.95] animate-on-scroll [animation:fadeSlideIn_1s_ease-out_0.05s_both]">
+        Color<br/>System
+      </h2>
+      <div class="max-w-md animate-on-scroll [animation:fadeSlideIn_1s_ease-out_0.15s_both]">
+        <p class="text-lg text-neutral-400 font-geist font-light leading-relaxed">Six semantic roles. Every hue ships as Hex, RGB, and HSL with opacity variants. Gradient participation noted per role.</p>
+      </div>
+    </div>
+
+    <!-- Semantic color cards — 3-column (financial-infrastruc card layout) -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <!-- Primary Brand (Indigo) -->
+      <div class="group relative flashlight bg-[#0a0a0a] border border-white/5 rounded-[2rem] overflow-hidden card-anim animate-on-scroll [animation:fadeSlideIn_1s_ease-out_0.1s_both]" onmousemove="track(event,this)">
+        <div class="h-32 relative overflow-hidden" style="background:linear-gradient(135deg, #4f46e5, #6366f1, #818cf8);">
+          <div class="absolute inset-0" style="background:radial-gradient(ellipse at 30% 40%, rgba(255,255,255,0.2) 0%, transparent 60%);"></div>
+          <div class="absolute inset-0 noise pointer-events-none"></div>
+          <span class="absolute bottom-3 right-4 font-mono text-xs text-white/70">#6366F1</span>
+          <div class="absolute top-3 left-4 space-y-1">
+            <div class="font-mono text-[10px] text-white/60">RGB(99, 102, 241)</div>
+            <div class="font-mono text-[10px] text-white/60">HSL(243°, 75%, 65%)</div>
+          </div>
+        </div>
+        <div class="p-7">
+          <div class="flex items-start justify-between mb-3">
+            <div>
+              <p class="font-geist font-semibold text-white">Primary · Brand</p>
+              <p class="text-xs text-white/40 font-mono mt-0.5">var(--brand)</p>
+            </div>
+            <span class="badge bg-green-500/10 text-green-400 border border-green-500/20 text-[9px]">AA ✓</span>
+          </div>
+          <p class="text-xs text-white/50 font-geist mb-5">CTAs, focus rings, beam borders, gradients. Avoid as only background on dark text.</p>
+          <!-- Opacity ramp -->
+          <div class="swatch-grid">
+            <div class="swatch" style="background:rgba(99,102,241,0.08);" title="/08"></div>
+            <div class="swatch" style="background:rgba(99,102,241,0.15);" title="/15"></div>
+            <div class="swatch" style="background:rgba(99,102,241,0.25);" title="/25"></div>
+            <div class="swatch" style="background:rgba(99,102,241,0.50);" title="/50"></div>
+            <div class="swatch" style="background:rgba(99,102,241,0.80);" title="/80"></div>
+            <div class="swatch" style="background:rgba(99,102,241,1);"    title="100%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Accent (Emerald) -->
+      <div class="group relative flashlight bg-[#0a0a0a] border border-white/5 rounded-[2rem] overflow-hidden card-anim animate-on-scroll [animation:fadeSlideIn_1s_ease-out_0.18s_both]" onmousemove="track(event,this)">
+        <div class="h-32 relative overflow-hidden" style="background:linear-gradient(135deg, #059669, #10b981, #34d399);">
+          <div class="absolute inset-0" style="background:radial-gradient(ellipse at 30% 40%, rgba(255,255,255,0.2) 0%, transparent 60%);"></div>
+          <span class="absolute bottom-3 right-4 font-mono text-xs text-white/70">#10B981</span>
+          <div class="absolute top-3 left-4 space-y-1">
+            <div class="font-mono text-[10px] text-white/60">RGB(16, 185, 129)</div>
+            <div class="font-mono text-[10px] text-white/60">HSL(160°, 72%, 45%)</div>
+          </div>
+        </div>
+        <div class="p-7">
+          <div class="flex items-start justify-between mb-3">
+            <div>
+              <p class="font-geist font-semibold text-white">Accent · Success</p>
+              <p class="text-xs text-white/40 font-mono mt-0.5">var(--accent)</p>
+            </div>
+            <span class="badge bg-green-500/10 text-green-400 border border-green-500/20 text-[9px]">AA ✓</span>
+          </div>
+          <p class="text-xs text-white/50 font-geist mb-5">Active states, success badges, chart lines, growth indicators.</p>
+          <div class="swatch-grid">
+            <div class="swatch" style="background:rgba(16,185,129,0.08);"></div>
+            <div class="swatch" style="background:rgba(16,185,129,0.15);"></div>
+            <div class="swatch" style="background:rgba(16,185,129,0.25);"></div>
+            <div class="swatch" style="background:rgba(16,185,129,0.50);"></div>
+            <div class="swatch" style="background:rgba(16,185,129,0.80);"></div>
+            <div class="swatch" style="background:rgba(16,185,129,1);"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Neutral -->
+      <div class="group relative flashlight bg-[#0a0a0a] border border-white/5 rounded-[2rem] overflow-hidden card-anim animate-on-scroll [animation:fadeSlideIn_1s_ease-out_0.26s_both]" onmousemove="track(event,this)">
+        <div class="h-32 relative overflow-hidden" style="background:linear-gradient(135deg, #1e293b, #334155, #64748b);">
+          <div class="absolute inset-0" style="background:radial-gradient(ellipse at 30% 40%, rgba(255,255,255,0.1) 0%, transparent 60%);"></div>
+          <span class="absolute bottom-3 right-4 font-mono text-xs text-white/50">#f1f5f9</span>
+          <div class="absolute top-3 left-4 space-y-1">
+            <div class="font-mono text-[10px] text-white/50">White: RGB(241,245,249)</div>
+            <div class="font-mono text-[10px] text-white/50">Base: HSL(222°,13%,9%)</div>
+          </div>
+        </div>
+        <div class="p-7">
+          <div class="flex items-start justify-between mb-3">
+            <div>
+              <p class="font-geist font-semibold text-white">Neutral · Text & Surface</p>
+              <p class="text-xs text-white/40 font-mono mt-0.5">slate-950 → white/60</p>
+            </div>
+            <span class="badge bg-green-500/10 text-green-400 border border-green-500/20 text-[9px]">AAA ✓</span>
+          </div>
+          <p class="text-xs text-white/50 font-geist mb-5">All prose, cards, dividers, disabled overlays. 3-layer depth system.</p>
+          <div class="swatch-grid">
+            <div class="swatch" style="background:#020617;border:1px solid rgba(255,255,255,0.1);"></div>
+            <div class="swatch" style="background:#0f172a;"></div>
+            <div class="swatch" style="background:#1e293b;"></div>
+            <div class="swatch" style="background:#475569;"></div>
+            <div class="swatch" style="background:#94a3b8;"></div>
+            <div class="swatch" style="background:#f1f5f9;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Feedback + Decorative row -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 animate-on-scroll [animation:fadeSlideIn_1s_ease-out_0.3s_both]">
+      <div class="flashlight bg-[#0a0a0a] border border-white/5 rounded-2xl p-5" onmousemove="track(event,this)">
+        <div class="w-9 h-9 rounded-full mb-4" style="background:#ef4444;box-shadow:0 4px 14px rgba(239,68,68,0.4);"></div>
+        <p class="font-geist font-semibold text-white text-sm">Danger</p>
+        <p class="font-mono text-[10px] text-white/40 mt-0.5">#EF4444 · HSL(0°,84%,60%)</p>
+        <p class="text-xs text-white/40 mt-2 font-geist">Errors · deletes · destructive.</p>
+      </div>
+      <div class="flashlight bg-[#0a0a0a] border border-white/5 rounded-2xl p-5" onmousemove="track(event,this)">
+        <div class="w-9 h-9 rounded-full mb-4" style="background:#f59e0b;box-shadow:0 4px 14px rgba(245,158,11,0.4);"></div>
+        <p class="font-geist font-semibold text-white text-sm">Warning</p>
+        <p class="font-mono text-[10px] text-white/40 mt-0.5">#F59E0B · HSL(38°,92%,50%)</p>
+        <p class="text-xs text-white/40 mt-2 font-geist">Expiries · pending · alerts.</p>
+      </div>
+      <div class="flashlight bg-[#0a0a0a] border border-white/5 rounded-2xl p-5" onmousemove="track(event,this)">
+        <div class="w-9 h-9 rounded-full mb-4" style="background:#0ea5e9;box-shadow:0 4px 14px rgba(14,165,233,0.4);"></div>
+        <p class="font-geist font-semibold text-white text-sm">Info</p>
+        <p class="font-mono text-[10px] text-white/40 mt-0.5">#0EA5E9 · HSL(199°,89%,48%)</p>
+        <p class="text-xs text-white/40 mt-2 font-geist">Hints · info banners.</p>
+      </div>
+      <div class="flashlight bg-[#0a0a0a] border border-white/5 rounded-2xl p-5" onmousemove="track(event,this)">
+        <div class="w-9 h-9 rounded-full mb-4" style="background:conic-gradient(#6366f1,#8b5cf6,#ec4899,#6366f1);box-shadow:0 4px 14px rgba(139,92,246,0.4);animation:spin 6s linear infinite;"></div>
+        <p class="font-geist font-semibold text-white text-sm">Decorative</p>
+        <p class="font-mono text-[10px] text-white/40 mt-0.5">Conic · animated · glow</p>
+        <p class="text-xs text-white/40 mt-2 font-geist">Beam rings · auras · backgrounds.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="sep"></div>
+
+<!-- ╔══════════════════════╗
+     ║  4. UI COMPONENTS    ║
+     ╚══════════════════════╝ -->
+<section class="relative z-10 py-32 px-6 lg:px-12 overflow-hidden" id="section-components">
+  <div class="section-grid">
+    <div class="gl-v" style="left:25%"></div><div class="gl-v" style="left:50%"></div><div class="gl-v" style="left:75%"></div>
+    <div class="gl-h" style="top:33%"></div><div class="gl-h" style="top:66%"></div>
+  </div>
+
+  <div class="max-w-7xl mx-auto">
+    <div class="flex flex-col lg:flex-row justify-between items-start mb-16 gap-12">
+      <h2 class="text-5xl md:text-6xl font-geist font-semibold tracking-tighter text-white max-w-sm leading-[0.95] animate-on-scroll [animation:fadeSlideIn_1s_ease-out_0.05s_both]">
+        Component<br/>Library
+      </h2>
+      <div class="max-w-md animate-on-scroll [animation:fadeSlideIn_1s_ease-out_0.15s_both]">
+        <p class="text-lg text-neutral-400 font-geist font-light leading-relaxed">Every component ships with hover, active, disabled, and focus states. Motion is always rooted in the same <code class="text-indigo-400 bg-white/5 px-1.5 py-0.5 rounded text-sm">fadeSlideIn</code> curve.</p>
+      </div>
+    </div>
+
+    <!-- 4-column card grid (ai-digital-systems visual style) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+
+      <!-- Card A: Buttons — stacked-layers visual -->
+      <div class="group relative h-96 rounded-[2rem] bg-[#0A0A0A] overflow-hidden border border-white/5 transition-all duration-500 hover:bg-[#111] hover:border-white/10 flashlight animate-on-scroll [animation:fadeSlideIn_0.8s_ease-out_0.1s_both]" onmousemove="track(event,this)">
+        <div class="absolute inset-0 flex items-center justify-center opacity-80" style="perspective:1000px;">
+          <div class="relative w-32 h-32 transform transition-transform duration-700 ease-out group-hover:scale-105 group-hover:-translate-y-2">
+            <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/20 to-transparent border border-indigo-500/20 rounded-2xl transform -translate-x-4 -translate-y-2 -rotate-[15deg] backdrop-blur-sm transition-transform duration-500 group-hover:-translate-x-8 group-hover:-rotate-[20deg]"></div>
+            <div class="absolute inset-0 bg-gradient-to-br from-indigo-400/25 to-transparent border border-indigo-400/25 rounded-2xl transform -rotate-[5deg] backdrop-blur-md transition-transform duration-500 delay-75 group-hover:rotate-0"></div>
+            <div class="absolute inset-0 bg-gradient-to-br from-white/15 to-transparent border border-white/15 rounded-2xl transform translate-x-4 translate-y-2 rotate-[5deg] backdrop-blur-lg shadow-2xl transition-transform duration-500 delay-150 group-hover:translate-x-8 group-hover:rotate-[15deg] flex items-center justify-center">
+              <span class="text-xs font-geist font-semibold text-white/80">Click</span>
+            </div>
+          </div>
+        </div>
+        <div class="absolute bottom-0 left-0 right-0 p-8 flex items-end justify-between z-10">
+          <div>
+            <h3 class="text-xl font-medium text-white tracking-tight leading-none group-hover:text-indigo-300 transition-colors font-geist">Buttons</h3>
+            <p class="text-xs text-neutral-500 mt-1">Primary · Ghost · Beam</p>
+          </div>
+          <button class="w-12 h-12 rounded-full border border-white/10 bg-white/5 flex items-center justify-center text-neutral-400 transition-all duration-300 group-hover:bg-white group-hover:text-black group-hover:scale-110">
+            <iconify-icon icon="solar:add-circle-linear" class="text-xl"></iconify-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Card B: Inputs — speed-lines visual -->
+      <div class="group relative h-96 rounded-[2rem] bg-[#0A0A0A] overflow-hidden border border-white/5 transition-all duration-500 hover:bg-[#111] hover:border-white/10 flashlight animate-on-scroll [animation:fadeSlideIn_0.8s_ease-out_0.18s_both]" onmousemove="track(event,this)">
+        <div class="absolute inset-0 overflow-hidden flex items-center justify-center">
+          <div class="relative w-full h-full opacity-30 group-hover:opacity-60 transition-opacity duration-500">
+            <div class="absolute top-1/4   left-[-20%] w-[140%] h-px bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent transform -rotate-12 translate-x-[-10%] group-hover:translate-x-[10%] transition-transform duration-[2s] ease-in-out"></div>
+            <div class="absolute top-1/3   left-[-20%] w-[140%] h-px bg-gradient-to-r from-transparent via-white/20     to-transparent transform -rotate-12 translate-x-[-20%] group-hover:translate-x-[5%]  transition-transform duration-[2.5s] ease-in-out delay-75"></div>
+            <div class="absolute top-1/2   left-[-20%] w-[140%] h-px bg-gradient-to-r from-transparent via-indigo-400/60 to-transparent transform -rotate-12 translate-x-[-15%] group-hover:translate-x-[15%] transition-transform duration-[1.8s] ease-in-out delay-100"></div>
+            <div class="absolute top-2/3   left-[-20%] w-[140%] h-px bg-gradient-to-r from-transparent via-white/30     to-transparent transform -rotate-12 translate-x-[-5%]  group-hover:translate-x-[20%] transition-transform duration-[2.2s] ease-in-out delay-150"></div>
+            <div class="absolute top-[60%] left-[-20%] w-[140%] h-px bg-gradient-to-r from-transparent via-indigo-300/30 to-transparent transform -rotate-12 translate-x-[-25%] group-hover:translate-x-[8%]  transition-transform duration-[2.8s] ease-in-out delay-200"></div>
+            <div class="absolute top-1/2 left-1/2 w-40 h-40 bg-indigo-500/10 rounded-full blur-[50px] -translate-x-1/2 -translate-y-1/2 group-hover:bg-indigo-500/20 transition-colors duration-500"></div>
+          </div>
+        </div>
+        <div class="absolute bottom-0 left-0 right-0 p-8 flex items-end justify-between z-10">
+          <div>
+            <h3 class="text-xl font-medium text-white tracking-tight leading-none group-hover:text-emerald-300 transition-colors font-geist">Inputs</h3>
+            <p class="text-xs text-neutral-500 mt-1">Text · Select · Toggle</p>
+          </div>
+          <button class="w-12 h-12 rounded-full border border-white/10 bg-white/5 flex items-center justify-center text-neutral-400 transition-all duration-300 group-hover:bg-white group-hover:text-black group-hover:scale-110">
+            <iconify-icon icon="solar:add-circle-linear" class="text-xl"></iconify-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Card C: Cards & Modals — isometric grid -->
+      <div class="group relative h-96 rounded-[2rem] bg-[#0A0A0A] overflow-hidden border border-white/5 transition-all duration-500 hover:bg-[#111] hover:border-white/10 flashlight animate-on-scroll [animation:fadeSlideIn_0.8s_ease-out_0.26s_both]" onmousemove="track(event,this)">
+        <div class="absolute inset-0 flex items-center justify-center" style="perspective:800px;">
+          <div class="relative transform scale-75 group-hover:scale-90 transition-transform duration-700 ease-out" style="transform-style:preserve-3d;transform:rotateX(60deg) rotateZ(45deg) scale(0.75);">
+            <div class="w-48 h-48 border border-white/10 bg-white/5 grid grid-cols-4 grid-rows-4 rounded-lg shadow-2xl">
+              <div class="border-r border-b border-white/5"></div><div class="border-r border-b border-white/5"></div><div class="border-r border-b border-white/5"></div><div class="border-b border-white/5"></div>
+              <div class="border-r border-b border-white/5"></div><div class="border-r border-b border-indigo-500/20 bg-indigo-500/10 group-hover:bg-indigo-500/25 transition-colors duration-300"></div><div class="border-r border-b border-white/5"></div><div class="border-b border-white/5"></div>
+              <div class="border-r border-b border-white/5"></div><div class="border-r border-b border-white/5"></div><div class="border-r border-b border-indigo-400/20 bg-indigo-400/10 group-hover:bg-indigo-400/20 transition-colors delay-75"></div><div class="border-b border-white/5"></div>
+              <div class="border-r border-white/5"></div><div class="border-r border-white/5"></div><div class="border-r border-white/5"></div><div></div>
+            </div>
+            <div class="absolute -top-10 left-8 w-14 h-14 bg-[#1A1A1A] border border-white/20 rounded-xl shadow-2xl flex items-center justify-center">
+              <iconify-icon icon="solar:widget-2-linear" class="text-indigo-400 text-xl"></iconify-icon>
+            </div>
+          </div>
+        </div>
+        <div class="absolute bottom-0 left-0 right-0 p-8 flex items-end justify-between z-10">
+          <div>
+            <h3 class="text-xl font-medium text-white tracking-tight leading-none group-hover:text-rose-300 transition-colors font-geist">Cards & Modals</h3>
+            <p class="text-xs text-neutral-500 mt-1">Glass · Metric · Dialog</p>
+          </div>
+          <button class="w-12 h-12 rounded-full border border-white/10 bg-white/5 flex items-center justify-center text-neutral-400 transition-all duration-300 group-hover:bg-white group-hover:text-black group-hover:scale-110">
+            <iconify-icon icon="solar:add-circle-linear" class="text-xl"></iconify-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Card D: Nav & Badges — concentric rings focus -->
+      <div class="group relative h-96 rounded-[2rem] bg-[#0A0A0A] overflow-hidden border border-white/5 transition-all duration-500 hover:bg-[#111] hover:border-white/10 flashlight animate-on-scroll [animation:fadeSlideIn_0.8s_ease-out_0.34s_both]" onmousemove="track(event,this)">
+        <div class="absolute inset-0 flex items-center justify-center">
+          <div class="relative w-40 h-40 flex items-center justify-center">
+            <div class="absolute inset-0     rounded-full border border-white/5 scale-100 group-hover:scale-125 transition-transform duration-700 ease-out"></div>
+            <div class="absolute inset-4     rounded-full border border-white/5 scale-100 group-hover:scale-110 transition-transform duration-700 delay-75 ease-out"></div>
+            <div class="absolute inset-8     rounded-full border border-white/10 border-dashed opacity-50 scale-100 group-hover:scale-105 transition-transform duration-700 delay-150 ease-out"></div>
+            <div class="absolute inset-0 animate-[spin_14s_linear_infinite] group-hover:animate-[spin_4s_linear_infinite] opacity-30">
+              <div class="absolute top-0 left-1/2 w-0.5 h-2 bg-white -translate-x-1/2"></div>
+              <div class="absolute bottom-0 left-1/2 w-0.5 h-2 bg-white -translate-x-1/2"></div>
+              <div class="absolute left-0 top-1/2 w-2 h-0.5 bg-white -translate-y-1/2"></div>
+              <div class="absolute right-0 top-1/2 w-2 h-0.5 bg-white -translate-y-1/2"></div>
+            </div>
+            <div class="w-16 h-16 rounded-full bg-indigo-500/10 blur-xl group-hover:bg-indigo-500/25 transition-colors duration-500"></div>
+            <div class="w-3 h-3 rounded-full bg-white shadow-[0_0_20px_rgba(255,255,255,0.9)] z-10"></div>
+          </div>
+        </div>
+        <div class="absolute bottom-0 left-0 right-0 p-8 flex items-end justify-between z-10">
+          <div>
+            <h3 class="text-xl font-medium text-white tracking-tight leading-none group-hover:text-blue-300 transition-colors font-geist">Navbars & Badges</h3>
+            <p class="text-xs text-neutral-500 mt-1">Pill · Tooltip · Tag</p>
+          </div>
+          <button class="w-12 h-12 rounded-full border border-white/10 bg-white/5 flex items-center justify-center text-neutral-400 transition-all duration-300 group-hover:bg-white group-hover:text-black group-hover:scale-110">
+            <iconify-icon icon="solar:add-circle-linear" class="text-xl"></iconify-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live component demos (two-column) -->
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-10">
+
+      <!-- LEFT: Buttons + Navbar -->
+      <div class="flashlight bg-[#0a0a0a] border border-white/5 rounded-[2rem] p-8 animate-on-scroll [animation:fadeSlideIn_0.8s_ease-out_0.15s_both]" onmousemove="track(event,this)">
+        <p class="font-mono text-[10px] text-white/40 uppercase tracking-[0.15em] mb-6 border-b border-white/5 pb-4">Live Preview — Buttons</p>
+
+        <div class="flex flex-col sm:flex-row gap-4 flex-wrap items-start mb-10">
+          <!-- Primary beam button -->
+          <button class="shimmer-btn btn-beam group relative inline-flex items-center gap-2 rounded-xl py-3 px-6 text-sm font-semibold text-white font-geist bg-indigo-600 hover:bg-indigo-500 transition-colors shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:shadow-[0_0_30px_rgba(99,102,241,0.5)] active:scale-95">
+            <span class="beam-layer" style="background:conic-gradient(from 0deg,transparent 0 340deg,rgba(255,255,255,0.6) 360deg);"></span>
+            <span class="shimmer-sweep"></span>
+            <iconify-icon icon="solar:shield-keyhole-bold-duotone" class="text-indigo-300 relative z-10"></iconify-icon>
+            <span class="relative z-10">Primary Action</span>
+          </button>
+
+          <!-- Secondary -->
+          <button class="shimmer-btn group inline-flex items-center gap-2 rounded-xl py-3 px-6 text-sm font-medium text-white/80 font-geist bg-white/5 ring-1 ring-white/10 hover:ring-white/25 hover:bg-white/10 transition-all active:scale-95">
+            <span class="shimmer-sweep"></span>
+            <iconify-icon icon="solar:upload-minimalistic-linear" class="text-white/50 relative z-10"></iconify-icon>
+            <span class="relative z-10">Secondary</span>
+          </button>
+
+          <!-- Ghost -->
+          <button class="inline-flex items-center gap-2 rounded-xl py-3 px-5 text-sm font-medium text-white/50 font-geist hover:text-white hover:bg-white/5 transition-all active:scale-95">
+            Cancel
+          </button>
+
+          <!-- Danger -->
+          <button class="shimmer-btn inline-flex items-center gap-1.5 rounded-xl py-3 px-5 text-sm font-medium text-red-400 font-geist bg-red-500/10 ring-1 ring-red-500/20 hover:bg-red-500/20 transition-all active:scale-95">
+            <span class="shimmer-sweep"></span>
+            <iconify-icon icon="solar:trash-bin-trash-linear" class="relative z-10"></iconify-icon>
+            <span class="relative z-10">Delete</span>
+          </button>
+
+          <!-- Disabled -->
+          <button class="inline-flex items-center gap-2 rounded-xl py-3 px-6 text-sm font-medium text-white/30 font-geist bg-white/5 ring-1 ring-white/5 cursor-not-allowed opacity-50" disabled>
+            Disabled
+          </button>
+        </div>
+
+        <!-- Navbar pill demo -->
+        <p class="font-mono text-[10px] text-white/40 uppercase tracking-[0.15em] mb-4 border-b border-white/5 pb-4">Live Preview — Navbar Pill</p>
+        <div class="flex ring-white/5 ring-1 rounded-full p-1 gap-1 items-center bg-black/20 overflow-x-auto">
+          <div class="inline-flex items-center gap-2 px-3 py-1 shrink-0">
+            <div class="w-6 h-6 rounded-md bg-indigo-600 flex items-center justify-center">
+              <iconify-icon icon="solar:atom-bold-duotone" class="text-white text-xs"></iconify-icon>
+            </div>
+            <span class="text-xs font-geist font-semibold text-white">Brand</span>
+          </div>
+          <a class="text-xs font-medium text-white/70 font-geist bg-white/5 ring-white/10 ring-1 rounded-full px-3 py-1.5 hover:bg-white/10 transition-colors whitespace-nowrap">Dashboard</a>
+          <a class="text-xs font-medium text-white font-geist bg-white/10 ring-white/20 ring-1 rounded-full px-3 py-1.5 whitespace-nowrap">Analytics</a>
+          <a class="text-xs font-medium text-white/70 font-geist bg-white/5 ring-white/10 ring-1 rounded-full px-3 py-1.5 hover:bg-white/10 transition-colors whitespace-nowrap">Settings</a>
+          <a class="ml-auto shrink-0 text-xs font-semibold text-white font-geist bg-indigo-600 rounded-full px-4 py-1.5 hover:bg-indigo-500 transition-colors whitespace-nowrap">Upgrade</a>
+        </div>
+      </div>
+
+      <!-- RIGHT: Inputs + Badges + Modals -->
+      <div class="flashlight bg-[#0a0a0a] border border-white/5 rounded-[2rem] p-8 animate-on-scroll [animation:fadeSlideIn_0.8s_ease-out_0.25s_both]" onmousemove="track(event,this)">
+        <p class="font-mono text-[10px] text-white/40 uppercase tracking-[0.15em] mb-6 border-b border-white/5 pb-4">Live Preview — Forms & Feedback</p>
+
+        <div class="space-y-5 mb-8">
+          <!-- Text input with icon -->
+          <div>
+            <label class="block font-mono text-[10px] text-white/50 uppercase tracking-[0.15em] mb-2">Tenant Name</label>
+            <div class="relative">
+              <iconify-icon icon="solar:buildings-2-linear" class="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 text-lg transition-colors peer-focus:text-indigo-400"></iconify-icon>
+              <input class="ds-input pl-12" type="text" placeholder="Acme Financial Corp"/>
+            </div>
+            <p class="text-[11px] text-white/30 mt-2 font-geist">Used on generated invoices and tenant portal.</p>
+          </div>
+
+          <!-- Toggle -->
+          <div class="flex items-center justify-between py-3 border-t border-b border-white/5">
+            <div>
+              <p class="text-sm font-medium text-white font-geist">Two-Factor Auth</p>
+              <p class="text-xs text-white/40 font-geist">Require TOTP on every sign-in</p>
+            </div>
+            <div class="relative w-12 h-6 rounded-full cursor-pointer ring-2 ring-indigo-500/40"
+                 style="background:linear-gradient(135deg,#4f46e5,#6366f1);">
+              <div class="absolute top-1 left-7 w-4 h-4 bg-white rounded-full shadow-md transition-all"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Badges row -->
+        <p class="font-mono text-[10px] text-white/40 uppercase tracking-[0.15em] mb-4">Badges</p>
+        <div class="flex flex-wrap gap-2 mb-8">
+          <span class="badge bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+            <span class="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-pulse"></span>Active
+          </span>
+          <span class="badge bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <iconify-icon icon="solar:verified-check-bold" class="text-sm"></iconify-icon>Verified
+          </span>
+          <span class="badge bg-amber-500/10 text-amber-400 border border-amber-500/20">
+            <iconify-icon icon="solar:clock-circle-linear" class="text-sm"></iconify-icon>Pending
+          </span>
+          <!-- Tooltip demo -->
+          <span class="tip-host">
+            <span class="badge bg-white/5 text-white/50 border border-white/10 cursor-help">
+              <iconify-icon icon="solar:info-circle-linear" class="text-sm"></iconify-icon>Hover
+            </span>
+            <span class="tip">Tooltip: WCAG AA · contrast 4.5:1</span>
+          </span>
+        </div>
+
+        <!-- Simulated modal -->
+        <p class="font-mono text-[10px] text-white/40 uppercase tracking-[0.15em] mb-4">Modal Dialog</p>
+        <div class="relative bg-[#161c24] rounded-2xl p-6 ring-1 ring-white/10 shadow-2xl overflow-hidden">
+          <div class="absolute inset-0 noise pointer-events-none opacity-5"></div>
+          <div class="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent"></div>
+          <div class="flex items-start justify-between mb-5">
+            <div class="w-10 h-10 rounded-full bg-indigo-500/15 flex items-center justify-center border border-indigo-500/20">
+              <iconify-icon icon="solar:star-bold-duotone" class="text-indigo-400 text-xl"></iconify-icon>
+            </div>
+            <button class="text-white/30 hover:text-white transition-colors">
+              <iconify-icon icon="solar:close-circle-line-duotone" class="text-xl"></iconify-icon>
+            </button>
+          </div>
+          <h4 class="font-geist font-semibold text-white mb-1">Upgrade to Pro Plan</h4>
+          <p class="text-xs text-white/50 font-geist mb-5">Unlock whitelabel branding, advanced analytics, and priority support.</p>
+          <div class="flex gap-3">
+            <button class="flex-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg py-2.5 text-sm text-white/70 transition-colors font-geist">Maybe later</button>
+            <button class="shimmer-btn flex-1 bg-indigo-600 hover:bg-indigo-500 rounded-lg py-2.5 text-sm text-white font-semibold transition-colors font-geist relative overflow-hidden">
+              <span class="shimmer-sweep"></span>
+              <span class="relative z-10">Upgrade Now</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="sep"></div>
+
+<!-- ╔══════════════════════════╗
+     ║  5 & 6. ICONS / MOTION  ║
+     ╚══════════════════════════╝ -->
+<section class="relative z-10 py-32 px-6 lg:px-12 overflow-hidden" id="section-motion">
+  <!-- bg image (ai-digital-systems pattern section) -->
+  <div class="absolute inset-0">
+    <img alt="" class="w-full h-full object-cover opacity-20"
+         src="../Design System/ai-digital-systems-47/assets/459579f4-e2d0-4218-a12d-f974a4_3ee92a6da14f.jpg"
+         onerror="this.style.display='none'"/>
+    <div class="absolute inset-0" style="background:linear-gradient(to bottom, #020617 5%, rgba(2,6,23,0.85) 50%, #020617 95%);"></div>
+  </div>
+  <div class="section-grid">
+    <div class="gl-v" style="left:12.5%"></div><div class="gl-v" style="left:37.5%"></div>
+    <div class="gl-v" style="left:62.5%"></div><div class="gl-v" style="left:87.5%"></div>
+    <div class="gl-h" style="top:50%"></div>
+  </div>
+
+  <div class="max-w-7xl mx-auto relative z-10">
+    <div class="flex flex-col lg:flex-row justify-between items-start mb-16 gap-12">
+      <h2 class="text-5xl md:text-6xl font-geist font-semibold tracking-tighter text-white max-w-sm leading-[0.95] animate-on-scroll [animation:fadeSlideIn_1s_ease-out_0.05s_both]">
+        Icons &amp;<br/>Motion
+      </h2>
+      <div class="max-w-md animate-on-scroll [animation:fadeSlideIn_1s_ease-out_0.15s_both]">
+        <p class="text-lg text-neutral-400 font-geist font-light leading-relaxed">All motion built on a single spring curve. Icons from the Solar family via Iconify — use <code class="text-indigo-400 bg-white/5 px-1.5 py-0.5 rounded text-sm">-linear</code> for UI and <code class="text-indigo-400 bg-white/5 px-1.5 py-0.5 rounded text-sm">-bold-duotone</code> for emphasis.</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <!-- Icon grid -->
+      <div class="flashlight bg-[#0a0a0a] border border-white/5 rounded-[2rem] p-8 animate-on-scroll [animation:fadeSlideIn_0.8s_ease-out_0.1s_both]" onmousemove="track(event,this)">
+        <p class="font-mono text-[10px] text-white/40 uppercase tracking-[0.15em] mb-6 border-b border-white/5 pb-4">Solar Icon Set — Variant Guide</p>
+        <div class="grid grid-cols-5 gap-3">
+          <div class="tip-host flex flex-col items-center p-3 rounded-xl bg-white/5 border border-white/5 hover:border-indigo-500/30 hover:bg-indigo-500/10 transition-all cursor-default group">
+            <iconify-icon icon="solar:chart-square-bold-duotone" class="text-2xl text-indigo-400 group-hover:scale-125 transition-transform"></iconify-icon>
+            <span class="text-[9px] font-mono text-white/30 mt-1">chart</span>
+            <span class="tip">solar:chart-square-bold-duotone</span>
+          </div>
+          <div class="tip-host flex flex-col items-center p-3 rounded-xl bg-white/5 border border-white/5 hover:border-emerald-500/30 hover:bg-emerald-500/10 transition-all cursor-default group">
+            <iconify-icon icon="solar:shield-keyhole-bold-duotone" class="text-2xl text-emerald-400 group-hover:scale-125 transition-transform"></iconify-icon>
+            <span class="text-[9px] font-mono text-white/30 mt-1">shield</span>
+            <span class="tip">solar:shield-keyhole-bold-duotone</span>
+          </div>
+          <div class="tip-host flex flex-col items-center p-3 rounded-xl bg-white/5 border border-white/5 hover:border-sky-500/30 hover:bg-sky-500/10 transition-all cursor-default group">
+            <iconify-icon icon="solar:users-group-rounded-linear" class="text-2xl text-sky-400 group-hover:scale-125 transition-transform"></iconify-icon>
+            <span class="text-[9px] font-mono text-white/30 mt-1">users</span>
+            <span class="tip">solar:users-group-rounded-linear</span>
+          </div>
+          <div class="tip-host flex flex-col items-center p-3 rounded-xl bg-white/5 border border-white/5 hover:border-amber-500/30 hover:bg-amber-500/10 transition-all cursor-default group">
+            <iconify-icon icon="solar:bell-bold-duotone" class="text-2xl text-amber-400 group-hover:scale-125 transition-transform"></iconify-icon>
+            <span class="text-[9px] font-mono text-white/30 mt-1">bell</span>
+            <span class="tip">solar:bell-bold-duotone</span>
+          </div>
+          <div class="tip-host flex flex-col items-center p-3 rounded-xl bg-white/5 border border-white/5 hover:border-rose-500/30 hover:bg-rose-500/10 transition-all cursor-default group">
+            <iconify-icon icon="solar:settings-bold-duotone" class="text-2xl text-rose-400 group-hover:scale-125 transition-transform"></iconify-icon>
+            <span class="text-[9px] font-mono text-white/30 mt-1">settings</span>
+            <span class="tip">solar:settings-bold-duotone</span>
+          </div>
+          <div class="tip-host flex flex-col items-center p-3 rounded-xl bg-white/5 border border-white/5 hover:border-white/20 hover:bg-white/5 transition-all cursor-default group">
+            <iconify-icon icon="solar:arrow-right-linear" class="text-2xl text-white/60 group-hover:scale-125 transition-transform"></iconify-icon>
+            <span class="text-[9px] font-mono text-white/30 mt-1">arrow</span>
+            <span class="tip">solar:arrow-right-linear</span>
+          </div>
+          <div class="tip-host flex flex-col items-center p-3 rounded-xl bg-white/5 border border-white/5 hover:border-teal-500/30 hover:bg-teal-500/10 transition-all cursor-default group">
+            <iconify-icon icon="solar:wallet-money-bold-duotone" class="text-2xl text-teal-400 group-hover:scale-125 transition-transform"></iconify-icon>
+            <span class="text-[9px] font-mono text-white/30 mt-1">wallet</span>
+            <span class="tip">solar:wallet-money-bold-duotone</span>
+          </div>
+          <div class="tip-host flex flex-col items-center p-3 rounded-xl bg-white/5 border border-white/5 hover:border-purple-500/30 hover:bg-purple-500/10 transition-all cursor-default group">
+            <iconify-icon icon="solar:sparkles-bold-duotone" class="text-2xl text-purple-400 group-hover:scale-125 transition-transform"></iconify-icon>
+            <span class="text-[9px] font-mono text-white/30 mt-1">sparkle</span>
+            <span class="tip">solar:sparkles-bold-duotone</span>
+          </div>
+          <div class="tip-host flex flex-col items-center p-3 rounded-xl bg-white/5 border border-white/5 hover:border-white/20 hover:bg-white/5 transition-all cursor-default group">
+            <iconify-icon icon="solar:database-bold-duotone" class="text-2xl text-white/60 group-hover:scale-125 transition-transform"></iconify-icon>
+            <span class="text-[9px] font-mono text-white/30 mt-1">db</span>
+            <span class="tip">solar:database-bold-duotone</span>
+          </div>
+          <div class="tip-host flex flex-col items-center p-3 rounded-xl bg-white/5 border border-white/5 hover:border-emerald-500/30 hover:bg-emerald-500/10 transition-all cursor-default group">
+            <iconify-icon icon="solar:check-circle-bold-duotone" class="text-2xl text-emerald-400 group-hover:scale-125 transition-transform"></iconify-icon>
+            <span class="text-[9px] font-mono text-white/30 mt-1">check</span>
+            <span class="tip">solar:check-circle-bold-duotone</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Animation profiles table -->
+      <div class="flashlight bg-[#0a0a0a] border border-white/5 rounded-[2rem] p-8 animate-on-scroll [animation:fadeSlideIn_0.8s_ease-out_0.2s_both]" onmousemove="track(event,this)">
+        <p class="font-mono text-[10px] text-white/40 uppercase tracking-[0.15em] mb-6 border-b border-white/5 pb-4">Motion Profiles</p>
+        <div class="space-y-4">
+          <div class="flex items-center gap-4 p-4 bg-white/[0.03] rounded-xl border border-white/5">
+            <div class="w-10 h-10 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0">
+              <iconify-icon icon="solar:sort-by-time-linear" class="text-indigo-400 text-lg"></iconify-icon>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-semibold text-white font-geist">fadeSlideIn</p>
+              <p class="font-mono text-[10px] text-white/40">1s · cubic-bezier(0.16,1,0.3,1) · Y+30px→0 · blur→0</p>
+            </div>
+            <div class="w-12 h-5 bg-indigo-500/30 rounded"
+                 style="animation:fadeSlideIn 2s cubic-bezier(0.16,1,0.3,1) infinite alternate;"></div>
+          </div>
+          <div class="flex items-center gap-4 p-4 bg-white/[0.03] rounded-xl border border-white/5">
+            <div class="w-10 h-10 rounded-lg bg-orange-500/10 border border-orange-500/20 flex items-center justify-center shrink-0">
+              <iconify-icon icon="solar:refresh-linear" class="text-orange-400 text-lg"></iconify-icon>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-semibold text-white font-geist">beam-spin (conic)</p>
+              <p class="font-mono text-[10px] text-white/40">3s · linear · infinite · conic-gradient border</p>
+            </div>
+            <div class="w-5 h-5 rounded-full border-2 border-transparent"
+                 style="background:conic-gradient(#6366f1,#818cf8,transparent) border-box;animation:beam-spin 1.5s linear infinite;"></div>
+          </div>
+          <div class="flex items-center gap-4 p-4 bg-white/[0.03] rounded-xl border border-white/5">
+            <div class="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+              <iconify-icon icon="solar:arrow-up-down-linear" class="text-emerald-400 text-lg"></iconify-icon>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-semibold text-white font-geist">float</p>
+              <p class="font-mono text-[10px] text-white/40">6s · ease-in-out · infinite · Y 0↔-10px</p>
+            </div>
+            <div class="w-5 h-5 bg-emerald-400 rounded"
+                 style="animation:float 2s ease-in-out infinite;"></div>
+          </div>
+          <div class="flex items-center gap-4 p-4 bg-white/[0.03] rounded-xl border border-white/5">
+            <div class="w-10 h-10 rounded-lg bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center shrink-0">
+              <iconify-icon icon="solar:flash-linear" class="text-yellow-400 text-lg"></iconify-icon>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-semibold text-white font-geist">shimmer sweep</p>
+              <p class="font-mono text-[10px] text-white/40">0.8s · translateX(-100%)→200% · skewX(-15deg) · on:hover</p>
+            </div>
+            <div class="shimmer-btn w-16 h-5 bg-white/10 rounded overflow-hidden cursor-pointer">
+              <div class="shimmer-sweep"></div>
+            </div>
+          </div>
+          <div class="flex items-center gap-4 p-4 bg-white/[0.03] rounded-xl border border-white/5">
+            <div class="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+              <iconify-icon icon="solar:cursor-linear" class="text-white/60 text-lg"></iconify-icon>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-semibold text-white font-geist">particles.js (cursor)</p>
+              <p class="font-mono text-[10px] text-white/40">grab 200px · push on click · 60 nodes · mix-blend:screen</p>
+            </div>
+            <div class="flex gap-1">
+              <span class="w-2 h-2 rounded-full bg-white/40 animate-bounce"></span>
+              <span class="w-2 h-2 rounded-full bg-white/40 animate-bounce" style="animation-delay:150ms"></span>
+              <span class="w-2 h-2 rounded-full bg-white/40 animate-bounce" style="animation-delay:300ms"></span>
+            </div>
+          </div>
+          <div class="flex items-center gap-4 p-4 bg-white/[0.03] rounded-xl border border-white/5">
+            <div class="w-10 h-10 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0">
+              <iconify-icon icon="solar:eye-linear" class="text-blue-400 text-lg"></iconify-icon>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-semibold text-white font-geist">glow-pulse (aura)</p>
+              <p class="font-mono text-[10px] text-white/40">8–11s · ease-in-out · opacity 0.4↔1 · infinite</p>
+            </div>
+            <div class="w-6 h-6 rounded-full"
+                 style="background:radial-gradient(#6366f1,transparent);animation:glow-pulse 2s ease-in-out infinite;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="relative z-10 border-t border-white/5 bg-black/30 py-12 px-6">
+  <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg flex items-center justify-center shadow-[0_0_14px_rgba(99,102,241,0.4)]"
+           style="background:linear-gradient(135deg,#4f46e5,#6366f1);">
+        <iconify-icon icon="solar:atom-bold-duotone" class="text-white text-sm"></iconify-icon>
+      </div>
+      <span class="font-geist font-semibold text-white/80 text-sm tracking-tight">PSYCHO MAKER · Design System v4</span>
+    </div>
+    <p class="font-mono text-xs text-white/30">Dark · Cursor-reactive · WCAG AA · 2026</p>
+  </div>
+</footer>
+
+<!-- ═════════════ SCRIPTS ═════════════ -->
+
+<!-- Particles.js (load from local ai-digital-systems path first, CDN fallback) -->
+<script src="../Design System/ai-digital-systems-47/assets/particles_d0c52d4157ec.js"
+        onerror="loadParticlesFallback()"></script>
+
+<script>
+// CDN fallback
+function loadParticlesFallback() {
+  const s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js';
+  s.onload = initParticles;
+  document.head.appendChild(s);
+}
+
+// Particles init (identical config to ai-digital-systems-47)
+function initParticles() {
+  if (typeof particlesJS === 'undefined') return;
+  particlesJS('particles-js', {
+    particles: {
+      number: { value: 60, density: { enable: true, value_area: 800 } },
+      color: { value: "#ffffff" },
+      shape: { type: "circle" },
+      opacity: { value: 0.5, random: false },
+      size: { value: 3, random: true },
+      line_linked: { enable: true, distance: 150, color: "#ffffff", opacity: 0.4, width: 1 },
+      move: { enable: true, speed: 2, direction: "none", random: false, straight: false, out_mode: "out", bounce: false }
+    },
+    interactivity: {
+      detect_on: "window",
+      events: {
+        onhover: { enable: true, mode: "grab" },
+        onclick: { enable: true, mode: "push" },
+        resize: true
+      },
+      modes: {
+        grab: { distance: 200, line_linked: { opacity: 0.8 } },
+        bubble: { distance: 400, size: 40, duration: 2, opacity: 8, speed: 3 },
+        repulse: { distance: 200, duration: 0.4 },
+        push: { particles_nb: 4 },
+        remove: { particles_nb: 2 }
+      }
+    },
+    retina_detect: true
+  });
+}
+
+document.addEventListener('DOMContentLoaded', initParticles);
+
+// Flashlight cursor tracker
+function track(e, el) {
+  const r = el.getBoundingClientRect();
+  el.style.setProperty('--mx', `${e.clientX - r.left}px`);
+  el.style.setProperty('--my', `${e.clientY - r.top}px`);
+}
+
+// Scroll progress bar
+window.addEventListener('scroll', () => {
+  const d = document.documentElement;
+  const p = (d.scrollTop / (d.scrollHeight - d.clientHeight)) * 100;
+  document.getElementById('scroll-prog').style.width = p + '%';
+});
+
+// Shimmer hover on beam-ring secondary button
+document.querySelectorAll('.beam-ring').forEach(el => {
+  const ring = el.querySelector('.ring-layer');
+  if (ring) {
+    el.addEventListener('mouseenter', () => ring.style.opacity = '1');
+    el.addEventListener('mouseleave', () => ring.style.opacity = '0');
+  }
+});
+</script>
+
+</body>
+</html>
