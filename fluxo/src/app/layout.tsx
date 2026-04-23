@@ -15,7 +15,6 @@ export const metadata: Metadata = {
   },
 };
 
-import { ThemeProvider } from "@/components/ThemeProvider";
 
 export default function RootLayout({
   children,
@@ -36,14 +35,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
       </head>
       <body className="min-h-full flex flex-col">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-        </ThemeProvider>
+        {children}
       </body>
     </html>
   );
