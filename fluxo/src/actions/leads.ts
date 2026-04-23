@@ -2,17 +2,23 @@
 
 import { sendEmail, getAuthEmailFrom } from '@/lib/messaging/email';
 
-export async function submitLead(prevState: any, formData: FormData) {
+export type LeadActionState = {
+  success: boolean;
+  error: string;
+  message: string;
+};
+
+export async function submitLead(prevState: any, formData: FormData): Promise<LeadActionState> {
   const email = formData.get('email');
   const company = formData.get('company');
 
   // Validação básica
   if (!email || typeof email !== 'string' || !email.includes('@')) {
-    return { success: false, error: 'E-mail corporativo inválido.' };
+    return { success: false, error: 'E-mail corporativo inválido.', message: '' };
   }
   
   if (!company || typeof company !== 'string' || company.trim().length < 2) {
-    return { success: false, error: 'Nome da empresa é obrigatório.' };
+    return { success: false, error: 'Nome da empresa é obrigatório.', message: '' };
   }
 
   try {
@@ -41,9 +47,9 @@ export async function submitLead(prevState: any, formData: FormData) {
         console.warn('E-mail não disparado por falta de config, mas vamos simular sucesso pro front.');
     }
 
-    return { success: true, message: 'Solicitação enviada com sucesso!' };
+    return { success: true, message: 'Solicitação enviada com sucesso!', error: '' };
   } catch (err) {
     console.error('Erro ao salvar lead:', err);
-    return { success: false, error: 'Ocorreu um erro interno. Tente novamente mais tarde.' };
+    return { success: false, error: 'Ocorreu um erro interno. Tente novamente mais tarde.', message: '' };
   }
 }
