@@ -63,9 +63,10 @@ services:
       NEXT_PUBLIC_APP_URL: http://localhost:3000
       RESEND_API_KEY: ${RESEND_API_KEY}
       WEBHOOK_SECRET_RESEND: ${WEBHOOK_SECRET_RESEND}
-      ZAPI_INSTANCE_ID: ${ZAPI_INSTANCE_ID}
-      ZAPI_API_TOKEN: ${ZAPI_API_TOKEN}
-      WEBHOOK_SECRET_ZAPI: ${WEBHOOK_SECRET_ZAPI}
+      # Legacy Z-API vars (deprecated - now uses Meta Cloud API)
+      # ZAPI_INSTANCE_ID: ${ZAPI_INSTANCE_ID}
+      # ZAPI_API_TOKEN: ${ZAPI_API_TOKEN}
+      # WEBHOOK_SECRET_ZAPI: ${WEBHOOK_SECRET_ZAPI}
     volumes:
       - ./src:/app/src
       - ./prisma:/app/prisma

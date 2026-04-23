@@ -30,11 +30,14 @@ type NotificationItem = {
 
 export function Topbar({ 
   tenantName = "Sua Empresa",
-  user
+  user,
+  logoUrl
 }: { 
   tenantName?: string;
   user?: TopbarUser;
+  logoUrl?: string | null;
 }) {
+  const { setTheme, theme } = useTheme();
   const router = useRouter();
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -118,6 +121,17 @@ export function Topbar({
 
         {/* Right: Notifications & Mobile Search */}
         <div className="flex items-center gap-3 md:gap-4 relative" ref={notifRef}>
+          {/* Theme Toggle */}
+          <button
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            className="w-10 h-10 rounded-full flex items-center justify-center text-obsidian hover:bg-muted/50 transition-colors"
+            title="Alternar tema"
+          >
+            <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+            <span className="sr-only">Alternar tema</span>
+          </button>
+
           {/* Mobile Search Icon */}
           <button
             onClick={() => { setSearchOpen(true); setTimeout(() => searchRef.current?.focus(), 50); }}
@@ -185,12 +199,20 @@ export function Topbar({
           <form action={logout}>
             <button
               type="submit"
-              className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-obsidian border border-border hover:bg-slate-200 transition-all shadow-sm group relative cursor-pointer"
+              className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-obsidian border border-border hover:bg-slate-200 transition-all shadow-sm group relative cursor-pointer overflow-hidden"
               title="Sair do sistema"
             >
-              <span className="text-sm font-bold tracking-tight group-hover:opacity-0 transition-opacity">
-                {user?.name ? user.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'US'}
-              </span>
+              {logoUrl ? (
+                <img 
+                  src={logoUrl} 
+                  alt={tenantName} 
+                  className="w-full h-full object-cover group-hover:opacity-0 transition-opacity" 
+                />
+              ) : (
+                <span className="text-sm font-bold tracking-tight group-hover:opacity-0 transition-opacity">
+                  {user?.name ? user.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 'US'}
+                </span>
+              )}
               <LogOut className="w-4 h-4 text-rose-500 absolute opacity-0 group-hover:opacity-100 transition-opacity" />
             </button>
           </form>

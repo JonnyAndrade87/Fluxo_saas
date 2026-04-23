@@ -5,7 +5,7 @@ import { AuthError } from 'next-auth';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { randomUUID } from 'crypto';
-import { sendEmail, buildActivationEmailHtml } from '@/lib/messaging/email';
+import { sendEmail, buildActivationEmailHtml, getAuthEmailFrom } from '@/lib/messaging/email';
 import { getClientIp, enforceRateLimit } from '@/lib/api-rate-limiter';
 import { logAudit } from '@/lib/audit';
 import { AUDIT_ACTIONS } from '@/lib/permissions';
@@ -191,6 +191,7 @@ export async function register(prevState: { error?: string; success?: boolean } 
 
     // Sender is controlled by RESEND_FROM_EMAIL env var (see src/lib/messaging/email.ts)
     await sendEmail({
+      from: getAuthEmailFrom(),
       to: email,
       subject: 'Ative sua conta no Fluxeer',
       html: buildActivationEmailHtml({ name: rawName.trim(), companyName, activationUrl }),

@@ -15,6 +15,7 @@ export interface SendEmailOptions {
   subject: string;
   html: string;
   text?: string;
+  from?: string;
 }
 
 export interface SendResult {
@@ -24,6 +25,10 @@ export interface SendResult {
 }
 
 let resendClient: Resend | null = null;
+
+export function getAuthEmailFrom(): string {
+  return process.env.RESEND_AUTH_FROM_EMAIL ?? 'no-reply@fluxeer.com.br';
+}
 
 function getResend(): Resend | null {
   if (!process.env.RESEND_API_KEY) return null;
@@ -39,7 +44,7 @@ export async function sendEmail(opts: SendEmailOptions): Promise<SendResult> {
     return { success: false, error: 'RESEND_API_KEY not configured' };
   }
 
-  const from = process.env.RESEND_FROM_EMAIL ?? 'noreply@fluxo.app';
+  const from = opts.from ?? process.env.RESEND_FROM_EMAIL ?? 'noreply@fluxo.app';
 
   try {
     const { data, error } = await client.emails.send({
@@ -57,9 +62,9 @@ export async function sendEmail(opts: SendEmailOptions): Promise<SendResult> {
 
     console.log(`[EMAIL] Sent to ${opts.to} — messageId: ${data?.id}`);
     return { success: true, messageId: data?.id };
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error('[EMAIL] Unexpected error:', err);
-    return { success: false, error: err.message ?? 'Unknown error' };
+    return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
   }
 }
 
@@ -350,4 +355,3 @@ export function buildActivationEmailHtml({
   `;
   return wrapEmailLayout(body);
 }
-

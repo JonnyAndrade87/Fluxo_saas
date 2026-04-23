@@ -13,6 +13,7 @@ vi.mock('@/lib/prisma', () => ({
 vi.mock('@/lib/messaging/email', () => ({
   sendEmail: vi.fn().mockResolvedValue({ success: true }),
   buildActivationEmailHtml: vi.fn().mockReturnValue('<html>'),
+  getAuthEmailFrom: vi.fn().mockReturnValue('no-reply@fluxeer.com.br'),
 }));
 vi.mock('../../../auth', () => ({ auth: vi.fn() }));
 vi.mock('next-auth', () => ({

@@ -21,9 +21,31 @@ vi.mock('@/lib/prisma', () => ({
 vi.mock('@/lib/messaging/email', () => ({
   sendEmail: vi.fn(),
   buildPasswordResetEmailHtml: vi.fn().mockReturnValue('<html>mocked</html>'),
+  getAuthEmailFrom: vi.fn().mockReturnValue('no-reply@fluxeer.com.br'),
 }));
 
 describe('Fluxo de Recuperação de Senha', () => {
+  const resetUser = {
+    id: 'u1',
+    email: 'vazado@ex.com',
+    fullName: 'Vazado',
+    password: 'hash',
+    googleId: null,
+    emailVerified: true,
+    isActive: true,
+    mfaEnabled: false,
+    mfaSecret: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  } as Awaited<ReturnType<typeof prisma.user.findUnique>>;
+
+  const successUser = {
+    ...resetUser,
+    id: 'u2',
+    email: 'bom@ex.com',
+    fullName: 'Bom',
+  } as Awaited<ReturnType<typeof prisma.user.findUnique>>;
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -42,7 +64,7 @@ describe('Fluxo de Recuperação de Senha', () => {
 
   it('NÃO retorna success se o provedor de e-mail falhar', async () => {
     // DB encontra o user
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 'u1', email: 'vazado@ex.com', fullName: 'Vazado' } as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(resetUser);
     
     // Provedor falha internamente (ex: API key inválida, bounce)
     vi.mocked(sendEmail).mockResolvedValue({ success: false, error: 'RESEND_API_KEY_INVALID' });
@@ -56,7 +78,7 @@ describe('Fluxo de Recuperação de Senha', () => {
 
   it('retorna success: true quando o provedor de e-mail consegue enviar com sucesso', async () => {
     // DB encontra o user
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 'u2', email: 'bom@ex.com', fullName: 'Bom' } as any);
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(successUser);
     
     // Provedor dá OK
     vi.mocked(sendEmail).mockResolvedValue({ success: true, messageId: 'msg_12345' });

@@ -6,6 +6,12 @@
 
 import type { Invoice, Customer } from '@prisma/client';
 
+const OPEN_INVOICE_STATUSES = ['OPEN', 'PROMISE_TO_PAY'] as const;
+
+function isOpenInvoiceStatus(status: string): boolean {
+  return OPEN_INVOICE_STATUSES.includes(status as (typeof OPEN_INVOICE_STATUSES)[number]);
+}
+
 // ════════════════════════════════════════════════════════════════════════
 // TYPES
 // ════════════════════════════════════════════════════════════════════════
@@ -120,7 +126,7 @@ export function generateOverdueReport(
   customerRiskScores: Record<string, { level: string; score: number }>
 ): OverdueTitle[] {
   return invoices
-    .filter(inv => (inv.status === 'OPEN' || inv.status === 'PROMISE_TO_PAY') && new Date(inv.dueDate) < new Date())
+    .filter(inv => isOpenInvoiceStatus(inv.status) && new Date(inv.dueDate) < new Date())
     .map(inv => {
       const daysOverdue = getDaysOverdue(inv.dueDate);
       return {
@@ -139,7 +145,7 @@ export function generateOverdueReport(
 
 /**
  * RELATÓRIO 2: CARTEIRA A VENCER (próximos 30 dias)
- * Mostra títulos pending/in_negotiation que vencem em até 30 dias
+ * Mostra títulos OPEN/PROMISE_TO_PAY que vencem em até 30 dias
  */
 export function generatePendingReport(
   invoices: (Invoice & { customer: Customer })[],
@@ -150,7 +156,7 @@ export function generatePendingReport(
 
   return invoices
     .filter(inv => {
-      if (!['pending', 'in_negotiation'].includes(inv.status)) return false;
+      if (!isOpenInvoiceStatus(inv.status)) return false;
       const dueDate = new Date(inv.dueDate);
       return dueDate <= thirtyDaysFromNow && dueDate >= now;
     })
@@ -190,7 +196,7 @@ export function generateCustomerDelayReport(
   > = {};
 
   invoices
-    .filter(inv => (inv.status === 'OPEN' || inv.status === 'PROMISE_TO_PAY') && new Date(inv.dueDate) < new Date())
+    .filter(inv => isOpenInvoiceStatus(inv.status) && new Date(inv.dueDate) < new Date())
     .forEach(inv => {
       const cid = inv.customerId;
       const daysOverdue = getDaysOverdue(inv.dueDate);
@@ -259,7 +265,7 @@ export function generateRiskRankingReport(
     }
 
     customerMap[cid].totalBilled += inv.amount;
-    if ((inv.status === 'OPEN' || inv.status === 'PROMISE_TO_PAY') && new Date(inv.dueDate) < new Date()) {
+    if (isOpenInvoiceStatus(inv.status) && new Date(inv.dueDate) < new Date()) {
       customerMap[cid].totalOverdue += inv.updatedAmount;
       customerMap[cid].overdueTitles += 1;
     }
@@ -318,7 +324,7 @@ export function generateExecutiveSummary(
     if (inv.status === 'PAID') {
       totalBilled += inv.amount;
       totalRecovered += inv.amount;
-    } else if ((inv.status === 'OPEN' || inv.status === 'PROMISE_TO_PAY') && new Date(inv.dueDate) < new Date()) {
+    } else if (isOpenInvoiceStatus(inv.status) && new Date(inv.dueDate) < new Date()) {
       totalBilled += inv.amount;
       totalOverdue += inv.updatedAmount;
       overdueCount += 1;
@@ -326,7 +332,7 @@ export function generateExecutiveSummary(
       overdueCustSet.add(inv.customerId);
       customerOverdueMap[inv.customerId] =
         (customerOverdueMap[inv.customerId] ?? 0) + inv.updatedAmount;
-    } else if (inv.status === 'OPEN' || inv.status === 'PROMISE_TO_PAY') {
+    } else if (isOpenInvoiceStatus(inv.status)) {
       totalBilled += inv.amount;
       totalPending += inv.updatedAmount;
     } else {

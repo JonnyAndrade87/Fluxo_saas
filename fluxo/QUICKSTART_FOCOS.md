@@ -168,7 +168,7 @@ npm install jspdf html2pdf
 ```env
 DATABASE_URL=                    # Prisma DB connection
 NEXTAUTH_URL=                    # Auth provider
-NEXTAUTH_SECRET=                 # Session secret
+AUTH_SECRET=                     # Session secret (official)
 ```
 
 ---

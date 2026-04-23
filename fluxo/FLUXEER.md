@@ -1096,3 +1096,45 @@ Todos os botões desabilitam durante `isPending`. Zero ocorrências residuais co
 | `472833f` | Docs: Sprint 6 + freeze de escopo no FLUXEER.md |
 | `8a66d2b` | fix(B01): window.alert/prompt/confirm → modais controlados |
 | `3923ed4` | fix(B03,B08): importação — guarda sessionStorage + validação CSV vazio |
+
+---
+
+## 16. Release Candidate RC-2
+
+**Data:** Abril 2026  
+**Status:** 🚀 RC-2 declarado — Whitelabel & Personalização
+
+Nesta versão, o Fluxeer ganha maturidade como produto SaaS B2B, permitindo que cada cliente (Tenant) tenha sua própria identidade visual dentro da plataforma.
+
+### Novas Funcionalidades
+
+#### Whitelabel Branding (Plano Pro+)
+- **Logotipo Customizado:** O avatar de perfil no `Topbar` agora exibe o logotipo da empresa do cliente se cadastrado.
+- **Cores Dinâmicas:** Implementação de injeção de variáveis CSS via `DashboardLayout`. O sistema agora responde às cores primária e de destaque definidas no banco de dados.
+- **Sidebar Aesthetic:** Atualização da cor padrão do menu lateral para `#1c2129` (Obsidian Blue), proporcionando um ar mais moderno e sóbrio.
+
+#### Multi-Theme Support
+- **Dark Mode Nativo:** Integração com `next-themes`.
+- **Theme Toggle:** Botão Sol/Lua adicionado ao `Topbar` para troca instantânea de tema.
+- **Persistência:** A preferência de tema é salva no localStorage e respeita as configurações do sistema operacional.
+
+### Alterações Técnicas
+
+| Arquivo / Componente | Alteração Realizada |
+| :--- | :--- |
+| `prisma/schema.prisma` | Inclusão de `logoUrl`, `primaryColor` e `accentColor` no modelo `Tenant`. |
+| `src/app/layout.tsx` | Integração do `ThemeProvider` global. |
+| `src/app/(dashboard)/layout.tsx` | Lógica de fetch de branding e injeção de `:root` variables. |
+| `src/components/layout/Topbar.tsx` | Suporte a `logoUrl` e inclusão do `ThemeToggle`. |
+| `src/app/(dashboard)/configuracoes` | Nova aba **"Personalização & Branding"** exclusiva para administradores. |
+| `src/actions/branding.ts` | Server Actions para gestão de identidade visual. |
+
+### Status de Pronto — RC-2
+
+| Critério | Status |
+| :--- | :--- |
+| Personalização de Cores (Hex support) | ✅ |
+| Troca de Logotipo no Perfil | ✅ |
+| Theme Toggle funcional | ✅ |
+| Bloqueio de funcionalidade (Plan Gating) | ✅ |
+| Migração de banco aplicada | ✅ |

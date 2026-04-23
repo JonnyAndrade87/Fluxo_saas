@@ -4,6 +4,16 @@
   "installCommand": "npm install",
   "framework": "nextjs",
   "env": {},
+  "crons": [
+    {
+      "path": "/api/cron",
+      "schedule": "0 8 * * 1-5"
+    },
+    {
+      "path": "/api/send-queue",
+      "schedule": "0 8 * * 1-5"
+    }
+  ],
   "redirects": [],
   "headers": [
     {

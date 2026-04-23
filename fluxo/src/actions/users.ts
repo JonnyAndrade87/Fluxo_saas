@@ -3,7 +3,7 @@
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { revalidatePath } from 'next/cache';
-import { requireAuth, requireAuthFresh, requireRole, AUDIT_ACTIONS } from '@/lib/permissions';
+import { requireAuth, requireAuthFresh, hasPermission, AUDIT_ACTIONS } from '@/lib/permissions';
 import { logAudit } from '@/lib/audit';
 import { createTenantLimitGuard, isBillingLimitExceededError } from '@/lib/billing/limits';
 
@@ -42,7 +42,9 @@ export async function getTeamMembers() {
  */
 export async function inviteUser(formData: FormData) {
   const ctx = await requireAuthFresh();
-  requireRole(['admin'], ctx);
+  if (!hasPermission(ctx.role, 'users:create')) {
+    throw new Error('FORBIDDEN: users:create permission required');
+  }
 
   const email = (formData.get('email') as string)?.toLowerCase().trim();
   const role = (formData.get('role') as string) || 'operator';
@@ -119,7 +121,9 @@ export async function inviteUser(formData: FormData) {
  */
 export async function updateUserRole(tenantUserId: string, newRole: string) {
   const ctx = await requireAuthFresh();
-  requireRole(['admin'], ctx);
+  if (!hasPermission(ctx.role, 'users:update')) {
+    throw new Error('FORBIDDEN: users:update permission required');
+  }
 
   if (!['admin', 'operator', 'viewer'].includes(newRole)) {
     return { error: 'Papel inválido.' };
@@ -158,7 +162,9 @@ export async function updateUserRole(tenantUserId: string, newRole: string) {
  */
 export async function removeTeamMember(tenantUserId: string) {
   const ctx = await requireAuthFresh();
-  requireRole(['admin'], ctx);
+  if (!hasPermission(ctx.role, 'users:delete')) {
+    throw new Error('FORBIDDEN: users:delete permission required');
+  }
 
   const tu = await prisma.tenantUser.findUnique({
     where: { id: tenantUserId }

@@ -1,7 +1,7 @@
 'use server';
 
 import prisma from '@/lib/prisma';
-import { sendEmail, buildPasswordResetEmailHtml } from '@/lib/messaging/email';
+import { sendEmail, buildPasswordResetEmailHtml, getAuthEmailFrom } from '@/lib/messaging/email';
 import { randomUUID } from 'crypto';
 import bcrypt from 'bcryptjs';
 import { getClientIp, enforceRateLimit } from '@/lib/api-rate-limiter';
@@ -43,6 +43,7 @@ export async function requestPasswordReset(email: string) {
     const resetUrl = `${baseUrl}/reset-password?token=${token}`;
 
     const emailResult = await sendEmail({
+      from: getAuthEmailFrom(),
       to: email,
       subject: 'Redefinição de Senha — Fluxo',
       html: buildPasswordResetEmailHtml({

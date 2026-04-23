@@ -65,13 +65,13 @@ export function Sidebar({ user }: SidebarProps) {
   return (
     <aside 
       className={cn(
-        "hidden lg:flex flex-col h-full bg-[#1A3A5F] border-r border-[#152e4d] py-6 relative transition-all duration-300 ease-in-out",
+        "hidden lg:flex flex-col h-full bg-[#1c2129] border-r border-white/5 py-6 relative transition-all duration-300 ease-in-out",
         isCollapsed ? "w-[88px]" : "w-[280px]"
       )}
     >
       <button 
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className="absolute -right-3.5 top-8 bg-[#1A3A5F] border border-[#234b7a] w-7 h-7 rounded-full flex items-center justify-center text-white/50 hover:text-white hover:bg-[#234b7a] transition-colors z-50 shadow-md"
+        className="absolute -right-3.5 top-8 bg-[#1c2129] border border-white/10 w-7 h-7 rounded-full flex items-center justify-center text-white/50 hover:text-white hover:bg-[#2d3748] transition-colors z-50 shadow-md"
       >
         {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
       </button>
@@ -121,8 +121,8 @@ export function Sidebar({ user }: SidebarProps) {
                     className={cn(
                       "group flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 border",
                       isActive 
-                        ? "bg-[#234b7a] text-[#00D2C8] shadow-sm border-[#2e5b8e]/50" 
-                        : "text-white/60 hover:bg-[#234b7a]/50 hover:text-white border-transparent",
+                        ? "bg-[#2d3748] text-[#00D2C8] shadow-sm border-white/5" 
+                        : "text-white/60 hover:bg-white/5 hover:text-white border-transparent",
                       isCollapsed ? "justify-center" : "justify-start"
                     )}
                   >

@@ -5,7 +5,7 @@ import type { TenantPlan } from '@prisma/client';
 import { cookies } from 'next/headers';
 import prisma from '@/lib/prisma';
 import { getBillingE2EFixture } from '@/lib/e2e-billing';
-import { requireAuthFresh, requireRole } from '@/lib/permissions';
+import { requireAuthFresh, hasPermission } from '@/lib/permissions';
 import type { BillingCycle } from '@/lib/billing/stripe';
 import {
   createStripeCheckoutSessionForTenant,
@@ -49,7 +49,9 @@ export async function createSubscriptionCheckoutSession(
   }
 
   const ctx = await requireAuthFresh();
-  requireRole(['admin'], ctx);
+  if (!hasPermission(ctx.role, 'billing:configure')) {
+    throw new Error('FORBIDDEN: billing:configure permission required');
+  }
 
   try {
     const user = await prisma.user.findUnique({
@@ -86,7 +88,9 @@ export async function createCustomerPortalSession(): Promise<BillingActionResult
   }
 
   const ctx = await requireAuthFresh();
-  requireRole(['admin'], ctx);
+  if (!hasPermission(ctx.role, 'billing:configure')) {
+    throw new Error('FORBIDDEN: billing:configure permission required');
+  }
 
   try {
     const session = await createStripePortalSessionForTenant(ctx.tenantId);

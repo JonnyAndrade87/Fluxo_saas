@@ -53,6 +53,12 @@ model Tenant {
   maxInvoices          Int                @default(1000) @map("max_invoices")
   supportLevel         SupportLevel       @default(standard) @map("support_level")
   onboardingTier       OnboardingTier     @default(basic) @map("onboarding_tier")
+  
+  // Custom Branding (Pro Feature)
+  logoUrl              String?            @map("logo_url")
+  primaryColor         String?            @map("primary_color")
+  accentColor          String?            @map("accent_color")
+  
   createdAt            DateTime           @default(now()) @map("created_at")
   updatedAt            DateTime           @updatedAt @map("updated_at")
 

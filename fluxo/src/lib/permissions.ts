@@ -169,6 +169,10 @@ export const PERMISSIONS_MATRIX = {
   'settings:read': ['admin', 'operator', 'viewer'],
   'settings:update': ['admin'],
 
+  // Billing
+  'billing:read': ['admin'],
+  'billing:configure': ['admin'],
+
   // Auditoria
   'audit:read': ['admin'],
 

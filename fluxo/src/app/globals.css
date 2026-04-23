@@ -29,8 +29,8 @@
   --color-card: hsl(var(--card));
   --color-card-foreground: hsl(var(--card-foreground));
 
-  --color-brand: hsl(var(--brand));
-  --color-success: hsl(var(--success));
+  --color-brand: var(--brand);
+  --color-success: var(--success);
   --color-warning: hsl(var(--warning));
   --color-obsidian: hsl(var(--foreground));
   --color-subtle: hsl(var(--muted-foreground));
@@ -83,14 +83,13 @@
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
-    /* Semantic Additions */
-    --brand: 243 75% 59%; /* Indigo-600 */
-    --success: 160 84% 39%; /* Emerald-500 */
-    --warning: 38 92% 50%; /* Amber-500 */
-
+    /* Dynamic Brand - Injected from DB */
+    --brand: hsl(243 75% 59%); 
+    --success: hsl(160 84% 39%);
+    
     --border: 0 0% 90%; /* #E5E5E5 */
     --input: 0 0% 90%;
-    --ring: 243 75% 59%;
+    --ring: var(--brand);
 
     --radius: 0.5rem;
   }

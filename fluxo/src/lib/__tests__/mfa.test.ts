@@ -47,7 +47,7 @@ describe('MFA Gate Logic (Middleware)', () => {
 
   it('blocks admin with MFA enabled but no verification cookie', () => {
     const req: MockRequest = {
-      nextUrl: { pathname: '/dashboard' },
+      nextUrl: { pathname: '/' },
       cookies: { has: () => false },
       auth: { user: adminUser }
     };
@@ -56,7 +56,7 @@ describe('MFA Gate Logic (Middleware)', () => {
 
   it('blocks admin without MFA setup and forces setup page', () => {
     const req: MockRequest = {
-      nextUrl: { pathname: '/dashboard' },
+      nextUrl: { pathname: '/' },
       cookies: { has: () => false },
       auth: { user: adminNoMfa }
     };
@@ -65,7 +65,7 @@ describe('MFA Gate Logic (Middleware)', () => {
 
   it('allows verified admin to access protected routes', () => {
     const req: MockRequest = {
-      nextUrl: { pathname: '/dashboard' },
+      nextUrl: { pathname: '/' },
       cookies: { has: (name) => name === 'mfa_verified' },
       auth: { user: adminUser }
     };
@@ -74,7 +74,7 @@ describe('MFA Gate Logic (Middleware)', () => {
 
   it('allows regular user to bypass MFA gate', () => {
     const req: MockRequest = {
-      nextUrl: { pathname: '/dashboard' },
+      nextUrl: { pathname: '/' },
       cookies: { has: () => false },
       auth: { user: regularUser }
     };

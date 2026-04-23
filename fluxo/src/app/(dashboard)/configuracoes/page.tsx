@@ -2,6 +2,7 @@ import { auth } from '../../../../auth';
 import { cookies } from 'next/headers';
 import { getTeamMembers } from '@/actions/users';
 import prisma from '@/lib/prisma';
+import BrandingClient from './BrandingClient';
 import ReguaClient from './ReguaClient';
 import TeamClient from './TeamClient';
 
@@ -24,6 +25,7 @@ export default async function ConfiguracoesPage() {
 
   return (
     <div className="space-y-0">
+      {isAdmin && <BrandingClient />}
       {isAdmin && <ReguaClient />}
       {isAdmin && <TeamClient members={members} />}
     </div>

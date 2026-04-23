@@ -19,30 +19,62 @@ export default async function DashboardLayout({
   const cookieStore = await cookies();
   const e2eFixture = getBillingE2EFixture(cookieStore);
 
-  // Extract tenant name
-  let tenantName = "Sua Empresa";
+  // Extract tenant branding
+  let tenantData = {
+    name: "Sua Empresa",
+    plan: "starter",
+    logoUrl: null as string | null,
+    primaryColor: null as string | null,
+    accentColor: null as string | null,
+  };
 
   if (e2eFixture) {
-    tenantName = e2eFixture.tenantName;
+    tenantData.name = e2eFixture.tenantName;
   } else {
     try {
       const tenant = await prisma.tenant.findUnique({
         where: { id: tenantId },
-        select: { name: true }
+        select: { 
+          name: true, 
+          plan: true,
+          logoUrl: true,
+          primaryColor: true,
+          accentColor: true
+        }
       });
-      if (tenant?.name) {
-        tenantName = tenant.name;
+      if (tenant) {
+        tenantData = {
+          name: tenant.name,
+          plan: tenant.plan,
+          logoUrl: tenant.logoUrl,
+          primaryColor: tenant.primaryColor,
+          accentColor: tenant.accentColor,
+        };
       }
     } catch (e) {
-      console.error("Error fetching tenant name:", e);
+      console.error("Error fetching tenant branding:", e);
     }
   }
 
+  const isPro = tenantData.plan === 'pro' || tenantData.plan === 'scale';
+
   return (
     <div className="flex h-screen w-full bg-background overflow-x-clip">
+      {/* Dynamic Branding Injection */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        :root {
+          --brand: ${isPro && tenantData.primaryColor ? tenantData.primaryColor : 'hsl(243 75% 59%)'};
+          --success: ${isPro && tenantData.accentColor ? tenantData.accentColor : 'hsl(160 84% 39%)'};
+        }
+      `}} />
+
       <Sidebar user={user} />
       <div className="flex flex-col flex-1 min-w-0 overflow-x-clip">
-        <Topbar tenantName={tenantName} user={user} />
+        <Topbar 
+          tenantName={tenantData.name} 
+          user={user} 
+          logoUrl={isPro ? tenantData.logoUrl : null}
+        />
         <main className="flex-1 overflow-y-auto bg-muted/20 p-4 sm:p-6 relative min-w-0">
           <div className="max-w-7xl mx-auto w-full min-w-0">
             {children}

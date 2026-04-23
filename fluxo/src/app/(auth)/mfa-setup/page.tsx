@@ -42,7 +42,7 @@ export default function MfaSetupPage() {
     try {
       const result = await verifyAndEnableMfa(secret, token);
       if (result.success) {
-        router.push('/dashboard');
+        router.push('/');
         router.refresh();
       } else {
         setError(result.error || 'Falha na verificação');

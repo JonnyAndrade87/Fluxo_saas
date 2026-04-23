@@ -22,7 +22,7 @@ export default function MfaChallengePage() {
     try {
       const result = await verifyMfaChallenge(token);
       if (result.success) {
-        router.push('/dashboard');
+        router.push('/');
         router.refresh();
       } else {
         setError(result.error || 'Código inválido');

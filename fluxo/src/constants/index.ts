@@ -79,17 +79,17 @@ export const RISK_SCORE_RANGES = {
 // ============================================================================
 
 export const INVOICE_STATUS = {
+  OPEN: 'OPEN',
   PAID: 'PAID',
-  PENDING: 'PENDING',
-  CANCELLED: 'CANCELLED',
-  PARTIAL: 'PARTIAL',
+  PROMISE_TO_PAY: 'PROMISE_TO_PAY',
+  CANCELED: 'CANCELED',
 } as const;
 
 export const INVOICE_STATUS_LABELS: Record<string, string> = {
+  OPEN: 'Em aberto',
   PAID: 'Paga',
-  PENDING: 'Pendente',
-  CANCELLED: 'Cancelada',
-  PARTIAL: 'Parcial',
+  PROMISE_TO_PAY: 'Em acordo',
+  CANCELED: 'Cancelada',
 };
 
 // ============================================================================
@@ -140,7 +140,8 @@ export const API_ENDPOINTS = {
   SEND_QUEUE: '/api/send-queue',
   WEBHOOKS: {
     RESEND: '/api/webhooks/resend',
-    ZAPI: '/api/webhooks/zapi',
+    WHATSAPP: '/api/webhooks/whatsapp', // Meta Cloud API (replaced Z-API)
+    // ZAPI: '/api/webhooks/zapi', // Legacy - deprecated
   },
 } as const;
 
