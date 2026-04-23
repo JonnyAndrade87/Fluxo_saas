@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, BarChart3, Bell, CheckCircle2, Clock, CreditCard, ShieldCheck, TrendingUp } from "lucide-react";
-import logoLogin from "../../assets/logo_dashboard.png";
+import logoLogin from "@/assets/logo_dashboard.png";
 import { LeadForm } from "@/components/landing/LeadForm";
 import { ParticlesBackground } from "@/components/ui/ParticlesBackground";
 
