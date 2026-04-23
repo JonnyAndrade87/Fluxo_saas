@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowRight, Layers, Target, Clock, MessageCircle } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Régua de Cobrança Automática | Reduza a Inadimplência",
+  title: { absolute: "Régua de Cobrança Automática | Fluxeer" },
   description: "Implemente uma régua de cobrança automática e inteligente. O Fluxeer ajuda sua empresa a organizar lembretes, priorizar faturas e reduzir o atraso.",
   alternates: { canonical: "https://www.fluxeer.com.br/regua-de-cobranca" }
 };

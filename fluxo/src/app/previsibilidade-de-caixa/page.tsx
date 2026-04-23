@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowRight, BarChart3, TrendingUp, Shield, Layers } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Previsibilidade de Caixa B2B | Fluxeer",
+  title: { absolute: "Previsibilidade de Caixa B2B | Fluxeer" },
   description: "Saiba exatamente quanto e quando irá receber. O Fluxeer traz previsibilidade de caixa para empresas que precisam de segurança financeira.",
   alternates: { canonical: "https://www.fluxeer.com.br/previsibilidade-de-caixa" }
 };

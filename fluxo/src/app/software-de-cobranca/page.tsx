@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowRight, CheckCircle2, Zap, BarChart3, ShieldCheck } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Software de Cobrança B2B | Controle Seus Recebíveis",
+  title: { absolute: "Software de Cobrança B2B | Fluxeer" },
   description: "O Fluxeer é o software de cobrança definitivo para empresas B2B. Organize contas a receber, automatize réguas e tenha controle total do seu caixa.",
   alternates: { canonical: "https://www.fluxeer.com.br/software-de-cobranca" }
 };

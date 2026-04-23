@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowRight, BarChart2, TrendingUp, Search, Activity } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Gestão de Contas a Receber | Visibilidade e Controle",
+  title: { absolute: "Gestão de Contas a Receber | Fluxeer" },
   description: "Organize seu contas a receber com inteligência. O Fluxeer oferece ferramentas para monitorar recebíveis, analisar aging e otimizar a entrada de caixa.",
   alternates: { canonical: "https://www.fluxeer.com.br/contas-a-receber" }
 };

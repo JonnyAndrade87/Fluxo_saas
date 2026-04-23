@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowRight, ShieldCheck, Zap, Layers, Users } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Cobrança B2B Especializada | Automação e Inteligência",
+  title: { absolute: "Cobrança B2B Especializada | Fluxeer" },
   description: "O Fluxeer é especialista em cobrança B2B. Gerencie faturas complexas, trate com empresas e mantenha seu recebimento em dia com tecnologia.",
   alternates: { canonical: "https://www.fluxeer.com.br/cobranca-b2b" }
 };
