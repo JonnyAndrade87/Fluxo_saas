@@ -81,9 +81,11 @@ export default function BrandingClient() {
               <p className="text-sm text-muted-foreground mt-2">
                 A personalização Whitelabel (Logo e Cores) está disponível apenas para assinantes do plano **Pro**.
               </p>
-              <Button className="mt-6 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold">
-                Fazer Upgrade Agora
-              </Button>
+              <a href="/planos">
+                <Button className="mt-6 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold">
+                  Fazer Upgrade Agora
+                </Button>
+              </a>
             </div>
           </div>
         )}
