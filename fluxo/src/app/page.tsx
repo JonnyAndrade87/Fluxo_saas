@@ -32,7 +32,7 @@ export default function LandingPage() {
           <nav className="anim-fade-slide-0 bg-transparent py-2 flex items-center justify-between w-full max-w-7xl">
             <Link href="/" className="hover:opacity-80 transition-opacity">
               {/* @ts-ignore */}
-              <Image src={logoLogin} alt="Fluxeer" width={110} height={26} className="w-auto h-6 object-contain" />
+              <Image src={logoLogin} alt="Fluxeer" width={148} height={32} className="w-auto h-8 object-contain" />
             </Link>
 
             <div className="flex items-center gap-4">
