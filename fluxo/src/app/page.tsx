@@ -1,16 +1,69 @@
+'use client';
+
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, CheckCircle2, Clock, ShieldCheck, TrendingUp, AlertTriangle, PlayCircle, BarChart3 } from "lucide-react";
 import logoLogin from "@/assets/logo_dashboard.png";
 import { LeadForm } from "@/components/landing/LeadForm";
 import { ParticlesBackground } from "@/components/ui/ParticlesBackground";
+import { motion, useMotionValue, useTransform, useMotionValueEvent, useScroll } from "framer-motion";
+import { useRef } from "react";
+
+// Maps a pixel scroll value to 0-1 between two pixel thresholds
+function mapRange(value: number, inMin: number, inMax: number): number {
+  return Math.min(1, Math.max(0, (value - inMin) / (inMax - inMin)));
+}
 
 export default function LandingPage() {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Use window-level scroll for pixel-precise control
+  const { scrollY } = useScroll();
+
+  // Each element has its own start/end pixel scrollY for the fade
+  // Hero is ~90vh tall; by ~600px scroll the last element should be gone
+  // Cascade: top elements disappear first (lower px range)
+
+  // MotionValues for each element (start at 1 = fully visible)
+  const mvHeader = useMotionValue(1);
+  const mvOp1 = useMotionValue(1);   // Eyebrow
+  const mvOp2 = useMotionValue(1);   // Headline
+  const mvOp3 = useMotionValue(1);   // Subheadline
+  const mvOp4 = useMotionValue(1);   // List
+  const mvOp5 = useMotionValue(1);   // CTA
+  const mvMockup = useMotionValue(1);
+  const mvBlur = useMotionValue(0);
+
+  useMotionValueEvent(scrollY, "change", (y) => {
+    // Stagger: each element starts fading at progressively higher scroll positions
+    // All should be 0 by ~60% of hero height (viewport ~90vh → ~576px on 640px screen)
+    // We target: fully faded by ~500px of scroll
+    mvHeader.set(1 - mapRange(y, 0,   120));
+    mvOp1.set(   1 - mapRange(y, 0,   180));
+    mvOp2.set(   1 - mapRange(y, 30,  260));
+    mvOp3.set(   1 - mapRange(y, 70,  330));
+    mvOp4.set(   1 - mapRange(y, 110, 410));
+    mvOp5.set(   1 - mapRange(y, 150, 480));
+    mvMockup.set(1 - mapRange(y, 0,   550));
+    mvBlur.set(  mapRange(y, 0, 500) * 20); // 0 to 20px blur
+  });
+
+  const blurHero = useTransform(mvBlur, v => `blur(${v}px)`);
+  const scaleHero = useTransform(mvOp2, [1, 0], [1, 0.94]);
+  const mockupBrightness = useTransform(mvMockup, [1, 0], [1, 2.5]);
+  const mockupFilter = useTransform(
+    [mvBlur, mockupBrightness],
+    ([b, br]) => `blur(${Math.min(40, (b as number) * 2)}px) brightness(${br})`
+  );
+
   return (
-    <div className="bg-gray-50 text-gray-900 antialiased overflow-x-hidden">
+    <div className="bg-gray-50 text-gray-900 antialiased overflow-x-hidden" ref={containerRef}>
 
       {/* ══════════════════════ HERO (EDITORIAL & PREMIUM) ══════════════════════ */}
-      <section className="relative min-h-[90vh] overflow-hidden bg-slate-950 flex flex-col" id="hero">
+      <section 
+        className="relative min-h-[90vh] overflow-hidden bg-slate-950 flex flex-col" 
+        id="hero"
+      >
 
         <ParticlesBackground />
 
@@ -28,8 +81,11 @@ export default function LandingPage() {
         </div>
 
         {/* ── REFINED NAV ── */}
-        <header className="relative z-[20] w-full pt-8 px-6 flex justify-center">
-          <nav className="anim-fade-slide-0 bg-transparent py-2 flex items-center justify-between w-full max-w-7xl">
+        <motion.header 
+          style={{ opacity: mvHeader }}
+          className="relative z-[20] w-full pt-8 px-6 flex justify-center"
+        >
+          <nav className="bg-transparent py-2 flex items-center justify-between w-full max-w-7xl">
             <Link href="/" className="hover:opacity-80 transition-opacity">
               {/* @ts-ignore */}
               <Image src={logoLogin} alt="Fluxeer" width={148} height={32} className="w-auto h-8 object-contain" />
@@ -50,7 +106,7 @@ export default function LandingPage() {
               </a>
             </div>
           </nav>
-        </header>
+        </motion.header>
 
         {/* ── HERO BODY ── */}
         <div className="relative z-[10] flex-1 flex items-center pb-20">
@@ -61,21 +117,45 @@ export default function LandingPage() {
               {/* ── Left: Editorial Copy ── */}
               <div className="lg:col-span-5 flex flex-col text-center lg:text-left z-20">
 
-                <p className="anim-fade-slide-1 self-center lg:self-start text-[10px] font-mono font-bold text-brand-green tracking-[0.25em] uppercase mb-6">
+                <motion.p 
+                  initial={{ y: 20 }}
+                  animate={{ y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.1 }}
+                  style={{ opacity: mvOp1, filter: blurHero }}
+                  className="self-center lg:self-start text-[10px] font-mono font-bold text-brand-green tracking-[0.25em] uppercase mb-6"
+                >
                   Inteligência para cobrança B2B
-                </p>
+                </motion.p>
 
-                <h1 className="anim-fade-slide-2 font-manrope font-extrabold tracking-tight leading-[1.0] text-white mb-6 text-5xl sm:text-6xl lg:text-[4.5rem]">
+                <motion.h1 
+                  initial={{ y: 20 }}
+                  animate={{ y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.2 }}
+                  style={{ opacity: mvOp2, filter: blurHero, scale: scaleHero }}
+                  className="font-manrope font-extrabold tracking-tight leading-[1.0] text-white mb-6 text-5xl sm:text-6xl lg:text-[4.5rem]"
+                >
                   Controle o que entra.<br />
                   <span className="text-brand-green">Antecipe o que atrasa.</span>
-                </h1>
+                </motion.h1>
 
-                <p className="anim-fade-slide-3 text-lg text-white/60 leading-relaxed mb-8 max-w-md mx-auto lg:mx-0 font-geist">
+                <motion.p 
+                  initial={{ y: 20 }}
+                  animate={{ y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.3 }}
+                  style={{ opacity: mvOp3, filter: blurHero }}
+                  className="text-lg text-white/60 leading-relaxed mb-8 max-w-md mx-auto lg:mx-0 font-geist"
+                >
                   O Fluxeer organiza seus recebíveis, mostra prioridades e dá mais previsibilidade para o seu caixa.
-                </p>
+                </motion.p>
                 
                 {/* Micro-proofs */}
-                <ul className="anim-fade-up-4 mb-10 flex flex-col gap-3 text-left w-full max-w-md mx-auto lg:mx-0">
+                <motion.ul 
+                  initial={{ y: 20 }}
+                  animate={{ y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.4 }}
+                  style={{ opacity: mvOp4, filter: blurHero }}
+                  className="mb-10 flex flex-col gap-3 text-left w-full max-w-md mx-auto lg:mx-0"
+                >
                   {[
                     "Prioridades de cobrança em tempo real",
                     "Visão de risco por cliente e fatura",
@@ -88,9 +168,15 @@ export default function LandingPage() {
                       {text}
                     </li>
                   ))}
-                </ul>
+                </motion.ul>
 
-                <div className="anim-fade-slide-5 flex flex-col sm:flex-row items-center gap-4">
+                <motion.div 
+                  initial={{ y: 20 }}
+                  animate={{ y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.5 }}
+                  style={{ opacity: mvOp5, filter: blurHero }}
+                  className="flex flex-col sm:flex-row items-center gap-4"
+                >
                   <a
                     href="#contact"
                     className="w-full sm:w-auto group btn-shimmer btn-shimmer-dark inline-flex items-center justify-center gap-2 bg-brand-green text-slate-950 text-sm font-bold px-7 py-3.5 rounded-xl hover:bg-brand-green-hover transition-colors shadow-[0_0_24px_rgba(0,176,179,0.25)] active:scale-[0.98]"
@@ -104,11 +190,14 @@ export default function LandingPage() {
                   >
                     Entrar
                   </Link>
-                </div>
+                </motion.div>
               </div>
 
               {/* ── Right: Premium Product Mockup ── */}
-              <div className="lg:col-span-7 w-full relative perspective-normal mt-10 lg:mt-0 anim-float">
+              <motion.div 
+                style={{ opacity: mvMockup, filter: mockupFilter }}
+                className="lg:col-span-7 w-full relative perspective-normal mt-10 lg:mt-0 anim-float"
+              >
                 
                 {/* Main Mockup Chassis */}
                 <div className="relative w-full max-w-2xl mx-auto lg:ml-auto lg:mr-0 transform rotate-y-[-8deg] rotate-x-[4deg] translate-z-[-20px] transition-transform duration-700 hover:rotate-y-[-2deg] hover:rotate-x-[1deg]">
@@ -214,7 +303,7 @@ export default function LandingPage() {
                   </div>
 
                 </div>
-              </div>
+              </motion.div>
 
             </div>
           </div>
