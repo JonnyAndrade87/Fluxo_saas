@@ -94,27 +94,44 @@
     --radius: 0.5rem;
   }
 
-  /* Dark mode mappings if needed in the future, keeping it default for now */
+  /* ─── Premium Dark Mode — Linear/Vercel inspired ───────────────────── */
   .dark {
-    --background: 0 0% 6.7%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 6.7%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 6.7%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 6.7%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
+    /* Base layers — each tier is distinguishable */
+    --background:    218 25%  8%;  /* #0d1117  deep navy canvas */
+    --foreground:    210 20% 94%;  /* #edf0f5  near-white text  */
+
+    --card:          218 22% 12%;  /* #161c24  lifted card surface */
+    --card-foreground: 210 20% 94%;
+
+    --popover:       218 22% 14%;  /* #1a2232  dropdown / popover */
+    --popover-foreground: 210 20% 94%;
+
+    /* Actions */
+    --primary:       210 20% 94%;
+    --primary-foreground: 218 25%  8%;
+
+    --secondary:     218 22% 16%;  /* subtle interactive surface */
+    --secondary-foreground: 210 20% 80%;
+
+    /* Text tiers */
+    --muted:         218 22% 15%;
+    --muted-foreground: 215 18% 55%; /* #7d8fa8 — subdued labels */
+
+    --accent:        218 22% 18%;
+    --accent-foreground: 210 20% 90%;
+
+    /* Feedback */
+    --destructive:      0 63% 45%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
+
+    /* Dynamic Brand - keep brand colors vivid on dark */
+    --brand:   hsl(243 75% 65%);
+    --success: hsl(160 72% 45%);
+
+    /* Structure */
+    --border: 218 22% 20%;   /* #1f2d3d  barely visible separator */
+    --input:  218 22% 18%;
+    --ring:   var(--brand);
   }
 }
 
@@ -155,6 +172,11 @@
                       linear-gradient(to bottom, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
     mask-image: linear-gradient(to bottom, black 25%, transparent 100%);
     -webkit-mask-image: linear-gradient(to bottom, black 25%, transparent 100%);
+  }
+
+  .dark .technical-grid {
+    background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px), 
+                      linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
   }
 
   /* Premium Card (Fusion AI Marketing + Finance) */
