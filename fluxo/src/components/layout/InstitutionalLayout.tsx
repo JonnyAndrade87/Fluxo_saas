@@ -49,7 +49,7 @@ export function InstitutionalLayout({ children }: { children: React.ReactNode })
             </p>
           </div>
           
-          <div className="grid grid-cols-2 md:flex gap-16 lg:gap-24">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-16 lg:gap-24 w-full md:w-auto">
             <div className="space-y-6">
                 <h5 className="text-[11px] font-mono font-bold text-slate-950 uppercase tracking-[0.2em]">Produto</h5>
                 <div className="flex flex-col gap-4">
