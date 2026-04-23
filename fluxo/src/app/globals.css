@@ -37,6 +37,8 @@
    --color-canvas: hsl(var(--background));
   --color-fluxeer-blue: #243b5c;
   --color-fluxeer-blue-hover: #1c2e48;
+  --color-brand-green: #00b0b3;
+  --color-brand-green-hover: #009da0;
 
   --radius-xl: calc(var(--radius) + 4px);
   --radius-lg: var(--radius);
@@ -52,6 +54,19 @@
   --animate-slide-up: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   --animate-fade-in: fadeIn 0.4s ease-out forwards;
   --animate-pulse-glow: pulse-glow 8s ease-in-out infinite alternate;
+
+  /* Custom Fluxeer Green Scale based on #00b0b3 */
+  --color-emerald-50: #f0fffe;
+  --color-emerald-100: #ccf6f5;
+  --color-emerald-200: #99eceb;
+  --color-emerald-300: #66e3e1;
+  --color-emerald-400: #33d9d7;
+  --color-emerald-500: #00b0b3;
+  --color-emerald-600: #008d8f;
+  --color-emerald-700: #006a6b;
+  --color-emerald-800: #004648;
+  --color-emerald-900: #002324;
+  --color-emerald-950: #001112;
 }
 
 @layer base {
@@ -85,7 +100,7 @@
 
     /* Dynamic Brand - Injected from DB */
     --brand: hsl(243 75% 59%); 
-    --success: hsl(160 84% 39%);
+    --success: #00b0b3;
     
     --border: 0 0% 90%; /* #E5E5E5 */
     --input: 0 0% 90%;
@@ -126,7 +141,7 @@
 
     /* Dynamic Brand - keep brand colors vivid on dark */
     --brand:   hsl(243 75% 65%);
-    --success: hsl(160 72% 45%);
+    --success: #00b0b3;
 
     /* Structure */
     --border: 218 22% 20%;   /* #1f2d3d  barely visible separator */

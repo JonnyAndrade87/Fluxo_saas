@@ -15,8 +15,8 @@ export function LeadForm() {
   if (submitted) {
     return (
       <div className="w-full border border-white/10 rounded-2xl p-8 flex flex-col items-center gap-4 text-center" style={{ background: 'rgba(255,255,255,0.03)' }}>
-        <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-          <ShieldCheck className="w-6 h-6 text-emerald-400" />
+        <div className="w-12 h-12 rounded-full bg-brand-green/10 border border-brand-green/20 flex items-center justify-center">
+          <ShieldCheck className="w-6 h-6 text-brand-green" />
         </div>
         <div>
           <h3 className="font-manrope font-bold text-white text-base mb-1">Solicitação recebida.</h3>
@@ -33,7 +33,7 @@ export function LeadForm() {
       style={{ background: 'rgba(255,255,255,0.03)', backdropFilter: 'blur(24px)' }}
     >
       {/* Top accent */}
-      <div className="h-px bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent" />
+      <div className="h-px bg-gradient-to-r from-transparent via-brand-green/50 to-transparent" />
 
       <div className="p-7 flex flex-col gap-5">
 
@@ -71,7 +71,7 @@ export function LeadForm() {
                 background: 'rgba(255,255,255,0.06)',
                 border: '1px solid rgba(255,255,255,0.08)',
               }}
-              onFocus={e => e.currentTarget.style.borderColor = 'rgba(16,185,129,0.4)'}
+              onFocus={e => e.currentTarget.style.borderColor = 'rgba(0,176,179,0.4)'}
               onBlur={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'}
             />
           </div>
@@ -92,7 +92,7 @@ export function LeadForm() {
                 background: 'rgba(255,255,255,0.06)',
                 border: '1px solid rgba(255,255,255,0.08)',
               }}
-              onFocus={e => e.currentTarget.style.borderColor = 'rgba(16,185,129,0.4)'}
+              onFocus={e => e.currentTarget.style.borderColor = 'rgba(0,176,179,0.4)'}
               onBlur={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'}
             />
           </div>
@@ -102,7 +102,7 @@ export function LeadForm() {
         <button
           type="submit"
           disabled={isPending}
-          className="w-full btn-shimmer btn-shimmer-dark inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm py-3.5 rounded-xl transition-colors shadow-[0_0_20px_rgba(16,185,129,0.15)] disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
+          className="w-full btn-shimmer btn-shimmer-dark inline-flex items-center justify-center gap-2 bg-brand-green hover:bg-brand-green-hover text-slate-950 font-bold text-sm py-3.5 rounded-xl transition-colors shadow-[0_0_20px_rgba(0,176,179,0.15)] disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
         >
           {isPending ? (
             <><Loader2 className="w-4 h-4 animate-spin" /> Enviando...</>

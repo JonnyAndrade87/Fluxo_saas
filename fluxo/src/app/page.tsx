@@ -16,7 +16,7 @@ export default function LandingPage() {
 
         {/* Minimal ambient glow */}
         <div className="absolute inset-0 z-[1] pointer-events-none">
-          <div className="absolute top-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full opacity-20" style={{ background: 'radial-gradient(circle, rgba(16,185,129,0.4) 0%, transparent 70%)', filter: 'blur(100px)' }} />
+          <div className="absolute top-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full opacity-20" style={{ background: 'radial-gradient(circle, rgba(0, 176, 179, 0.4) 0%, transparent 70%)', filter: 'blur(100px)' }} />
           <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-slate-950 to-transparent" />
         </div>
 
@@ -61,13 +61,13 @@ export default function LandingPage() {
               {/* ── Left: Editorial Copy ── */}
               <div className="lg:col-span-5 flex flex-col text-center lg:text-left z-20">
 
-                <p className="anim-fade-slide-1 self-center lg:self-start text-[10px] font-mono font-bold text-emerald-400 tracking-[0.25em] uppercase mb-6">
+                <p className="anim-fade-slide-1 self-center lg:self-start text-[10px] font-mono font-bold text-brand-green tracking-[0.25em] uppercase mb-6">
                   Inteligência para cobrança B2B
                 </p>
 
                 <h1 className="anim-fade-slide-2 font-manrope font-extrabold tracking-tight leading-[1.0] text-white mb-6 text-5xl sm:text-6xl lg:text-[4.5rem]">
                   Controle o que entra.<br />
-                  <span className="text-emerald-400">Antecipe o que atrasa.</span>
+                  <span className="text-brand-green">Antecipe o que atrasa.</span>
                 </h1>
 
                 <p className="anim-fade-slide-3 text-lg text-white/60 leading-relaxed mb-8 max-w-md mx-auto lg:mx-0 font-geist">
@@ -82,8 +82,8 @@ export default function LandingPage() {
                     "Mais previsibilidade para o caixa"
                   ].map((text, i) => (
                     <li key={i} className="flex items-center gap-3 text-sm text-white/90 font-semibold transform-gpu">
-                      <div className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0 border border-emerald-500/30">
-                        <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                      <div className="w-5 h-5 rounded-full bg-brand-green/20 flex items-center justify-center shrink-0 border border-brand-green/30">
+                        <CheckCircle2 className="w-3 h-3 text-brand-green" />
                       </div>
                       {text}
                     </li>
@@ -93,7 +93,7 @@ export default function LandingPage() {
                 <div className="anim-fade-slide-5 flex flex-col sm:flex-row items-center gap-4">
                   <a
                     href="#contact"
-                    className="w-full sm:w-auto group btn-shimmer btn-shimmer-dark inline-flex items-center justify-center gap-2 bg-emerald-500 text-slate-950 text-sm font-bold px-7 py-3.5 rounded-xl hover:bg-emerald-400 transition-colors shadow-[0_0_24px_rgba(16,185,129,0.25)] active:scale-[0.98]"
+                    className="w-full sm:w-auto group btn-shimmer btn-shimmer-dark inline-flex items-center justify-center gap-2 bg-brand-green text-slate-950 text-sm font-bold px-7 py-3.5 rounded-xl hover:bg-brand-green-hover transition-colors shadow-[0_0_24px_rgba(0,176,179,0.25)] active:scale-[0.98]"
                   >
                     Quero ver o Fluxeer funcionando
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
@@ -124,7 +124,7 @@ export default function LandingPage() {
                        <div className="flex gap-1.5 flex-1">
                          <div className="w-2.5 h-2.5 rounded-full bg-rose-500/80" />
                          <div className="w-2.5 h-2.5 rounded-full bg-amber-500/80" />
-                         <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
+                         <div className="w-2.5 h-2.5 rounded-full bg-brand-green/80" />
                        </div>
                        <div className="flex-1 flex justify-center">
                          <div className="w-32 h-4 bg-white/10 rounded-full" />
@@ -139,7 +139,7 @@ export default function LandingPage() {
                           <p className="text-[10px] text-white/40 uppercase tracking-widest font-mono mb-1">Previsão de Recebimento</p>
                           <h3 className="text-3xl font-manrope font-bold text-white tracking-tight">R$ 428.500</h3>
                         </div>
-                        <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-mono py-1 px-2.5 bg-emerald-500/10 rounded-md border border-emerald-500/20">
+                        <div className="flex items-center gap-1.5 text-xs text-brand-green font-mono py-1 px-2.5 bg-brand-green/10 rounded-md border border-brand-green/20">
                           <TrendingUp className="w-3 h-3" />
                           +14.2%
                         </div>
@@ -147,11 +147,11 @@ export default function LandingPage() {
 
                       {/* Fake Chart graphic */}
                       <div className="h-32 w-full relative mb-6 rounded-xl overflow-hidden bg-slate-950/50 border border-white/5">
-                        <svg viewBox="0 0 400 100" className="w-full h-full" preserveAspectRatio="none">
+                        <svg className="w-full h-full" viewBox="0 0 400 100" preserveAspectRatio="none">
                           <defs>
                             <linearGradient id="chart-grad1" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="0%" stopColor="#10b981" stopOpacity="0.4"/>
-                              <stop offset="100%" stopColor="#10b981" stopOpacity="0"/>
+                              <stop offset="0%" stopColor="#00b0b3" stopOpacity="0.4"/>
+                              <stop offset="100%" stopColor="#00b0b3" stopOpacity="0"/>
                             </linearGradient>
                             <linearGradient id="chart-grad2" x1="0" y1="0" x2="0" y2="1">
                               <stop offset="0%" stopColor="#818cf8" stopOpacity="0.3"/>
@@ -161,8 +161,8 @@ export default function LandingPage() {
                           {/* Background wave (gray/indigo) */}
                           <path d="M0,80 C50,70 100,90 150,60 C200,30 250,70 300,50 C350,30 400,60 400,60" fill="none" stroke="#818cf8" strokeOpacity="0.5" strokeWidth="2" style={{strokeDasharray: 800, animation: 'chart-draw 3s ease-out both'}} />
                           <path d="M0,80 C50,70 100,90 150,60 C200,30 250,70 300,50 C350,30 400,60 400,60 L400,100 L0,100 Z" fill="url(#chart-grad2)" />
-                          {/* Primary wave (emerald) */}
-                          <path d="M0,60 C40,50 80,70 120,40 C160,10 200,50 250,30 C300,10 350,40 400,20" fill="none" stroke="#10b981" strokeWidth="3" style={{strokeDasharray: 800, animation: 'chart-draw 2s ease-out 0.2s both'}} />
+                          {/* Primary wave (brand-green) */}
+                          <path d="M0,60 C40,50 80,70 120,40 C160,10 200,50 250,30 C300,10 350,40 400,20" fill="none" stroke="#00b0b3" strokeWidth="3" style={{strokeDasharray: 800, animation: 'chart-draw 2s ease-out 0.2s both'}} />
                           <path d="M0,60 C40,50 80,70 120,40 C160,10 200,50 250,30 C300,10 350,40 400,20 L400,100 L0,100 Z" fill="url(#chart-grad1)" />
                         </svg>
                       </div>
@@ -171,7 +171,7 @@ export default function LandingPage() {
                       <div className="space-y-3">
                         {[
                           { name: "Acme Corp", val: "R$ 45.000", badge: "Amanhã", col: "text-amber-400", bg: "bg-amber-400/10", border: "border-amber-400/20" },
-                          { name: "Global Tech", val: "R$ 18.200", badge: "Hoje", col: "text-emerald-400", bg: "bg-emerald-400/10", border: "border-emerald-400/20" },
+                          { name: "Global Tech", val: "R$ 18.200", badge: "Hoje", col: "text-brand-green", bg: "bg-brand-green/10", border: "border-brand-green/20" },
                         ].map((r, i) => (
                            <div key={i} className="flex justify-between items-center p-3 rounded-lg bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] transition-colors">
                              <div className="flex flex-col">
@@ -199,17 +199,17 @@ export default function LandingPage() {
                   </div>
 
                   {/* ── Overlay Insight 2: Régua Ativa ── */}
-                  <div className="absolute bottom-8 -left-6 lg:-left-12 w-56 bg-emerald-500/10 backdrop-blur-xl border border-emerald-500/20 rounded-2xl p-4 shadow-2xl anim-float-reverse" style={{ animationDelay: '0.5s' }}>
+                  <div className="absolute bottom-8 -left-6 lg:-left-12 w-56 bg-brand-green/10 backdrop-blur-xl border border-brand-green/20 rounded-2xl p-4 shadow-2xl anim-float-reverse" style={{ animationDelay: '0.5s' }}>
                     <div className="flex justify-between items-start mb-2">
                       <div className="flex items-center gap-2">
-                         <PlayCircle className="w-4 h-4 text-emerald-400" />
-                         <span className="text-[10px] font-mono text-emerald-300 uppercase tracking-wider">Régua Ativa</span>
+                         <PlayCircle className="w-4 h-4 text-brand-green" />
+                         <span className="text-[10px] font-mono text-brand-green uppercase tracking-wider opacity-80">Régua Ativa</span>
                       </div>
-                      <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                      <div className="w-2 h-2 rounded-full bg-brand-green animate-pulse" />
                     </div>
                     <p className="text-sm font-medium text-white">Lembrete Vencimento</p>
                     <div className="mt-2 h-1 w-full bg-black/20 rounded-full overflow-hidden">
-                      <div className="h-full w-[80%] bg-emerald-400 rounded-full" />
+                      <div className="h-full w-[80%] bg-brand-green rounded-full" />
                     </div>
                   </div>
 
@@ -223,7 +223,7 @@ export default function LandingPage() {
 
       {/* ══════════════════════ CAPTATION SECTION ══════════════════════ */}
       <section className="relative py-24 bg-slate-900 border-t border-white/5 overflow-hidden" id="contact">
-        <div className="pointer-events-none absolute inset-0 z-[0] opacity-50" style={{ background: 'radial-gradient(ellipse at center, rgba(16,185,129,0.05) 0%, transparent 60%)' }} />
+        <div className="pointer-events-none absolute inset-0 z-[0] opacity-50" style={{ background: 'radial-gradient(ellipse at center, rgba(0, 176, 179, 0.05) 0%, transparent 60%)' }} />
         
         <div className="max-w-xl mx-auto px-6 relative z-10">
           <div className="text-center mb-10">
@@ -249,7 +249,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="flex flex-col lg:flex-row justify-between items-start mb-16 gap-8">
             <div>
-              <p className="text-[10px] text-emerald-600 uppercase tracking-[0.25em] font-mono font-bold mb-4">A Plataforma</p>
+              <p className="text-[10px] text-brand-green uppercase tracking-[0.25em] font-mono font-bold mb-4">A Plataforma</p>
               <h2 className="text-4xl md:text-5xl font-manrope font-extrabold tracking-tighter text-gray-900 leading-[0.95]">
                 Tudo o que você precisa<br />para cobrar melhor.
               </h2>
@@ -259,8 +259,8 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               {
-                icon: <Clock className="w-6 h-6 text-emerald-600" />,
-                bg: "bg-emerald-50 border-emerald-100",
+                icon: <Clock className="w-6 h-6 text-brand-green" />,
+                bg: "bg-[#f0fffe] border-[#e0fffd]",
                 title: "Fim do trabalho manual",
                 desc: "Réguas nativas disparam mensagens e cobranças sem depender de intervenção humana."
               },
