@@ -1,3 +1,11 @@
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Suporte",
+  description: "Encontre informações institucionais do Fluxeer e os canais para contato.",
+  alternates: { canonical: "https://www.fluxeer.com.br/suporte" }
+};
+
 import { InstitutionalLayout } from "@/components/layout/InstitutionalLayout";
 import Link from "next/link";
 import { ShieldCheck, FileText, MessageCircle, ArrowRight } from "lucide-react";

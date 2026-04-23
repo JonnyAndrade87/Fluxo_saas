@@ -1,3 +1,11 @@
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Contato",
+  description: "Entre em contato com a equipe do Fluxeer para dúvidas, suporte ou demonstrações.",
+  alternates: { canonical: "https://www.fluxeer.com.br/contato" }
+};
+
 import { InstitutionalLayout } from "@/components/layout/InstitutionalLayout";
 import Link from "next/link";
 import { Mail, Clock, Presentation, ArrowRight } from "lucide-react";

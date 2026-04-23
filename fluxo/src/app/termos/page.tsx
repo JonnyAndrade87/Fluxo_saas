@@ -1,3 +1,11 @@
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Termos de Uso",
+  description: "Consulte as condições gerais de acesso e utilização da plataforma Fluxeer.",
+  alternates: { canonical: "https://www.fluxeer.com.br/termos" }
+};
+
 import { InstitutionalLayout } from "@/components/layout/InstitutionalLayout";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";

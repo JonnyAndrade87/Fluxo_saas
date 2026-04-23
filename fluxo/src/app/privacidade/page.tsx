@@ -1,3 +1,11 @@
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Política de Privacidade",
+  description: "Entenda como o Fluxeer coleta, utiliza e protege suas informações.",
+  alternates: { canonical: "https://www.fluxeer.com.br/privacidade" }
+};
+
 import { InstitutionalLayout } from "@/components/layout/InstitutionalLayout";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
