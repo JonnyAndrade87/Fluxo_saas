@@ -372,7 +372,8 @@ function SolutionSection() {
       title: "Régua de cobrança organizada",
       desc: "Estruture o acompanhamento da cobrança com mais consistência, menos improviso e mais controle sobre cada etapa.",
       evidence: "Menos esforço manual. Mais processo.",
-      focus: "automation"
+      focus: "automation",
+      href: "/regua-de-cobranca"
     },
     {
       id: 1,
@@ -380,7 +381,8 @@ function SolutionSection() {
       title: "Prioridades visíveis",
       desc: "Saiba com mais clareza quais clientes e faturas exigem ação primeiro, antes que o atraso cresça.",
       evidence: "Ação antes do problema virar pressão.",
-      focus: "priorities"
+      focus: "priorities",
+      href: "/contas-a-receber"
     },
     {
       id: 2,
@@ -388,9 +390,9 @@ function SolutionSection() {
       title: "Caixa mais previsível",
       desc: "Tenha uma visão mais confiável do que tende a entrar e opere com mais segurança no dia a dia.",
       evidence: "Mais clareza para decidir melhor.",
-      focus: "forecast"
+      focus: "forecast",
+      href: "/previsibilidade-de-caixa"
     }
-  ];
 
   return (
     <section className="relative bg-[#fcfcfd] py-32 lg:py-56 overflow-hidden" id="solucao">
@@ -512,9 +514,19 @@ function SolutionSection() {
                     {chap.desc}
                   </p>
 
-                  <div className="flex items-center gap-3 bg-white/50 backdrop-blur-sm self-start px-4 py-2 rounded-xl border border-slate-100 shadow-sm">
-                     <div className="w-1.5 h-1.5 rounded-full bg-brand-green shadow-[0_0_8px_rgba(0,176,179,0.5)]" />
-                     <span className="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-widest">{chap.evidence}</span>
+                  <div className="flex flex-col sm:flex-row items-center gap-6 mt-8">
+                    <div className="flex items-center gap-3 bg-white/50 backdrop-blur-sm px-4 py-2 rounded-xl border border-slate-100 shadow-sm">
+                       <div className="w-1.5 h-1.5 rounded-full bg-brand-green shadow-[0_0_8px_rgba(0,176,179,0.5)]" />
+                       <span className="text-[10px] font-mono font-bold text-slate-500 uppercase tracking-widest">{chap.evidence}</span>
+                    </div>
+                    
+                    <Link 
+                      href={chap.href} 
+                      className="text-xs font-bold text-brand-green flex items-center gap-2 hover:translate-x-1 transition-transform group/link"
+                    >
+                      Ver detalhes da solução
+                      <ArrowRight className="w-3 h-3 group-hover/link:translate-x-0.5 transition-transform" />
+                    </Link>
                   </div>
                 </motion.div>
              ))}
@@ -1106,12 +1118,54 @@ export default function LandingPage() {
 
       <PlatformSection />
 
+      <SpecializedSolutions />
       <FAQSection />
 
       <LeadFormSection />
 
       <Footer />
     </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// SPECIALIZED SOLUTIONS SECTION
+// ════════════════════════════════════════════════════════════════════════
+function SpecializedSolutions() {
+  return (
+    <section className="py-24 bg-white border-y border-slate-100">
+      <div className="max-w-7xl mx-auto px-6">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-12">
+          <div className="max-w-xl">
+             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-green/10 border border-brand-green/20 text-[10px] font-mono font-bold text-brand-green tracking-[0.2em] uppercase mb-6">
+               Ecossistema Fluxeer
+             </div>
+             <h2 className="text-3xl lg:text-4xl font-manrope font-extrabold text-slate-950 mb-6 tracking-tight">
+               Soluções desenhadas para <span className="text-brand-green">cada desafio.</span>
+             </h2>
+             <p className="text-lg text-slate-500 font-geist">
+               Além do controle operacional, oferecemos infraestrutura técnica para cenários específicos de recebimento e gestão de recebíveis B2B.
+             </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full md:w-auto">
+             <Link href="/software-de-cobranca" className="p-8 rounded-[2.5rem] border border-slate-200 hover:border-brand-green/30 hover:bg-brand-green/[0.02] transition-all group bg-slate-50/50">
+                <span className="block text-lg font-manrope font-bold text-slate-950 mb-2 group-hover:text-brand-green">Software de Cobrança</span>
+                <span className="block text-sm text-slate-500 font-geist leading-relaxed">Automação completa do faturamento e réguas inteligentes.</span>
+                <span className="inline-flex items-center gap-2 mt-6 text-xs font-bold text-brand-green opacity-0 group-hover:opacity-100 transition-opacity">
+                  Ver solução <ArrowRight className="w-3 h-3" />
+                </span>
+             </Link>
+             <Link href="/cobranca-b2b" className="p-8 rounded-[2.5rem] border border-slate-200 hover:border-brand-green/30 hover:bg-brand-green/[0.02] transition-all group bg-slate-50/50">
+                <span className="block text-lg font-manrope font-bold text-slate-950 mb-2 group-hover:text-brand-green">Cobrança B2B</span>
+                <span className="block text-sm text-slate-500 font-geist leading-relaxed">Gestão especializada de recebíveis para o mercado corporativo.</span>
+                <span className="inline-flex items-center gap-2 mt-6 text-xs font-bold text-brand-green opacity-0 group-hover:opacity-100 transition-opacity">
+                  Ver solução <ArrowRight className="w-3 h-3" />
+                </span>
+             </Link>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
