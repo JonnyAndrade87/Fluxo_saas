@@ -43,7 +43,7 @@ export async function authenticate(
 
     const data = Object.fromEntries(formData);
     const callbackUrl = formData.get('callbackUrl') as string | null;
-    const redirectTo = callbackUrl || '/cobrancas';
+    const redirectTo = callbackUrl || '/dashboard';
     
     await signIn('credentials', {
       ...data,

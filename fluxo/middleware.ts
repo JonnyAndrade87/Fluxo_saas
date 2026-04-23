@@ -11,7 +11,7 @@ export default auth((req) => {
 
   const isApiAuthRoute = nextUrl.pathname.startsWith('/api/auth');
   const isPublicRoute = 
-    ['/login', '/register', '/activate', '/verify-email', '/forgot-password'].includes(nextUrl.pathname) ||
+    ['/', '/login', '/register', '/activate', '/verify-email', '/forgot-password'].includes(nextUrl.pathname) ||
     nextUrl.pathname.startsWith('/reset-password');
   
   const isMfaPage = nextUrl.pathname === '/mfa-challenge' || nextUrl.pathname === '/mfa-setup';

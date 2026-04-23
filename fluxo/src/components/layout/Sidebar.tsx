@@ -26,7 +26,7 @@ export const navGroups = [
   {
     label: "Operacional",
     items: [
-      { name: "Visão Geral", href: "/", icon: LayoutDashboard },
+      { name: "Visão Geral", href: "/dashboard", icon: LayoutDashboard },
       { name: "Cobranças", href: "/cobrancas", icon: Receipt },
       { name: "Clientes", href: "/clientes", icon: Users },
       { name: "Histórico", href: "/historico", icon: Inbox },

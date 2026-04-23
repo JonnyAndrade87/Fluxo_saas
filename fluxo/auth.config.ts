@@ -10,6 +10,7 @@ export const authConfig = {
       const { nextUrl } = request;
       const isLoggedIn = !!auth?.user;
       const isPublicRoute =
+        nextUrl.pathname === '/' ||
         nextUrl.pathname === '/login' ||
         nextUrl.pathname === '/register' ||
         nextUrl.pathname === '/activate' ||
