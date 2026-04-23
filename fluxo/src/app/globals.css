@@ -116,45 +116,6 @@
     --radius: 0.5rem;
   }
 
-  /* ─── Premium Dark Mode — Linear/Vercel inspired ───────────────────── */
-  .dark {
-    /* Base layers — each tier is distinguishable */
-    --background:    218 25%  8%;  /* #0d1117  deep navy canvas */
-    --foreground:    210 20% 94%;  /* #edf0f5  near-white text  */
-
-    --card:          218 22% 12%;  /* #161c24  lifted card surface */
-    --card-foreground: 210 20% 94%;
-
-    --popover:       218 22% 14%;  /* #1a2232  dropdown / popover */
-    --popover-foreground: 210 20% 94%;
-
-    /* Actions */
-    --primary:       210 20% 94%;
-    --primary-foreground: 218 25%  8%;
-
-    --secondary:     218 22% 16%;  /* subtle interactive surface */
-    --secondary-foreground: 210 20% 80%;
-
-    /* Text tiers */
-    --muted:         218 22% 15%;
-    --muted-foreground: 215 18% 55%; /* #7d8fa8 — subdued labels */
-
-    --accent:        218 22% 18%;
-    --accent-foreground: 210 20% 90%;
-
-    /* Feedback */
-    --destructive:      0 63% 45%;
-    --destructive-foreground: 0 0% 98%;
-
-    /* Dynamic Brand - keep brand colors vivid on dark */
-    --brand:   hsl(243 75% 65%);
-    --success: #00b0b3;
-
-    /* Structure */
-    --border: 218 22% 20%;   /* #1f2d3d  barely visible separator */
-    --input:  218 22% 18%;
-    --ring:   var(--brand);
-  }
 }
 
 @layer base {
@@ -192,10 +153,6 @@
     -webkit-mask-image: linear-gradient(to bottom, black 25%, transparent 100%);
   }
 
-  .dark .technical-grid {
-    background-image: linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px), 
-                      linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-  }
 
   /* Premium Card (Fusion AI Marketing + Finance) */
   .premium-card {
@@ -403,11 +360,6 @@
 }
 .btn-shimmer:hover::after { animation: shimmer 0.8s ease; }
 
-/* Button Shimmer - Dark mode */
-.btn-shimmer-dark::after {
-  background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.2) 50%, transparent 60%);
-}
-.btn-shimmer-dark:hover::after { animation: shimmer 0.8s ease; }
 
 /* Grid lines for light section */
 .grid-lines-light .gl-v {
