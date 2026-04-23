@@ -60,6 +60,16 @@ export function InstitutionalLayout({ children }: { children: React.ReactNode })
                 </div>
             </div>
             <div className="space-y-6">
+                <h5 className="text-[11px] font-mono font-bold text-slate-950 uppercase tracking-[0.2em]">Soluções</h5>
+                <div className="flex flex-col gap-4">
+                  <Link href="/software-de-cobranca" className="text-sm text-slate-500 hover:text-brand-green transition-colors">Software de Cobrança</Link>
+                  <Link href="/regua-de-cobranca" className="text-sm text-slate-500 hover:text-brand-green transition-colors">Régua de Cobrança</Link>
+                  <Link href="/contas-a-receber" className="text-sm text-slate-500 hover:text-brand-green transition-colors">Contas a Receber</Link>
+                  <Link href="/previsibilidade-de-caixa" className="text-sm text-slate-500 hover:text-brand-green transition-colors">Previsibilidade de Caixa</Link>
+                  <Link href="/cobranca-b2b" className="text-sm text-slate-500 hover:text-brand-green transition-colors">Cobrança B2B</Link>
+                </div>
+            </div>
+            <div className="space-y-6">
                 <h5 className="text-[11px] font-mono font-bold text-slate-950 uppercase tracking-[0.2em]">Suporte</h5>
                 <div className="flex flex-col gap-4">
                   <Link href="/suporte" className="text-sm text-slate-500 hover:text-brand-green transition-colors">Suporte</Link>

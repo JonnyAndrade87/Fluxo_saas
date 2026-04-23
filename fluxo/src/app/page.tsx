@@ -2,7 +2,9 @@ import LandingPage from "./LandingPageClient";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Fluxeer | Software de cobrança e contas a receber",
+  title: {
+    absolute: "Fluxeer | Software de cobrança e contas a receber",
+  },
   description: "Organize recebíveis, priorize cobranças e tenha mais previsibilidade para o caixa com o Fluxeer.",
   alternates: {
     canonical: "https://www.fluxeer.com.br",
@@ -36,16 +38,6 @@ export default function Home() {
         "publisher": {
           "@id": "https://www.fluxeer.com.br/#organization"
         },
-        "potentialAction": [
-          {
-            "@type": "SearchAction",
-            "target": {
-              "@type": "EntryPoint",
-              "urlTemplate": "https://www.fluxeer.com.br/search?q={search_term_string}"
-            },
-            "query-input": "required name=search_term_string"
-          }
-        ],
         "inLanguage": "pt-BR"
       },
       {
@@ -58,11 +50,6 @@ export default function Home() {
           "@type": "Offer",
           "price": "0.00",
           "priceCurrency": "BRL"
-        },
-        "aggregateRating": {
-          "@type": "AggregateRating",
-          "ratingValue": "4.9",
-          "reviewCount": "128"
         }
       },
       {

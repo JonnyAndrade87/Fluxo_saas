@@ -182,7 +182,7 @@ function TimelineSection() {
             className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-green/10 border border-brand-green/20 text-[10px] font-mono font-bold text-brand-green tracking-[0.2em] uppercase mb-8"
           >
             <Clock className="w-3 h-3" />
-            Vulnerabilidades da cobrança B2B
+            Inteligência em régua de cobrança e contas a receber
           </motion.div>
           
           <h2 className="text-5xl lg:text-[4.5rem] font-manrope font-extrabold tracking-tight text-slate-950 mb-8 leading-[0.95]">
@@ -369,7 +369,7 @@ function SolutionSection() {
     {
       id: 0,
       marker: "01",
-      title: "Régua organizada",
+      title: "Régua de cobrança organizada",
       desc: "Estruture o acompanhamento da cobrança com mais consistência, menos improviso e mais controle sobre cada etapa.",
       evidence: "Menos esforço manual. Mais processo.",
       focus: "automation"
@@ -456,7 +456,7 @@ function SolutionSection() {
             transition={{ delay: 0.2 }}
             className="text-xl text-slate-500 max-w-2xl font-geist leading-relaxed"
           >
-            O Fluxeer organiza recebíveis, mostra prioridades e traz mais previsibilidade para o caixa.
+            O Fluxeer é o software de cobrança B2B que organiza contas a receber, automatiza a régua de cobrança e traz mais previsibilidade para o caixa.
           </motion.p>
         </div>
 
@@ -910,7 +910,7 @@ export default function LandingPage() {
                   style={{ opacity: mvOp1, filter: blurHero }}
                   className="self-center lg:self-start text-[10px] font-mono font-bold text-brand-green tracking-[0.25em] uppercase mb-6"
                 >
-                  Inteligência para cobrança B2B
+                  Inteligência em cobrança B2B
                 </motion.p>
 
                 <motion.h1 
@@ -931,7 +931,7 @@ export default function LandingPage() {
                   style={{ opacity: mvOp3, filter: blurHero }}
                   className="text-xl text-white/60 leading-relaxed mb-8 max-w-md mx-auto lg:mx-0 font-geist"
                 >
-                  O Fluxeer organiza seus recebíveis, mostra prioridades e dá mais previsibilidade para o seu caixa.
+                  O Fluxeer é o software de cobrança que organiza seus recebíveis, mostra prioridades e dá mais previsibilidade para o seu caixa.
                 </motion.p>
                 
                 {/* Micro-proofs */}
@@ -1123,28 +1123,24 @@ function FAQSection() {
 
   const faqs = [
     {
-      q: "Para que tipo de empresa o Fluxeer é indicado?",
-      a: "O Fluxeer faz mais sentido para empresas que já lidam com rotina de cobrança, contas a receber e necessidade de mais organização, prioridade e previsibilidade."
+      q: "O que é um software de cobrança e como o Fluxeer ajuda?",
+      a: "Um software de cobrança como o Fluxeer automatiza o acompanhamento de faturas. Ele organiza seu contas a receber, automatiza a régua de cobrança e traz previsibilidade real para o seu caixa."
     },
     {
-      q: "O Fluxeer substitui minha planilha?",
-      a: "Na prática, sim. A proposta é tirar a operação de controles paralelos e centralizar a cobrança em um fluxo mais visível e confiável."
+      q: "Como organizar uma régua de cobrança B2B eficiente?",
+      a: "No Fluxeer, você estrutura etapas lógicas de contato (antes, no dia e após o vencimento). Isso reduz a inadimplência e profissionaliza o relacionamento comercial com seus clientes."
     },
     {
-      q: "Preciso ter uma equipe grande para usar?",
-      a: "Não. O Fluxeer ajuda desde operações menores até times mais estruturados que precisam cobrar com mais lógica e menos improviso."
+      q: "Como o Fluxeer ajuda a reduzir a inadimplência e o DSO?",
+      a: "Através da priorização inteligente por risco e da automação de lembretes, o Fluxeer acelera a entrada de recursos, reduzindo o tempo médio de recebimento (DSO)."
     },
     {
-      q: "O sistema ajuda a priorizar cobranças?",
-      a: "Sim. O Fluxeer ajuda a visualizar clientes e faturas que pedem ação primeiro, reduzindo reação tardia e melhorando a organização da operação."
+      q: "Qual a vantagem da cobrança automática sobre o processo manual?",
+      a: "A cobrança automática garante que nenhuma fatura seja esquecida, remove o erro humano e libera seu time financeiro para focar em análises estratégicas e negociações críticas."
     },
     {
-      q: "O Fluxeer ajuda com previsibilidade de caixa?",
-      a: "Sim. A plataforma melhora a visibilidade sobre o que tende a entrar, ajudando o time a operar com mais clareza e segurança."
-    },
-    {
-      q: "Como posso conhecer o Fluxeer na prática?",
-      a: "Você pode solicitar uma demonstração guiada para entender como a plataforma se adapta à sua rotina de cobrança e contas a receber."
+      q: "O Fluxeer é indicado para gestão de contas a receber complexas?",
+      a: "Sim. O Fluxeer foi desenhado para operações B2B que lidam com múltiplos vencimentos, faturas de alto valor e que precisam de previsibilidade de caixa rigorosa."
     }
   ];
 
@@ -1805,6 +1801,16 @@ function Footer() {
                 <a href="#solucao" onClick={(e) => scrollTo(e, 'solucao')} className="text-sm text-slate-500 hover:text-brand-green transition-colors">Solução</a>
                 <a href="#plataforma" onClick={(e) => scrollTo(e, 'plataforma')} className="text-sm text-slate-500 hover:text-brand-green transition-colors">Plataforma</a>
                 <a href="#faq" onClick={(e) => scrollTo(e, 'faq')} className="text-sm text-slate-500 hover:text-brand-green transition-colors">FAQ</a>
+              </div>
+           </div>
+           <div className="space-y-6">
+              <h5 className="text-[11px] font-mono font-bold text-slate-950 uppercase tracking-[0.2em]">Soluções</h5>
+              <div className="flex flex-col gap-4">
+                <Link href="/software-de-cobranca" className="text-sm text-slate-500 hover:text-brand-green transition-colors">Software de Cobrança</Link>
+                <Link href="/regua-de-cobranca" className="text-sm text-slate-500 hover:text-brand-green transition-colors">Régua de Cobrança</Link>
+                <Link href="/contas-a-receber" className="text-sm text-slate-500 hover:text-brand-green transition-colors">Contas a Receber</Link>
+                <Link href="/previsibilidade-de-caixa" className="text-sm text-slate-500 hover:text-brand-green transition-colors">Previsibilidade de Caixa</Link>
+                <Link href="/cobranca-b2b" className="text-sm text-slate-500 hover:text-brand-green transition-colors">Cobrança B2B</Link>
               </div>
            </div>
            <div className="space-y-6">
