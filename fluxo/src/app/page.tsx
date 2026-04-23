@@ -1,111 +1,245 @@
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, BarChart3, Bell, CheckCircle2, Clock, CreditCard, ShieldCheck, TrendingUp } from "lucide-react";
+import { ArrowRight, CheckCircle2, Clock, ShieldCheck, TrendingUp, AlertTriangle, PlayCircle, BarChart3 } from "lucide-react";
 import logoLogin from "@/assets/logo_dashboard.png";
 import { LeadForm } from "@/components/landing/LeadForm";
 import { ParticlesBackground } from "@/components/ui/ParticlesBackground";
 
 export default function LandingPage() {
   return (
-    <div className="bg-gray-50 text-gray-900 antialiased overflow-x-hidden font-geist">
-      {/* ═══════════════════════════════════════════════
-          HERO SECTION (DARK THEME) + WHITE PARTICLES
-      ════════════════════════════════════════════════ */}
-      <section className="relative min-h-screen overflow-hidden bg-slate-950 flex flex-col rounded-b-[3rem] shadow-2xl z-20" id="hero">
-        
+    <div className="bg-gray-50 text-gray-900 antialiased overflow-x-hidden">
+
+      {/* ══════════════════════ HERO (EDITORIAL & PREMIUM) ══════════════════════ */}
+      <section className="relative min-h-[90vh] overflow-hidden bg-slate-950 flex flex-col" id="hero">
+
         <ParticlesBackground />
 
-        {/* Dark Grid Lines bg */}
-        <div className="pointer-events-none absolute inset-0 z-[2] grid-lines-dark overflow-hidden">
-          <div className="gl-v left-[12.5%]" />
-          <div className="gl-v left-[25%]" />
-          <div className="gl-v left-[37.5%]" />
-          <div className="gl-v left-[50%] bg-gradient-to-b from-transparent via-white/10 to-transparent" />
-          <div className="gl-v left-[62.5%]" />
-          <div className="gl-v left-[75%]" />
-          <div className="gl-v left-[87.5%]" />
-        </div>
-
-        {/* Background Gradients for Premium Dark Look */}
+        {/* Minimal ambient glow */}
         <div className="absolute inset-0 z-[1] pointer-events-none">
-          <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse 70% 50% at 50% -10%, rgba(16,185,129,0.15) 0%, transparent 100%)' }} />
+          <div className="absolute top-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full opacity-20" style={{ background: 'radial-gradient(circle, rgba(16,185,129,0.4) 0%, transparent 70%)', filter: 'blur(100px)' }} />
           <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-slate-950 to-transparent" />
         </div>
 
-        {/* NAV (Dark style) */}
-        <header className="relative z-[20] w-full pt-8 flex justify-center px-4">
-          <nav className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-full py-2 px-4 flex items-center justify-between gap-3 animate-[fadeSlideIn_0.8s_ease-out_0.1s_both] w-full max-w-4xl">
-            {/* Logo */}
-            <Link href="/" className="flex items-center gap-2 pr-4 sm:pr-8 border-r border-white/10 hover:opacity-80 transition-opacity">
-              {/* @ts-ignore */}
-              <Image src={logoLogin} alt="Fluxeer" width={120} height={28} className="w-auto h-7 object-contain" />
-            </Link>
-            
-            <div className="hidden sm:flex items-center gap-1">
-              <a className="text-xs font-semibold text-white/60 hover:text-white transition-colors px-4 py-2 rounded-full hover:bg-white/5 font-geist" href="#solucao">Visão Geral</a>
-            </div>
+        {/* Subdued Grid lines */}
+        <div className="pointer-events-none absolute inset-0 z-[2] grid-lines-dark overflow-hidden opacity-50">
+          <div className="gl-v left-[20%]" />
+          <div className="gl-v left-[50%]" />
+          <div className="gl-v left-[80%]" />
+        </div>
 
-            <div className="flex items-center gap-2">
-              <Link className="text-xs font-bold text-white/70 hover:text-white transition-colors px-4 py-2 rounded-full hover:bg-white/5 font-geist" href="/login">Entrar</Link>
-              <a className="ml-1 btn-shimmer btn-shimmer-dark inline-flex items-center gap-1.5 bg-white text-slate-950 text-xs font-bold px-6 py-2.5 rounded-full shadow-[0_0_20px_rgba(255,255,255,0.2)] transition-transform hover:scale-105" href="#contact-form">
+        {/* ── REFINED NAV ── */}
+        <header className="relative z-[20] w-full pt-8 px-6 flex justify-center">
+          <nav className="anim-fade-slide-0 bg-transparent py-2 flex items-center justify-between w-full max-w-7xl">
+            <Link href="/" className="hover:opacity-80 transition-opacity">
+              {/* @ts-ignore */}
+              <Image src={logoLogin} alt="Fluxeer" width={110} height={26} className="w-auto h-6 object-contain" />
+            </Link>
+
+            <div className="flex items-center gap-4">
+              <Link
+                className="inline-flex items-center justify-center py-2 px-5 rounded-full bg-white/[0.03] hover:bg-white/[0.08] backdrop-blur-xl border border-white/10 text-white/70 hover:text-white text-sm font-medium transition-all shadow-[0_4px_20px_rgba(0,0,0,0.1)]"
+                href="/login"
+              >
+                Entrar
+              </Link>
+              <a
+                className="btn-shimmer btn-shimmer-dark inline-flex items-center gap-2 bg-white/10 text-white text-sm font-semibold px-5 py-2.5 rounded-full hover:bg-white/15 transition-colors border border-white/10 backdrop-blur-md"
+                href="#contact"
+              >
                 Solicitar demonstração
               </a>
             </div>
           </nav>
         </header>
 
-        {/* Hero Content */}
-        <main className="relative z-[10] flex-1 flex flex-col justify-center pb-20 pt-12 md:pt-0">
-          <div className="max-w-7xl mx-auto px-6 md:px-8 w-full">
-            <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
+        {/* ── HERO BODY ── */}
+        <div className="relative z-[10] flex-1 flex items-center pb-20">
+          <div className="w-full max-w-7xl mx-auto px-6 py-12 md:py-0">
 
-              {/* Left: Headline (Premium & Sophisticated) */}
-              <div className="lg:w-1/2 flex flex-col justify-center text-center lg:text-left">
-                <div className="inline-flex self-center lg:self-start text-[11px] font-bold text-emerald-400 border border-emerald-500/20 bg-emerald-500/5 rounded-full mb-8 py-2 px-4 gap-2 items-center animate-[fadeSlideIn_1s_ease-out_0.1s_both] font-mono tracking-widest uppercase">
-                  Cobrança B2B com mais controle e menos improviso
-                </div>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
 
-                <h1 className="text-5xl sm:text-6xl lg:text-[4.5rem] font-manrope font-extrabold tracking-tighter leading-[1.05] text-white mb-6 animate-[fadeSlideIn_1s_ease-out_0.2s_both]">
-                  Pare de cobrar no improviso antes que isso continue <br className="hidden lg:block"/>drenando seu <span className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-teal-300">caixa.</span>
-                </h1>
+              {/* ── Left: Editorial Copy ── */}
+              <div className="lg:col-span-5 flex flex-col text-center lg:text-left z-20">
 
-                <p className="text-lg text-white/70 leading-relaxed mb-10 max-w-xl mx-auto lg:mx-0 animate-[fadeSlideIn_1s_ease-out_0.3s_both] font-geist font-medium">
-                  Quando a cobrança roda sem processo, o time reage tarde, perde eficiência e o caixa perde previsibilidade. O <strong className="text-white">Fluxeer</strong> organiza seus recebíveis, estrutura o acompanhamento e mostra com mais clareza onde agir primeiro.
+                <p className="anim-fade-slide-1 self-center lg:self-start text-[10px] font-mono font-bold text-emerald-400 tracking-[0.25em] uppercase mb-6">
+                  Inteligência para cobrança B2B
                 </p>
 
-                <div className="flex flex-col sm:flex-row items-center gap-4 animate-[fadeSlideIn_1s_ease-out_0.4s_both]">
-                  <a href="#contact-form" className="w-full sm:w-auto group btn-shimmer btn-shimmer-dark inline-flex items-center justify-center gap-3 bg-emerald-500 text-white text-base font-bold px-8 py-4 rounded-xl hover:bg-emerald-400 transition-colors shadow-[0_0_30px_rgba(16,185,129,0.3)] active:scale-95">
-                    <span>Quero ver o Fluxeer funcionando</span>
-                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                <h1 className="anim-fade-slide-2 font-manrope font-extrabold tracking-tight leading-[1.0] text-white mb-6 text-5xl sm:text-6xl lg:text-[4.5rem]">
+                  Controle o que entra.<br />
+                  <span className="text-emerald-400">Antecipe o que atrasa.</span>
+                </h1>
+
+                <p className="anim-fade-slide-3 text-lg text-white/60 leading-relaxed mb-8 max-w-md mx-auto lg:mx-0 font-geist">
+                  O Fluxeer organiza seus recebíveis, mostra prioridades e dá mais previsibilidade para o seu caixa.
+                </p>
+                
+                {/* Micro-proofs */}
+                <ul className="anim-fade-up-4 mb-10 flex flex-col gap-3 text-left w-full max-w-md mx-auto lg:mx-0">
+                  {[
+                    "Prioridades de cobrança em tempo real",
+                    "Visão de risco por cliente e fatura",
+                    "Mais previsibilidade para o caixa"
+                  ].map((text, i) => (
+                    <li key={i} className="flex items-center gap-3 text-sm text-white/90 font-semibold transform-gpu">
+                      <div className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0 border border-emerald-500/30">
+                        <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                      </div>
+                      {text}
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="anim-fade-slide-5 flex flex-col sm:flex-row items-center gap-4">
+                  <a
+                    href="#contact"
+                    className="w-full sm:w-auto group btn-shimmer btn-shimmer-dark inline-flex items-center justify-center gap-2 bg-emerald-500 text-slate-950 text-sm font-bold px-7 py-3.5 rounded-xl hover:bg-emerald-400 transition-colors shadow-[0_0_24px_rgba(16,185,129,0.25)] active:scale-[0.98]"
+                  >
+                    Quero ver o Fluxeer funcionando
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                   </a>
-                  <Link href="/login" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-transparent text-white/70 text-sm font-bold px-6 py-4 rounded-xl hover:text-white hover:bg-white/5 transition-colors active:scale-95">
+                  <Link
+                    href="/login"
+                    className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] backdrop-blur-xl border border-white/10 text-white/80 hover:text-white text-sm font-medium transition-all shadow-[0_4px_20px_rgba(0,0,0,0.1)] active:scale-[0.98]"
+                  >
                     Entrar
                   </Link>
                 </div>
               </div>
 
-              {/* Right: Premium Embedded Form */}
-              <div className="lg:w-[45%] w-full max-w-md mx-auto relative perspective-normal" id="contact-form">
-                {/* Clean, subtle background glow */}
-                <div className="absolute inset-0 bg-emerald-500/10 blur-[80px] rounded-full pointer-events-none" />
+              {/* ── Right: Premium Product Mockup ── */}
+              <div className="lg:col-span-7 w-full relative perspective-normal mt-10 lg:mt-0 anim-float">
                 
-                <div className="relative transform rotate-y-[-5deg] rotate-x-[2deg] translate-z-[-20px] shadow-2xl animate-[float_6s_ease-in-out_infinite] [animation:fadeSlideIn_1s_ease-out_0.5s_both]">
-                  <div className="absolute -inset-0.5 bg-gradient-to-b from-white/10 to-white/0 rounded-[2.6rem] blur-sm opacity-50" />
+                {/* Main Mockup Chassis */}
+                <div className="relative w-full max-w-2xl mx-auto lg:ml-auto lg:mr-0 transform rotate-y-[-8deg] rotate-x-[4deg] translate-z-[-20px] transition-transform duration-700 hover:rotate-y-[-2deg] hover:rotate-x-[1deg]">
                   
-                  {/* The LeadForm is fully embedded as a functional block of the Hero */}
-                  <LeadForm />
+                  {/* Outer edge glow */}
+                  <div className="absolute -inset-[1px] bg-gradient-to-b from-white/20 to-transparent rounded-3xl" />
+                  
+                  {/* Chassis bg */}
+                  <div className="relative bg-slate-900 border border-white/10 rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+                    
+                    {/* Fake App Header */}
+                    <div className="h-12 border-b border-white/10 bg-white/5 flex items-center px-4 gap-2">
+                       <div className="flex gap-1.5 flex-1">
+                         <div className="w-2.5 h-2.5 rounded-full bg-rose-500/80" />
+                         <div className="w-2.5 h-2.5 rounded-full bg-amber-500/80" />
+                         <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
+                       </div>
+                       <div className="flex-1 flex justify-center">
+                         <div className="w-32 h-4 bg-white/10 rounded-full" />
+                       </div>
+                       <div className="flex-1" />
+                    </div>
+
+                    {/* App Content */}
+                    <div className="p-6">
+                      <div className="flex justify-between items-end mb-6">
+                        <div>
+                          <p className="text-[10px] text-white/40 uppercase tracking-widest font-mono mb-1">Previsão de Recebimento</p>
+                          <h3 className="text-3xl font-manrope font-bold text-white tracking-tight">R$ 428.500</h3>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-mono py-1 px-2.5 bg-emerald-500/10 rounded-md border border-emerald-500/20">
+                          <TrendingUp className="w-3 h-3" />
+                          +14.2%
+                        </div>
+                      </div>
+
+                      {/* Fake Chart graphic */}
+                      <div className="h-32 w-full relative mb-6 rounded-xl overflow-hidden bg-slate-950/50 border border-white/5">
+                        <svg viewBox="0 0 400 100" className="w-full h-full" preserveAspectRatio="none">
+                          <defs>
+                            <linearGradient id="chart-grad1" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="#10b981" stopOpacity="0.4"/>
+                              <stop offset="100%" stopColor="#10b981" stopOpacity="0"/>
+                            </linearGradient>
+                            <linearGradient id="chart-grad2" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="#818cf8" stopOpacity="0.3"/>
+                              <stop offset="100%" stopColor="#818cf8" stopOpacity="0"/>
+                            </linearGradient>
+                          </defs>
+                          {/* Background wave (gray/indigo) */}
+                          <path d="M0,80 C50,70 100,90 150,60 C200,30 250,70 300,50 C350,30 400,60 400,60" fill="none" stroke="#818cf8" strokeOpacity="0.5" strokeWidth="2" style={{strokeDasharray: 800, animation: 'chart-draw 3s ease-out both'}} />
+                          <path d="M0,80 C50,70 100,90 150,60 C200,30 250,70 300,50 C350,30 400,60 400,60 L400,100 L0,100 Z" fill="url(#chart-grad2)" />
+                          {/* Primary wave (emerald) */}
+                          <path d="M0,60 C40,50 80,70 120,40 C160,10 200,50 250,30 C300,10 350,40 400,20" fill="none" stroke="#10b981" strokeWidth="3" style={{strokeDasharray: 800, animation: 'chart-draw 2s ease-out 0.2s both'}} />
+                          <path d="M0,60 C40,50 80,70 120,40 C160,10 200,50 250,30 C300,10 350,40 400,20 L400,100 L0,100 Z" fill="url(#chart-grad1)" />
+                        </svg>
+                      </div>
+
+                      {/* Fake table rows */}
+                      <div className="space-y-3">
+                        {[
+                          { name: "Acme Corp", val: "R$ 45.000", badge: "Amanhã", col: "text-amber-400", bg: "bg-amber-400/10", border: "border-amber-400/20" },
+                          { name: "Global Tech", val: "R$ 18.200", badge: "Hoje", col: "text-emerald-400", bg: "bg-emerald-400/10", border: "border-emerald-400/20" },
+                        ].map((r, i) => (
+                           <div key={i} className="flex justify-between items-center p-3 rounded-lg bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] transition-colors">
+                             <div className="flex flex-col">
+                               <span className="text-sm text-white/90 font-medium">{r.name}</span>
+                               <span className="text-xs text-white/40">{r.val}</span>
+                             </div>
+                             <div className={`text-[10px] px-2 py-1 rounded-md font-mono ${r.col} ${r.bg} ${r.border} border`}>
+                               {r.badge}
+                             </div>
+                           </div>
+                        ))}
+                      </div>
+
+                    </div>
+                  </div>
+
+                  {/* ── Overlay Insight 1: Ranking de Risco ── */}
+                  <div className="absolute top-16 -right-6 lg:-right-12 w-48 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-2xl anim-float" style={{ animationDelay: '1s' }}>
+                    <div className="flex items-center gap-2 mb-2">
+                       <AlertTriangle className="w-4 h-4 text-rose-400" />
+                       <span className="text-[10px] font-mono text-white/60 uppercase tracking-wider">Alto Risco</span>
+                    </div>
+                    <p className="text-sm font-semibold text-white truncate">MegaStore SA</p>
+                    <p className="text-xs text-rose-400 font-mono mt-1">PDD 85% • R$ 32k</p>
+                  </div>
+
+                  {/* ── Overlay Insight 2: Régua Ativa ── */}
+                  <div className="absolute bottom-8 -left-6 lg:-left-12 w-56 bg-emerald-500/10 backdrop-blur-xl border border-emerald-500/20 rounded-2xl p-4 shadow-2xl anim-float-reverse" style={{ animationDelay: '0.5s' }}>
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex items-center gap-2">
+                         <PlayCircle className="w-4 h-4 text-emerald-400" />
+                         <span className="text-[10px] font-mono text-emerald-300 uppercase tracking-wider">Régua Ativa</span>
+                      </div>
+                      <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    </div>
+                    <p className="text-sm font-medium text-white">Lembrete Vencimento</p>
+                    <div className="mt-2 h-1 w-full bg-black/20 rounded-full overflow-hidden">
+                      <div className="h-full w-[80%] bg-emerald-400 rounded-full" />
+                    </div>
+                  </div>
+
                 </div>
               </div>
 
             </div>
           </div>
-        </main>
+        </div>
       </section>
 
-      {/* ═══════════════════════════════════════════════
-          LIGHT MODE DASHBOARD BODY
-      ════════════════════════════════════════════════ */}
-      <section className="relative bg-transparent pt-32 pb-24 px-6 overflow-hidden" id="solucao">
+      {/* ══════════════════════ CAPTATION SECTION ══════════════════════ */}
+      <section className="relative py-24 bg-slate-900 border-t border-white/5 overflow-hidden" id="contact">
+        <div className="pointer-events-none absolute inset-0 z-[0] opacity-50" style={{ background: 'radial-gradient(ellipse at center, rgba(16,185,129,0.05) 0%, transparent 60%)' }} />
+        
+        <div className="max-w-xl mx-auto px-6 relative z-10">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-manrope font-extrabold text-white tracking-tight mb-3">
+              Pronto para ter clareza financeira?
+            </h2>
+            <p className="text-sm text-white/50">
+              Agende uma demonstração e veja como a nossa inteligência se adapta ao fluxo da sua empresa.
+            </p>
+          </div>
+          <LeadForm />
+        </div>
+      </section>
+
+      {/* ══════════════════════ SOLUTION (LIGHT) ══════════════════════ */}
+      <section className="relative bg-gray-50 pt-24 pb-24 px-6 overflow-hidden" id="solucao">
         <div className="pointer-events-none absolute inset-0 grid-lines-light overflow-hidden z-0">
           <div className="gl-v left-[25%]" />
           <div className="gl-v left-[50%]" />
@@ -115,49 +249,52 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="flex flex-col lg:flex-row justify-between items-start mb-16 gap-8">
             <div>
-              <p className="text-[11px] text-emerald-600 uppercase tracking-[0.2em] font-mono font-bold mb-4">01 — Inteligência Operacional</p>
-              <h2 className="text-5xl md:text-6xl font-manrope font-extrabold tracking-tighter text-gray-900 leading-[0.95]">Controle Absoluto <br/>do Caixa</h2>
-            </div>
-            <div className="max-w-md border-l-2 border-emerald-500 pl-6">
-              <p className="text-gray-600 leading-relaxed text-lg font-geist font-medium">Automação de ponta a ponta projetada para aumentar a eficiência financeira, diminuir a inadimplência passiva e blindar a sua margem.</p>
+              <p className="text-[10px] text-emerald-600 uppercase tracking-[0.25em] font-mono font-bold mb-4">A Plataforma</p>
+              <h2 className="text-4xl md:text-5xl font-manrope font-extrabold tracking-tighter text-gray-900 leading-[0.95]">
+                Tudo o que você precisa<br />para cobrar melhor.
+              </h2>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white border border-gray-200 rounded-[2rem] p-8 card-raise shadow-sm">
-              <div className="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center mb-6 shadow-inner">
-                <Clock className="w-7 h-7 text-emerald-600" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              {
+                icon: <Clock className="w-6 h-6 text-emerald-600" />,
+                bg: "bg-emerald-50 border-emerald-100",
+                title: "Fim do trabalho manual",
+                desc: "Réguas nativas disparam mensagens e cobranças sem depender de intervenção humana."
+              },
+              {
+                icon: <TrendingUp className="w-6 h-6 text-indigo-600" />,
+                bg: "bg-indigo-50 border-indigo-100",
+                title: "Conciliação nativa",
+                desc: "Controle de aging e recebimentos provisionados sincronizados em tempo real."
+              },
+              {
+                icon: <ShieldCheck className="w-6 h-6 text-slate-700" />,
+                bg: "bg-slate-50 border-slate-200",
+                title: "Proteção de margem",
+                desc: "Diminua o risco de atrasos recorrentes transformando faturas alvo em saldo líquido."
+              }
+            ].map((item, i) => (
+              <div key={i} className="bg-white border border-gray-150 rounded-2xl p-7 card-raise shadow-sm">
+                <div className={`w-12 h-12 rounded-xl border flex items-center justify-center mb-5 ${item.bg}`}>
+                  {item.icon}
+                </div>
+                <h3 className="font-manrope text-lg font-bold text-gray-900 mb-2 tracking-tight">{item.title}</h3>
+                <p className="text-gray-500 text-sm leading-relaxed">{item.desc}</p>
               </div>
-              <h3 className="font-manrope text-2xl font-bold text-gray-900 mb-3 tracking-tight">Fim do trabalho manual</h3>
-              <p className="text-gray-500 font-geist text-base leading-relaxed">Réguas nativas disparam mensagens e cobranças sem depender de intervenção humana. Seu time foca em métricas, não em boletos atrasados.</p>
-            </div>
-            
-            <div className="bg-white border border-gray-200 rounded-[2rem] p-8 card-raise shadow-sm">
-              <div className="w-14 h-14 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center mb-6 shadow-inner">
-                <TrendingUp className="w-7 h-7 text-indigo-600" />
-              </div>
-              <h3 className="font-manrope text-2xl font-bold text-gray-900 mb-3 tracking-tight">Conciliação nativa</h3>
-              <p className="text-gray-500 font-geist text-base leading-relaxed">Controle de aging e recebimentos provisionados sincronizados em tempo real, fornecendo informações financeiras limpas para tomada de decisão.</p>
-            </div>
-
-            <div className="bg-white border border-gray-200 rounded-[2rem] p-8 card-raise shadow-sm relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500/5 blur-3xl rounded-full" />
-              <div className="w-14 h-14 rounded-2xl bg-rose-50 border border-rose-100 flex items-center justify-center mb-6 shadow-inner relative z-10">
-                <ShieldCheck className="w-7 h-7 text-rose-600" />
-              </div>
-              <h3 className="font-manrope text-2xl font-bold text-gray-900 mb-3 tracking-tight relative z-10">Proteção de Margem</h3>
-              <p className="text-gray-500 font-geist text-base leading-relaxed relative z-10">Diminua o risco de atrasos recorrentes transformando faturas alvo em saldo líquido direto e contínuo para a sua empresa.</p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-slate-950 border-t border-white/10 py-10 text-center flex flex-col md:flex-row items-center justify-between px-6 lg:px-12 z-20 relative">
-        <p className="font-geist text-sm text-white/40">© 2026 Fluxeer. Todos os direitos reservados.</p>
-        <div className="mt-4 md:mt-0 space-x-6">
-           <Link href="/login" className="font-geist text-sm text-white/40 hover:text-white transition-colors font-medium">Acesso de Clientes</Link>
-        </div>
+      {/* ══════════════════════ FOOTER ══════════════════════ */}
+      <footer className="bg-slate-950 border-t border-white/5 py-8 flex flex-col md:flex-row items-center justify-between px-6 lg:px-12 gap-4">
+        <p className="text-xs text-white/30 font-mono">© 2026 Fluxeer. Todos os direitos reservados.</p>
+        <Link href="/login" className="text-xs text-white/30 hover:text-white/70 transition-colors font-medium">
+          Acesso de Clientes
+        </Link>
       </footer>
     </div>
   );

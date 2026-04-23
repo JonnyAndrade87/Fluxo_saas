@@ -9,85 +9,112 @@ export function LeadForm() {
   const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
-    if (state?.success) {
-      setSubmitted(true);
-    }
+    if (state?.success) setSubmitted(true);
   }, [state]);
 
   if (submitted) {
     return (
-      <div className="w-full bg-slate-900/80 backdrop-blur-2xl p-10 rounded-[2.5rem] border border-white/10 shadow-2xl flex flex-col items-center justify-center gap-5 text-center">
-        <div className="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center mb-2 border border-emerald-500/20">
-          <ShieldCheck className="w-8 h-8 text-emerald-400" />
+      <div className="w-full border border-white/10 rounded-2xl p-8 flex flex-col items-center gap-4 text-center" style={{ background: 'rgba(255,255,255,0.03)' }}>
+        <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+          <ShieldCheck className="w-6 h-6 text-emerald-400" />
         </div>
-        <h3 className="text-2xl font-manrope font-bold text-white">Solicitação enviada!</h3>
-        <p className="text-sm font-geist text-white/70">
-          Nossa equipe comercial entrará em contato em breve para agendar sua demonstração.
-        </p>
+        <div>
+          <h3 className="font-manrope font-bold text-white text-base mb-1">Solicitação recebida.</h3>
+          <p className="text-sm text-white/40">Nossa equipe entrará em contato em breve.</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <form action={action} className="w-full bg-slate-900/80 backdrop-blur-2xl p-10 rounded-[2.5rem] border border-white/10 shadow-2xl flex flex-col gap-6 text-left relative overflow-hidden">
-      {/* Subtle top glow inside card */}
-      <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent" />
-      
-      {state?.error && (
-        <div className="flex items-center gap-2 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm font-geist">
-          <AlertCircle className="w-4 h-4 shrink-0" />
-          <p>{state.error}</p>
+    <form
+      action={action}
+      className="w-full border border-white/10 rounded-2xl overflow-hidden"
+      style={{ background: 'rgba(255,255,255,0.03)', backdropFilter: 'blur(24px)' }}
+    >
+      {/* Top accent */}
+      <div className="h-px bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent" />
+
+      <div className="p-7 flex flex-col gap-5">
+
+        {/* Title block */}
+        <div>
+          <h2 className="font-manrope font-extrabold text-white text-lg leading-tight tracking-tight mb-1">
+            Assuma o controle da cobrança
+          </h2>
+          <p className="text-xs text-white/35 font-mono">Retorno em até 24h úteis.</p>
         </div>
-      )}
-      
-      <div>
-        <label htmlFor="email" className="text-[11px] font-mono text-gray-400 uppercase tracking-widest mb-2 block">Email Address</label>
-        <div className="relative">
-          <input 
-            id="email"
-            name="email"
-            type="email" 
-            placeholder="you@company.com" 
-            required
-            disabled={isPending}
-            className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all font-geist text-white shadow-sm placeholder:text-gray-500 disabled:opacity-50"
-          />
-        </div>
-      </div>
-      
-      <div>
-        <label htmlFor="company" className="text-[11px] font-mono text-gray-400 uppercase tracking-widest mb-2 block">Company / Agency</label>
-        <div className="relative">
-          <input 
-            id="company"
-            name="company"
-            type="text" 
-            placeholder="Fluxeer Corp" 
-            required
-            disabled={isPending}
-            className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all font-geist text-white shadow-sm placeholder:text-gray-500 disabled:opacity-50"
-          />
-        </div>
-      </div>
-      
-      <button 
-        type="submit" 
-        disabled={isPending}
-        className="w-full btn-shimmer btn-shimmer-dark inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-6 py-4 rounded-xl transition-all shadow-[0_0_30px_rgba(16,185,129,0.2)] disabled:opacity-70 disabled:cursor-not-allowed mt-2 active:scale-95"
-      >
-        {isPending ? (
-          <>
-            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-            Enviando...
-          </>
-        ) : (
-          'Agendar Reunião de Demonstração'
+
+        {/* Error */}
+        {state?.error && (
+          <div className="flex items-center gap-2 p-3 rounded-xl border text-xs" style={{ background: 'rgba(239,68,68,0.06)', borderColor: 'rgba(239,68,68,0.12)', color: '#fca5a5' }}>
+            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+            <p>{state.error}</p>
+          </div>
         )}
-      </button>
-      
-      <p className="text-center text-[11px] font-mono text-gray-500 mt-2 tracking-wide uppercase">
-        Safe & Secure.
-      </p>
+
+        {/* Fields */}
+        <div className="flex flex-col gap-3">
+          <div>
+            <label htmlFor="email" className="block text-[10px] font-mono text-white/30 tracking-[0.2em] uppercase mb-1.5">
+              E-mail corporativo
+            </label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              placeholder="voce@empresa.com.br"
+              required
+              disabled={isPending}
+              className="w-full rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none transition-all disabled:opacity-40"
+              style={{
+                background: 'rgba(255,255,255,0.06)',
+                border: '1px solid rgba(255,255,255,0.08)',
+              }}
+              onFocus={e => e.currentTarget.style.borderColor = 'rgba(16,185,129,0.4)'}
+              onBlur={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="company" className="block text-[10px] font-mono text-white/30 tracking-[0.2em] uppercase mb-1.5">
+              Empresa
+            </label>
+            <input
+              id="company"
+              name="company"
+              type="text"
+              placeholder="Nome da empresa"
+              required
+              disabled={isPending}
+              className="w-full rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none transition-all disabled:opacity-40"
+              style={{
+                background: 'rgba(255,255,255,0.06)',
+                border: '1px solid rgba(255,255,255,0.08)',
+              }}
+              onFocus={e => e.currentTarget.style.borderColor = 'rgba(16,185,129,0.4)'}
+              onBlur={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'}
+            />
+          </div>
+        </div>
+
+        {/* CTA */}
+        <button
+          type="submit"
+          disabled={isPending}
+          className="w-full btn-shimmer btn-shimmer-dark inline-flex items-center justify-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm py-3.5 rounded-xl transition-colors shadow-[0_0_20px_rgba(16,185,129,0.15)] disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
+        >
+          {isPending ? (
+            <><Loader2 className="w-4 h-4 animate-spin" /> Enviando...</>
+          ) : (
+            'Agendar reunião de demonstração'
+          )}
+        </button>
+
+        <p className="text-center text-[9px] font-mono text-white/20 tracking-widest uppercase">
+          Sem spam · Dados seguros
+        </p>
+      </div>
     </form>
   );
 }

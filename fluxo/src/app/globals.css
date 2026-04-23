@@ -347,7 +347,12 @@
 
 @keyframes fadeSlideIn {
   0% { opacity: 0; transform: translateY(30px); filter: blur(8px); }
-  100% { opacity: 1; transform: translateY(0); filter: blur(0px); }
+  100% { opacity: 1; transform: translateY(0); filter: none; }
+}
+
+@keyframes fadeUpCrisp {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes float {
@@ -397,16 +402,41 @@
   background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.05) 20%, rgba(255,255,255,0.05) 80%, transparent);
 }
 
-.animate-[float_6s_ease-in-out_infinite] {
+/* Named animation helper classes (replaces arbitrary Tailwind classes that break PostCSS) */
+.anim-float {
   animation: float 6s ease-in-out infinite;
 }
-.animate-[float-reverse_8s_ease-in-out_infinite] {
+.anim-float-reverse {
   animation: float-reverse 8s ease-in-out infinite;
 }
-.animate-[fadeSlideIn_1s_ease-out_0.2s_both] {
+.anim-fade-slide-0 {
+  animation: fadeSlideIn 0.8s ease-out 0.1s both;
+}
+.anim-fade-slide-1 {
+  animation: fadeSlideIn 1s ease-out 0.1s both;
+}
+.anim-fade-slide-2 {
   animation: fadeSlideIn 1s ease-out 0.2s both;
 }
+.anim-fade-slide-3 {
+  animation: fadeSlideIn 1s ease-out 0.3s both;
+}
+.anim-fade-slide-4 {
+  animation: fadeSlideIn 1s ease-out 0.4s both;
+}
+.anim-fade-slide-5 {
+  animation: fadeSlideIn 1s ease-out 0.5s both;
+}
+.anim-fade-slide-6 {
+  animation: fadeSlideIn 1s ease-out 0.6s both;
+}
+
+/* Crisp Text Animations (No blur filter to prevent WebKit subpixel blurring) */
+.anim-fade-up-1 { animation: fadeUpCrisp 0.8s ease-out 0.1s both; }
+.anim-fade-up-2 { animation: fadeUpCrisp 0.8s ease-out 0.2s both; }
+.anim-fade-up-3 { animation: fadeUpCrisp 0.8s ease-out 0.3s both; }
+.anim-fade-up-4 { animation: fadeUpCrisp 0.8s ease-out 0.4s both; }
+
 .font-geist {
   font-family: inherit;
 }
-
