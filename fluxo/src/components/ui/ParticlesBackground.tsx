@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
+import Script from "next/script";
 
 export function ParticlesBackground() {
-  useEffect(() => {
-    const initParticles = () => {
-      if (typeof window !== "undefined" && (window as any).particlesJS) {
+  const initParticles = useCallback(() => {
+    if (typeof window !== "undefined" && (window as any).particlesJS) {
+      try {
         (window as any).particlesJS("particles-js", {
           particles: {
             number: { value: 60, density: { enable: true, value_area: 800 } },
@@ -17,7 +18,7 @@ export function ParticlesBackground() {
             move: { enable: true, speed: 2, direction: "none", random: false, straight: false, out_mode: "out", bounce: false }
           },
           interactivity: {
-            detect_on: "window",
+            detect_on: "canvas",
             events: { onhover: { enable: true, mode: "grab" }, onclick: { enable: true, mode: "push" }, resize: true },
             modes: { 
               grab: { distance: 200, line_linked: { opacity: 0.8 } }, 
@@ -29,27 +30,30 @@ export function ParticlesBackground() {
           },
           retina_detect: true
         });
-      }
-    };
-
-    if (typeof window !== "undefined") {
-      if (!(window as any).particlesJS && !document.getElementById("particles-script-js")) {
-        const script = document.createElement("script");
-        script.id = "particles-script-js";
-        script.src = "https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js";
-        script.onload = initParticles;
-        document.body.appendChild(script);
-      } else {
-        // give it a small delay if the script is already loaded but component just mounted
-        setTimeout(initParticles, 100);
+      } catch (e) {
+        console.error("Error initializing particles:", e);
       }
     }
   }, []);
 
+  useEffect(() => {
+    // If the script is already loaded (e.g. navigation back to page)
+    if (typeof window !== "undefined" && (window as any).particlesJS) {
+      initParticles();
+    }
+  }, [initParticles]);
+
   return (
-    <div 
-      id="particles-js" 
-      className="absolute inset-0 z-0 w-full h-full mix-blend-screen opacity-100" 
-    />
+    <>
+      <Script 
+        src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"
+        onLoad={initParticles}
+        strategy="afterInteractive"
+      />
+      <div 
+        id="particles-js" 
+        className="absolute inset-0 z-0 w-full h-full mix-blend-screen opacity-100 pointer-events-auto" 
+      />
+    </>
   );
 }
