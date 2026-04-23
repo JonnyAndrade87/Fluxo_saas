@@ -1,7 +1,6 @@
 import { CheckCircle2, ArrowRight } from "lucide-react";
 import Image from "next/image";
 import logoLogin from "../../assets/logo_dashboard.png";
-import textureBg from "../../assets/texture.webp";
 import { AdvantagesSlider } from "./AdvantagesSlider";
 import { ParticlesBackground } from "../../components/ui/ParticlesBackground";
 
@@ -25,12 +24,31 @@ export default function AuthLayout({
       <div className="relative z-10 w-full max-w-[1280px] bg-white rounded-[2rem] shadow-2xl shadow-gray-200/50 border border-border/50 overflow-hidden flex flex-col md:flex-row min-h-[760px]">
         
         {/* Left Side: Brand Panel - Textured SaaS Aesthetic */}
-        <div className="w-full md:w-[55%] lg:w-[60%] bg-[#0f1115] relative flex flex-col justify-between p-8 lg:p-14 border-r border-white/5 overflow-hidden flex-shrink-0">
+        <div className="w-full md:w-[55%] lg:w-[60%] bg-slate-950 relative flex flex-col justify-between p-8 lg:p-14 border-r border-white/5 overflow-hidden flex-shrink-0">
           
-          {/* Actual Texture Background from Design System */}
+          {/* Actual Background from Design System v6 */}
           <div className="absolute inset-0 z-0">
-            <Image src={textureBg} alt="Abstract Texture" className="opacity-60 mix-blend-overlay object-cover w-full h-full" priority placeholder="blur" />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0f1115] via-transparent to-[#0f1115]/80 pointer-events-none" />
+            {/* Dark Grid Lines bg */}
+            <div className="pointer-events-none absolute inset-0 z-[2] overflow-hidden">
+              <div className="absolute top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-white/5 to-transparent" style={{ left: "12.5%" }} />
+              <div className="absolute top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-white/5 to-transparent" style={{ left: "25%" }} />
+              <div className="absolute top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-white/5 to-transparent" style={{ left: "37.5%" }} />
+              <div className="absolute top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-white/10 to-transparent" style={{ left: "50%" }} />
+              <div className="absolute top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-white/5 to-transparent" style={{ left: "62.5%" }} />
+              <div className="absolute top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-white/5 to-transparent" style={{ left: "75%" }} />
+              <div className="absolute top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-white/5 to-transparent" style={{ left: "87.5%" }} />
+            </div>
+
+            {/* Background Image/Gradients for Premium Dark Look */}
+            <div className="absolute inset-0 z-[1] pointer-events-none">
+              {/* Deep emerald radial glow */}
+              <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse 70% 50% at 50% -10%, rgba(16,185,129,0.15) 0%, transparent 100%)" }} />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="https://images.unsplash.com/photo-1620065403217-063dbab3c409?q=80&w=2564&auto=format&fit=crop" className="absolute inset-0 w-full h-full object-cover opacity-10 mix-blend-luminosity" alt="Dark abstract" />
+              {/* Gradient Fade to bottom edge */}
+              <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-slate-950 to-transparent" />
+            </div>
+
             {/* Injecting the Particles JS Effect */}
             <ParticlesBackground />
           </div>
