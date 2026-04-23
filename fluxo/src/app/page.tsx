@@ -841,6 +841,15 @@ export default function LandingPage() {
 
         <ParticlesBackground />
 
+        {/* Large Brand Watermark */}
+        <div className="absolute inset-0 z-0 flex items-center justify-center opacity-[0.03] pointer-events-none overflow-hidden">
+          <Image 
+            src={logoIcon} 
+            alt="Watermark" 
+            className="w-[800px] h-[800px] grayscale brightness-200 rotate-[-15deg] translate-x-[20%] translate-y-[-10%]" 
+          />
+        </div>
+
         {/* Minimal ambient glow */}
         <div className="absolute inset-0 z-[1] pointer-events-none">
           <div className="absolute top-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full opacity-20" style={{ background: 'radial-gradient(circle, rgba(0, 176, 179, 0.4) 0%, transparent 70%)', filter: 'blur(100px)' }} />
@@ -1524,12 +1533,12 @@ function PlatformSection() {
                                </div>
                                <div className="bg-slate-900 rounded-[3rem] p-10 text-white relative overflow-hidden group/card shadow-2xl">
                                   <div className="absolute top-0 right-0 p-12 opacity-5 scale-150 rotate-12 transition-transform group-hover/card:scale-110">
-                                     <Zap className="w-48 h-48" />
+                                     <Image src={logoIcon} alt="Fluxeer Icon" className="w-48 h-48 grayscale brightness-200" />
                                   </div>
                                   <div className="relative z-10">
                                      <div className="flex items-center gap-3 mb-6">
                                         <div className="w-8 h-8 rounded-full bg-brand-green flex items-center justify-center">
-                                           <Zap className="w-4 h-4 text-slate-950" />
+                                           <Image src={logoIcon} alt="Fluxeer" className="w-4 h-4 brightness-0" />
                                         </div>
                                         <span className="text-[11px] font-mono font-bold text-brand-green uppercase tracking-widest">Preview de Interação</span>
                                      </div>
