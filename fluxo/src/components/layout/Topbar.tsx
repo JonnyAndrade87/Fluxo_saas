@@ -89,7 +89,11 @@ export function Topbar({
 
   return (
     <>
-      <header data-topbar className="h-16 w-full flex items-center justify-between px-4 md:px-8 sticky top-0 z-10 transition-all gap-4 bg-background/80 backdrop-blur-md border-b border-border/50 dark:bg-gradient-to-b dark:from-[#222225] dark:to-[#151517] dark:border-[#050505] dark:shadow-[0_4px_15px_rgba(0,0,0,0.6),inset_0_-1px_0_rgba(255,255,255,0.02)]">
+      <header 
+        data-topbar 
+        className="h-16 w-full flex items-center justify-between px-4 md:px-8 sticky top-0 z-10 transition-all gap-4 backdrop-blur-md border-b border-border/50"
+        style={{ background: 'var(--header-bg)' }}
+      >
         {/* Left: Hamburger & Context badge */}
         <div className="flex items-center gap-3">
           <MobileSidebar user={user} />

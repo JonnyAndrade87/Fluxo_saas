@@ -77,8 +77,8 @@
 
 
 @layer base {
+  /* ─── BASE LIGHT MODE (Nativo/Anterior) ───────────────────── */
   :root {
-    /* Base Colors - Clean White Canvas */
     --background: 0 0% 98%;      /* #FAFAFA */
     --foreground: 0 0% 6.7%;     /* #111111 */
     
@@ -88,16 +88,14 @@
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 6.7%;
 
-    /* Brand Indigo & Subtle Grey */
-    --primary: 0 0% 6.7%;        /* Obsidian for Primary actions */
+    --primary: 0 0% 6.7%;        /* Obsidian */
     --primary-foreground: 0 0% 98%;
 
     --secondary: 0 0% 96.1%;
     --secondary-foreground: 0 0% 6.7%;
 
-    /* Subtle Text */
     --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%; /* #737373 */
+    --muted-foreground: 0 0% 45.1%;
 
     --accent: 0 0% 96.1%;
     --accent-foreground: 0 0% 6.7%;
@@ -105,61 +103,60 @@
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
-    /* Dynamic Brand - Injected from DB */
     --brand: hsl(243 75% 59%); 
     --success: #00b0b3;
     
-    --border: 0 0% 90%; /* #E5E5E5 */
+    --border: 0 0% 90%; 
     --input: 0 0% 90%;
     --ring: var(--brand);
 
     --radius: 0.5rem;
+    
+    /* Original Sidebar/Topbar for Light Mode */
+    --sidebar-bg: #1c2129;
+    --sidebar-border: rgba(255, 255, 255, 0.05);
+    --header-bg: rgba(255, 255, 255, 0.8);
   }
 
-  /* ─── NEUMORPHIC DARK MODE — Weather Dashboard inspired ───────────────────── */
+  /* ─── NEUMORPHIC DARK MODE (Verdade Absoluta) ───────────────────── */
   .dark {
-    /* Base layers — physical, machined look */
-    --background:    240 6% 4%;    /* #0a0a0c  The deepest recessed canvas */
-    --foreground:    240 5% 90%;   /* Near white text */
+    --background:    240 6% 4%;    /* #0a0a0c */
+    --foreground:    240 5% 90%;
 
-    /* Card Tier: Raised Panels */
-    --card:          240 5% 12%;   /* #1c1c1f  Machined panel surface */
+    --card:          240 5% 12%;   /* #1c1c1f */
     --card-foreground: 240 5% 90%;
 
-    /* Popover/Menus: Floating but physical */
-    --popover:       240 6% 14%;   /* #1f1f23 */
+    --popover:       240 6% 14%;
     --popover-foreground: 240 5% 90%;
 
-    /* Actions */
     --primary:       240 5% 96%;
     --primary-foreground: 240 6% 4%;
 
-    /* Secondary: Subtle physical surfaces */
-    --secondary:     240 5% 15%;   /* Subtle panel interaction */
+    --secondary:     240 5% 15%;
     --secondary-foreground: 240 5% 85%;
 
-    /* Recessed Areas (Troughs, Tracks, LCD Screens) */
-    --muted:         240 6% 4%;    /* #0a0a0c */
-    --muted-foreground: 240 5% 45%; /* Subdued labels */
+    --muted:         240 6% 4%;    /* Recessed areas */
+    --muted-foreground: 240 5% 45%;
 
     --accent:        240 5% 18%;
     --accent-foreground: 240 5% 95%;
 
-    /* Feedback */
     --destructive:      0 84% 60%;
     --destructive-foreground: 0 0% 98%;
 
-    /* Dynamic Brand - Machined Metal Accents */
-    --brand:   hsl(217 91% 60%); /* Weather Dashboard Blue accent */
+    --brand:   hsl(217 91% 60%); 
     --success: #00b0b3;
 
-    /* Physical Structure */
-    --border: 0 0% 2%;       /* #050505 - Hard physical edge */
+    --border: 0 0% 2%;       /* #050505 */
     --input:  240 6% 6%;
     --ring:   var(--brand);
     
-    /* Utility Overrides for Dark Mode */
-    --radius: 1.5rem; /* Smoother rounded corners for Neumorphism */
+    --radius: 1.5rem;
+
+    /* Neumorphic Sidebar/Topbar for Dark Mode */
+    --sidebar-bg: linear-gradient(to bottom, #222225, #151517);
+    --sidebar-border: #050505;
+    --header-bg: linear-gradient(to bottom, #222225, #151517);
   }
 }
 
@@ -256,7 +253,7 @@
 
   /* Premium Card (Fusion AI Marketing + Finance) */
   .premium-card {
-    @apply bg-card border border-border shadow-sm transition-all duration-300;
+    @apply bg-card border border-border shadow-sm transition-all duration-300 rounded-[var(--radius)];
   }
   .premium-card:hover {
     @apply transform -translate-y-1 shadow-md border-border/80;

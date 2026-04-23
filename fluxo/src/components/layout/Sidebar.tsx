@@ -66,10 +66,13 @@ export function Sidebar({ user }: SidebarProps) {
     <aside 
       className={cn(
         "hidden lg:flex flex-col h-full py-6 relative transition-all duration-300 ease-in-out z-20",
-        "bg-[#1c2129] border-r border-white/5", // Light mode fallback
-        "dark:bg-gradient-to-b dark:from-[#222225] dark:to-[#151517] dark:border-[#050505] dark:shadow-[4px_0_15px_rgba(0,0,0,0.6),inset_-1px_0_0_rgba(255,255,255,0.02)]",
+        "border-r",
         isCollapsed ? "w-[88px]" : "w-[280px]"
       )}
+      style={{ 
+        background: 'var(--sidebar-bg)', 
+        borderColor: 'var(--sidebar-border)' 
+      }}
     >
       <button 
         onClick={() => setIsCollapsed(!isCollapsed)}
