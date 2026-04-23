@@ -77,8 +77,8 @@
 
 
 @layer base {
-  /* ─── BASE LIGHT MODE (Nativo/Anterior) ───────────────────── */
   :root {
+    /* Base Colors - Clean White Canvas */
     --background: 0 0% 98%;      /* #FAFAFA */
     --foreground: 0 0% 6.7%;     /* #111111 */
     
@@ -88,14 +88,16 @@
     --popover: 0 0% 100%;
     --popover-foreground: 0 0% 6.7%;
 
-    --primary: 0 0% 6.7%;        /* Obsidian */
+    /* Brand Indigo & Subtle Grey */
+    --primary: 0 0% 6.7%;        /* Obsidian for Primary actions */
     --primary-foreground: 0 0% 98%;
 
     --secondary: 0 0% 96.1%;
     --secondary-foreground: 0 0% 6.7%;
 
+    /* Subtle Text */
     --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
+    --muted-foreground: 0 0% 45.1%; /* #737373 */
 
     --accent: 0 0% 96.1%;
     --accent-foreground: 0 0% 6.7%;
@@ -103,67 +105,55 @@
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
+    /* Dynamic Brand - Injected from DB */
     --brand: hsl(243 75% 59%); 
     --success: #00b0b3;
     
-    --border: 0 0% 90%; 
+    --border: 0 0% 90%; /* #E5E5E5 */
     --input: 0 0% 90%;
     --ring: var(--brand);
 
     --radius: 0.5rem;
-    
-    /* Original Sidebar/Topbar for Light Mode */
-    --sidebar-bg: #1c2129;
-    --sidebar-border: rgba(255, 255, 255, 0.05);
-    --header-bg: rgba(255, 255, 255, 0.8);
   }
 
-  /* ─── NEUMORPHIC DARK MODE (Verdade Absoluta) ───────────────────── */
+  /* ─── Premium Dark Mode — Linear/Vercel inspired ───────────────────── */
   .dark {
-    --background:    240 6% 4%;    /* #0a0a0c */
-    --foreground:    240 5% 90%;
+    /* Base layers — each tier is distinguishable */
+    --background:    218 25%  8%;  /* #0d1117  deep navy canvas */
+    --foreground:    210 20% 94%;  /* #edf0f5  near-white text  */
 
-    --card:          240 5% 12%;   /* #1c1c1f */
-    --card-foreground: 240 5% 90%;
+    --card:          218 22% 12%;  /* #161c24  lifted card surface */
+    --card-foreground: 210 20% 94%;
 
-    --popover:       240 6% 14%;
-    --popover-foreground: 240 5% 90%;
+    --popover:       218 22% 14%;  /* #1a2232  dropdown / popover */
+    --popover-foreground: 210 20% 94%;
 
-    --primary:       240 5% 96%;
-    --primary-foreground: 240 6% 4%;
+    /* Actions */
+    --primary:       210 20% 94%;
+    --primary-foreground: 218 25%  8%;
 
-    --secondary:     240 5% 15%;
-    --secondary-foreground: 240 5% 85%;
+    --secondary:     218 22% 16%;  /* subtle interactive surface */
+    --secondary-foreground: 210 20% 80%;
 
-    --muted:         240 6% 4%;    /* Recessed areas */
-    --muted-foreground: 240 5% 45%;
+    /* Text tiers */
+    --muted:         218 22% 15%;
+    --muted-foreground: 215 18% 55%; /* #7d8fa8 — subdued labels */
 
-    --accent:        240 5% 18%;
-    --accent-foreground: 240 5% 95%;
+    --accent:        218 22% 18%;
+    --accent-foreground: 210 20% 90%;
 
-    --destructive:      0 84% 60%;
+    /* Feedback */
+    --destructive:      0 63% 45%;
     --destructive-foreground: 0 0% 98%;
 
-    --brand:   hsl(217 91% 60%); 
+    /* Dynamic Brand - keep brand colors vivid on dark */
+    --brand:   hsl(243 75% 65%);
     --success: #00b0b3;
 
-    --border: 0 0% 2%;       /* #050505 */
-    --input:  240 6% 6%;
+    /* Structure */
+    --border: 218 22% 20%;   /* #1f2d3d  barely visible separator */
+    --input:  218 22% 18%;
     --ring:   var(--brand);
-    
-    --radius: 1.5rem;
-
-    /* Neumorphic Sidebar/Topbar for Dark Mode */
-    --sidebar-bg: linear-gradient(to bottom, #222225, #151517);
-    --sidebar-border: #050505;
-    --header-bg: linear-gradient(to bottom, #222225, #151517);
-  }
-}
-
-@layer base {
-  /* Neumorphic LCD Text Effect */
-  .dark .screen-glow {
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
   }
 }
 
@@ -207,66 +197,12 @@
                       linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
   }
 
-  /* ─── NEUMORPHIC UTILITIES (DARK MODE ONLY) ───────────────────── */
-  .dark .neu-panel {
-    background: linear-gradient(135deg, #27272a 0%, #18181b 100%);
-    border: 1px solid #050505;
-    box-shadow: 
-      8px 8px 20px rgba(0, 0, 0, 0.6),
-      -2px -2px 10px rgba(255, 255, 255, 0.02),
-      inset 0 1px 1px rgba(255, 255, 255, 0.05);
-  }
-
-  .dark .neu-recessed {
-    background: #0a0a0c;
-    border: 1px solid #1a1a1c;
-    box-shadow: 
-      inset 0 5px 15px rgba(0, 0, 0, 0.8),
-      0 1px 0 rgba(255, 255, 255, 0.05);
-  }
-
-  .dark .neu-button {
-    background: linear-gradient(to bottom, #2a2a2d, #1c1c1f);
-    border: 1px solid #050505;
-    box-shadow: 
-      0 4px 6px rgba(0, 0, 0, 0.5),
-      inset 0 1px 1px rgba(255, 255, 255, 0.1);
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-
-  .dark .neu-button:active {
-    transform: translateY(2px);
-    box-shadow: 
-      inset 0 2px 4px rgba(0, 0, 0, 0.6),
-      0 1px 0 rgba(255, 255, 255, 0.05);
-  }
-
-  .dark .neu-glow-blue {
-    filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.5));
-  }
-
-  .dark .neu-glow-white {
-    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.2));
-  }
-
-  /* ───────────────────────────────────────────────────────────── */
-
   /* Premium Card (Fusion AI Marketing + Finance) */
   .premium-card {
-    @apply bg-card border border-border shadow-sm transition-all duration-300 rounded-[var(--radius)];
+    @apply bg-card border border-border shadow-sm transition-all duration-300;
   }
   .premium-card:hover {
     @apply transform -translate-y-1 shadow-md border-border/80;
-  }
-
-  /* Dark mode override for premium-card to use Neumorphism automatically */
-  .dark .premium-card {
-    background: linear-gradient(135deg, #27272a 0%, #18181b 100%);
-    border: 1px solid #050505;
-    box-shadow: 
-      6px 6px 16px rgba(0, 0, 0, 0.4),
-      -1px -1px 5px rgba(255, 255, 255, 0.02),
-      inset 0 1px 1px rgba(255, 255, 255, 0.05);
   }
 
   /* Interactive Beam Animation */

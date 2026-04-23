@@ -74,8 +74,8 @@ export default async function Dashboard() {
       {/* ── Page Header ──────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-zinc-200 dark:screen-glow">Painel Operacional</h1>
-          <p className="text-slate-500 text-sm mt-1 dark:text-zinc-500">Recebíveis, inadimplência e cobrança em tempo real.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Painel Operacional</h1>
+          <p className="text-slate-500 text-sm mt-1">Recebíveis, inadimplência e cobrança em tempo real.</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <Link href="/relatorios">
@@ -103,7 +103,7 @@ export default async function Dashboard() {
       <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
 
         {/* 1. Total a Receber */}
-        <Card className="premium-card">
+        <Card className="rounded-2xl border-slate-200 bg-white shadow-sm">
           <CardContent className="p-5">
             <div className="flex items-start justify-between mb-3">
               <div className="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center">
@@ -120,7 +120,7 @@ export default async function Dashboard() {
         </Card>
 
         {/* 2. Vencido */}
-        <Card className="premium-card dark:border-rose-500/20">
+        <Card className="rounded-2xl border-rose-100 bg-white shadow-sm">
           <CardContent className="p-5">
             <div className="flex items-start justify-between mb-3">
               <div className="w-9 h-9 rounded-xl bg-rose-50 flex items-center justify-center">
@@ -137,7 +137,7 @@ export default async function Dashboard() {
         </Card>
 
         {/* 3. Recebido no Mês */}
-        <Card className="premium-card dark:border-emerald-500/20">
+        <Card className="rounded-2xl border-emerald-100 bg-white shadow-sm">
           <CardContent className="p-5">
             <div className="flex items-start justify-between mb-3">
               <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center">
@@ -154,7 +154,7 @@ export default async function Dashboard() {
         </Card>
 
         {/* 4. Previsto 7 dias */}
-        <Card className="premium-card dark:border-amber-500/20">
+        <Card className="rounded-2xl border-amber-100 bg-white shadow-sm">
           <CardContent className="p-5">
             <div className="flex items-start justify-between mb-3">
               <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center">
@@ -176,8 +176,8 @@ export default async function Dashboard() {
       <div className="grid gap-3 grid-cols-2 sm:grid-cols-4">
 
         {/* Inadimplência */}
-        <div className="flex items-center gap-3 p-4 rounded-2xl border border-slate-200 bg-slate-50 dark:neu-panel dark:border-[#050505]">
-          <div className="w-8 h-8 rounded-xl bg-white border border-slate-200 flex items-center justify-center shrink-0 dark:neu-recessed dark:border-[#1a1a1c]">
+        <div className="flex items-center gap-3 p-4 rounded-2xl border border-slate-200 bg-slate-50">
+          <div className="w-8 h-8 rounded-xl bg-white border border-slate-200 flex items-center justify-center shrink-0">
             <TrendingDown className="w-4 h-4 text-slate-500" />
           </div>
           <div>
@@ -191,7 +191,7 @@ export default async function Dashboard() {
 
         {/* Recuperação */}
         <div className="flex items-center gap-3 p-4 rounded-2xl border border-slate-200 bg-slate-50">
-          <div className="w-8 h-8 rounded-xl bg-white border border-slate-200 flex items-center justify-center shrink-0 dark:neu-recessed dark:border-[#1a1a1c]">
+          <div className="w-8 h-8 rounded-xl bg-white border border-slate-200 flex items-center justify-center shrink-0">
             <RefreshCw className="w-4 h-4 text-teal-500" />
           </div>
           <div>
@@ -205,7 +205,7 @@ export default async function Dashboard() {
 
         {/* Clientes Alto Risco */}
         <div className="flex items-center gap-3 p-4 rounded-2xl border border-slate-200 bg-slate-50">
-          <div className="w-8 h-8 rounded-xl bg-white border border-slate-200 flex items-center justify-center shrink-0 dark:neu-recessed dark:border-[#1a1a1c]">
+          <div className="w-8 h-8 rounded-xl bg-white border border-slate-200 flex items-center justify-center shrink-0">
             <Users className="w-4 h-4 text-rose-500" />
           </div>
           <div>
@@ -218,7 +218,7 @@ export default async function Dashboard() {
 
         {/* Comunicações Pendentes */}
         <div className="flex items-center gap-3 p-4 rounded-2xl border border-slate-200 bg-slate-50">
-          <div className="w-8 h-8 rounded-xl bg-white border border-slate-200 flex items-center justify-center shrink-0 dark:neu-recessed dark:border-[#1a1a1c]">
+          <div className="w-8 h-8 rounded-xl bg-white border border-slate-200 flex items-center justify-center shrink-0">
             <MessageSquare className="w-4 h-4 text-indigo-500" />
           </div>
           <div>
@@ -240,7 +240,7 @@ export default async function Dashboard() {
       <div className="grid gap-6 lg:grid-cols-12">
 
         {/* Próximos Vencimentos */}
-        <Card className="premium-card">
+        <Card className="rounded-3xl border-slate-200 lg:col-span-8 flex flex-col overflow-hidden shadow-sm">
           <CardHeader className="border-b border-slate-100 bg-slate-50/70 pb-4 px-6">
             <div className="flex items-center justify-between">
               <div>
@@ -291,7 +291,7 @@ export default async function Dashboard() {
 
 
         {/* Tarefas do Dia */}
-        <Card className="premium-card">
+        <Card className="rounded-3xl border-slate-200 lg:col-span-4 flex flex-col overflow-hidden shadow-sm">
           <CardHeader className="border-b border-slate-100 bg-slate-50/70 pb-4 px-6">
             <CardTitle className="text-sm font-bold text-slate-800 flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Tarefas do Dia
@@ -338,7 +338,7 @@ export default async function Dashboard() {
       <div className="grid gap-6 lg:grid-cols-12">
 
         {/* Fluxo de Recebimentos */}
-        <Card className="premium-card">
+        <Card className="rounded-3xl border-slate-200 lg:col-span-8 flex flex-col overflow-hidden shadow-sm">
           <CardHeader className="border-b border-slate-100 bg-slate-50/70 pb-4 px-6">
             <CardTitle className="text-sm font-bold text-slate-800 flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-indigo-500" /> Fluxo de Recebimentos
@@ -351,7 +351,7 @@ export default async function Dashboard() {
         </Card>
 
         {/* Aging de Recebíveis */}
-        <Card className="premium-card">
+        <Card className="rounded-3xl border-slate-200 lg:col-span-4 flex flex-col overflow-hidden shadow-sm">
           <CardHeader className="border-b border-slate-100 bg-slate-50/70 pb-4 px-6">
             <CardTitle className="text-sm font-bold text-slate-800 flex items-center gap-2">
               <BarChart3 className="w-4 h-4 text-indigo-500" /> Aging de Recebíveis
@@ -397,7 +397,7 @@ export default async function Dashboard() {
       <div className="grid gap-6 lg:grid-cols-12">
 
         {/* Faturas Vencidas */}
-        <Card className="premium-card lg:col-span-5 flex flex-col overflow-hidden">
+        <Card className="rounded-3xl border-slate-200 lg:col-span-5 flex flex-col overflow-hidden shadow-sm">
           <CardHeader className="border-b border-slate-100 bg-slate-50/70 pb-4 px-6">
             <div className="flex items-center justify-between">
               <div>
@@ -444,7 +444,7 @@ export default async function Dashboard() {
 
 
         {/* Atividade de Comunicações */}
-        <Card className="premium-card lg:col-span-3 flex flex-col overflow-hidden">
+        <Card className="rounded-3xl border-slate-200 lg:col-span-3 flex flex-col overflow-hidden shadow-sm">
           <CardHeader className="border-b border-slate-100 bg-slate-50/70 pb-4 px-6">
             <CardTitle className="text-sm font-bold text-slate-800 flex items-center gap-2">
               <MessageSquare className="w-4 h-4 text-emerald-500" /> Comunicações
@@ -502,7 +502,7 @@ export default async function Dashboard() {
 
 
         {/* Ranking de Risco */}
-        <Card className="premium-card">
+        <Card className="rounded-3xl border-slate-200 lg:col-span-4 flex flex-col overflow-hidden shadow-sm">
           <CardHeader className="border-b border-slate-100 bg-slate-50/70 pb-4 px-6">
             <CardTitle className="text-sm font-bold text-slate-800 flex items-center gap-2">
               <ShieldAlert className="w-4 h-4 text-rose-500" /> Ranking de Risco
