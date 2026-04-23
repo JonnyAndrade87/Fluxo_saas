@@ -67,7 +67,14 @@
   --color-emerald-800: #004648;
   --color-emerald-900: #002324;
   --color-emerald-950: #001112;
+  --animate-pulse-subtle: pulse-subtle 3s ease-in-out infinite;
 }
+
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(0.98); }
+}
+
 
 @layer base {
   :root {
@@ -454,4 +461,17 @@
 
 .font-geist {
   font-family: inherit;
+}
+
+.active-highlight {
+  @apply relative;
+}
+
+.active-highlight::after {
+  content: '';
+  @apply absolute inset-0 rounded-[3rem] border-2 border-brand-green/0 transition-all duration-700 pointer-events-none;
+}
+
+.active-highlight:hover::after {
+  @apply border-brand-green/20 scale-[1.02];
 }
