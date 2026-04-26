@@ -1333,7 +1333,11 @@ function PlatformSection() {
 // FOOTER: PRECISE PREMIUM
 // ════════════════════════════════════════════════════════════════════════
 function Footer() {
-  const currentYear = new Date().getFullYear();
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+
+  useEffect(() => {
+    setCurrentYear(new Date().getFullYear());
+  }, []);
 
   return (
     <footer className="bg-[#f3f7f9] border-t border-slate-200/60 py-24 relative overflow-hidden">
@@ -1385,7 +1389,7 @@ function Footer() {
       </div>
       
       <div className="max-w-[1280px] mx-auto px-6 lg:px-14 mt-20 pt-8 border-t border-slate-200/40 flex justify-between items-center text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest">
-         <span suppressHydrationWarning>© {currentYear} Fluxeer Systems</span>
+         <span>© {currentYear} Fluxeer Systems</span>
          <span className="opacity-40">Desenvolvido por Studio Elephill.</span>
       </div>
     </footer>

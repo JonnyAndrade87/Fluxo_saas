@@ -1,5 +1,7 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+
 import Link from "next/link";
 import Image from "next/image";
 import logoLogin from "@/assets/logo_dashboard.png";
@@ -7,7 +9,11 @@ import logoFluxeer from "@/assets/logo_fluxeer.png";
 import logoIcon from "@/assets/logo-icone2.png";
 
 export function InstitutionalLayout({ children }: { children: React.ReactNode }) {
-  const currentYear = new Date().getFullYear();
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+
+  useEffect(() => {
+    setCurrentYear(new Date().getFullYear());
+  }, []);
 
   return (
     <div className="bg-gray-50 text-gray-900 antialiased min-h-screen flex flex-col">
@@ -83,7 +89,7 @@ export function InstitutionalLayout({ children }: { children: React.ReactNode })
         </div>
         
         <div className="max-w-[1280px] mx-auto px-6 lg:px-14 mt-20 pt-8 border-t border-slate-200/40 flex justify-between items-center text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest">
-            <span suppressHydrationWarning>© {currentYear} Fluxeer Systems</span>
+            <span>© {currentYear} Fluxeer Systems</span>
             <span className="opacity-40">Desenvolvido por Studio Elephill.</span>
         </div>
       </footer>
