@@ -1,10 +1,10 @@
 import { InstitutionalLayout } from "@/components/layout/InstitutionalLayout";
 import { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, BarChart2, TrendingUp, Search, Activity } from "lucide-react";
+import { ArrowRight, Search, Activity } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: { absolute: "Gestão de Contas a Receber | Fluxeer" },
+  title: "Gestão de Contas a Receber",
   description: "Organize seu contas a receber com inteligência. O Fluxeer oferece ferramentas para monitorar recebíveis, analisar aging e otimizar a entrada de caixa.",
   alternates: { canonical: "https://www.fluxeer.com.br/contas-a-receber" }
 };
@@ -25,7 +25,7 @@ export default function ContasReceberPage() {
               Pare de olhar para o passado e comece a prever o futuro. O Fluxeer transforma seu contas a receber em um painel estratégico de controle e previsibilidade.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link href="/#demonstracao" className="btn-shimmer bg-slate-950 text-white px-8 py-4 rounded-full font-manrope font-bold text-base shadow-xl hover:scale-105 transition-all text-center">
+              <Link href="/#demonstracao" className="btn-shimmer bg-slate-950 text-white px-8 py-4 rounded-full font-manrope font-bold text-base shadow-xl hover:scale-105 transition-all text-center" data-track-cta="true" data-section="contas-a-receber" data-cta-label="organizar meus recebiveis">
                 Organizar meus recebíveis
               </Link>
             </div>
@@ -59,7 +59,7 @@ export default function ContasReceberPage() {
                 <p className="text-slate-500 mb-8 leading-relaxed">
                   O Fluxeer não é apenas um repositório de faturas, é uma camada de inteligência sobre o seu contas a receber.
                 </p>
-                <Link href="/#demonstracao" className="bg-brand-green text-white px-6 py-3 rounded-xl font-bold inline-flex items-center gap-2 hover:scale-105 transition-all">
+                <Link href="/#demonstracao" className="bg-brand-green text-white px-6 py-3 rounded-xl font-bold inline-flex items-center gap-2 hover:scale-105 transition-all" data-track-cta="true" data-section="contas-a-receber" data-cta-label="testar agora contas a receber">
                   Testar agora
                   <ArrowRight className="w-4 h-4" />
                 </Link>

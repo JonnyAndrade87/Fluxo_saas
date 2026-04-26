@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Geist:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -45,9 +44,9 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
 
-  --font-sans: 'Geist', 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-  --font-heading: 'Manrope', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'Geist Mono', 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  --font-heading: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
 
   --animate-spin-slow: spin 3s linear infinite;
   --animate-shimmer: shimmer 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
@@ -408,7 +407,11 @@
 .anim-fade-up-4 { animation: fadeUpCrisp 0.8s ease-out 0.4s both; }
 
 .font-geist {
-  font-family: inherit;
+  font-family: var(--font-sans);
+}
+
+.font-manrope {
+  font-family: var(--font-heading);
 }
 
 .active-highlight {
@@ -422,4 +425,9 @@
 
 .active-highlight:hover::after {
   @apply border-brand-green/20 scale-[1.02];
+}
+
+[data-track-cta="true"]:focus-visible {
+  outline: 2px solid var(--color-brand-green);
+  outline-offset: 4px;
 }

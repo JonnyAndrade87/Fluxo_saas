@@ -1,10 +1,10 @@
 import { InstitutionalLayout } from "@/components/layout/InstitutionalLayout";
 import { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Layers, Target, Clock, MessageCircle } from "lucide-react";
+import { ArrowRight, Clock, MessageCircle } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: { absolute: "Régua de Cobrança Automática | Fluxeer" },
+  title: "Régua de Cobrança Automática",
   description: "Implemente uma régua de cobrança automática e inteligente. O Fluxeer ajuda sua empresa a organizar lembretes, priorizar faturas e reduzir o atraso.",
   alternates: { canonical: "https://www.fluxeer.com.br/regua-de-cobranca" }
 };
@@ -25,7 +25,7 @@ export default function ReguaCobrancaPage() {
               Não deixe sua cobrança para depois. Com uma régua de cobrança organizada, você mantém o contato constante com o cliente e reduz drasticamente a inadimplência.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link href="/#demonstracao" className="btn-shimmer bg-brand-green text-white px-8 py-4 rounded-full font-manrope font-bold text-base shadow-[0_15px_40px_rgba(0,176,179,0.25)] hover:scale-105 transition-all text-center">
+              <Link href="/#demonstracao" className="btn-shimmer bg-brand-green text-white px-8 py-4 rounded-full font-manrope font-bold text-base shadow-[0_15px_40px_rgba(0,176,179,0.25)] hover:scale-105 transition-all text-center" data-track-cta="true" data-section="regua-de-cobranca" data-cta-label="ativar regua inteligente">
                 Ativar régua inteligente
               </Link>
             </div>
@@ -70,7 +70,7 @@ export default function ReguaCobrancaPage() {
               ))}
             </div>
             <div className="mt-12">
-              <Link href="/#demonstracao" className="text-brand-green font-bold flex items-center gap-2 hover:underline">
+              <Link href="/#demonstracao" className="text-brand-green font-bold flex items-center gap-2 hover:underline" data-track-cta="true" data-section="regua-de-cobranca" data-cta-label="conhecer a regua do fluxeer">
                 Conhecer a régua do Fluxeer
                 <ArrowRight className="w-4 h-4" />
               </Link>

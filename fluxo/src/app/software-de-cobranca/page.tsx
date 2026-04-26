@@ -1,10 +1,10 @@
 import { InstitutionalLayout } from "@/components/layout/InstitutionalLayout";
 import { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, CheckCircle2, Zap, BarChart3, ShieldCheck } from "lucide-react";
+import { ArrowRight, Zap, BarChart3 } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: { absolute: "Software de Cobrança B2B | Fluxeer" },
+  title: "Software de Cobrança B2B",
   description: "O Fluxeer é o software de cobrança definitivo para empresas B2B. Organize contas a receber, automatize réguas e tenha controle total do seu caixa.",
   alternates: { canonical: "https://www.fluxeer.com.br/software-de-cobranca" }
 };
@@ -25,7 +25,7 @@ export default function SoftwareCobrancaPage() {
               Sua empresa não pode depender de processos manuais. O Fluxeer é o software de cobrança que traz automação, visibilidade e método para o seu contas a receber.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link href="/#demonstracao" className="btn-shimmer bg-brand-green text-white px-8 py-4 rounded-full font-manrope font-bold text-base shadow-[0_15px_40px_rgba(0,176,179,0.25)] hover:scale-105 transition-all text-center">
+              <Link href="/#demonstracao" className="btn-shimmer bg-brand-green text-white px-8 py-4 rounded-full font-manrope font-bold text-base shadow-[0_15px_40px_rgba(0,176,179,0.25)] hover:scale-105 transition-all text-center" data-track-cta="true" data-section="software-de-cobranca" data-cta-label="ver demonstracao do software">
                 Ver demonstração do software
               </Link>
             </div>
@@ -60,7 +60,7 @@ export default function SoftwareCobrancaPage() {
             <p className="text-white/60 mb-10 max-w-xl mx-auto relative z-10">
               Junte-se a empresas que já transformaram seu financeiro com o Fluxeer.
             </p>
-            <Link href="/#demonstracao" className="inline-flex items-center gap-2 bg-white text-slate-950 px-8 py-4 rounded-full font-manrope font-bold text-base hover:bg-gray-100 transition-all relative z-10">
+            <Link href="/#demonstracao" className="inline-flex items-center gap-2 bg-white text-slate-950 px-8 py-4 rounded-full font-manrope font-bold text-base hover:bg-gray-100 transition-all relative z-10" data-track-cta="true" data-section="software-de-cobranca" data-cta-label="solicitar acesso agora">
               Solicitar acesso agora
               <ArrowRight className="w-4 h-4" />
             </Link>

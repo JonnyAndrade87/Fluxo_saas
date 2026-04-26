@@ -1,16 +1,34 @@
 'use client';
 
-import { useActionState, useEffect, useState } from 'react';
+import { useActionState, useEffect, useRef } from 'react';
 import { submitDemoLead } from '@/actions/demo-lead';
 import { Loader2, ShieldCheck, AlertCircle, ArrowRight, CheckCircle2, Clock, PlayCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { getActiveLandingSection, getLastLandingCtaContext, trackLandingEvent } from '@/lib/landing-analytics';
 
 export function LeadFormSection() {
   const [state, action, isPending] = useActionState(submitDemoLead, { success: false, error: '', message: '' });
-  const [submitted, setSubmitted] = useState(false);
+  const submitTrackedRef = useRef(false);
+  const submitted = state?.success === true;
 
   useEffect(() => {
-    if (state?.success) setSubmitted(true);
+    if (!state?.success || submitTrackedRef.current) return;
+
+    const lastCta = getLastLandingCtaContext();
+
+    trackLandingEvent('form_submit', {
+      page: '/',
+      section: 'demonstracao',
+      source_section: lastCta.section || getActiveLandingSection() || 'demonstracao',
+      cta_label: lastCta.label,
+      form_name: 'demo_request',
+      user_data: state?.data ? {
+        email: state.data.email,
+        phone_number: state.data.whatsapp?.replace(/\D/g, '') // Apenas números para melhor compatibilidade com Google Ads
+      } : undefined
+    });
+
+    submitTrackedRef.current = true;
   }, [state]);
 
   return (
@@ -41,7 +59,7 @@ export function LeadFormSection() {
               <span className="text-brand-green">pode organizar sua cobrança.</span>
             </h2>
             
-            <p className="text-base lg:text-lg text-white/50 font-geist leading-relaxed mb-10 max-w-lg">
+            <p className="text-base lg:text-lg text-white/75 font-geist leading-relaxed mb-10 max-w-lg">
               Preencha os dados abaixo e nossa equipe entra em contato para entender sua operação e apresentar a melhor configuração para o seu contas a receber.
             </p>
 
@@ -86,19 +104,22 @@ export function LeadFormSection() {
                     <h3 className="text-2xl font-manrope font-extrabold text-white mb-4">
                       Solicitação enviada com sucesso
                     </h3>
-                    <p className="text-white/50 font-geist text-base max-w-sm">
-                      Nossa equipe entrará em contato em breve para agendar sua demonstração.
-                    </p>
+                      <p className="text-white/75 font-geist text-base max-w-sm">
+                        Nossa equipe entrará em contato em breve para agendar sua demonstração.
+                      </p>
                   </motion.div>
                 ) : (
-                  <motion.form 
-                    key="form"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    action={action}
-                    className="flex flex-col gap-6"
-                  >
+                    <motion.form 
+                      key="form"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      action={action}
+                      className="flex flex-col gap-6"
+                      data-track-form="true"
+                      data-form-name="demo_request"
+                      data-section="demonstracao"
+                    >
                     {state?.error && (
                       <div className="flex items-center gap-3 p-4 rounded-xl border" style={{ background: 'rgba(239,68,68,0.06)', borderColor: 'rgba(239,68,68,0.15)', color: '#fca5a5' }}>
                         <AlertCircle className="w-5 h-5 shrink-0" />
@@ -108,7 +129,7 @@ export function LeadFormSection() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <label htmlFor="name" className="block text-[11px] font-mono text-white/40 tracking-widest uppercase">Nome</label>
+                        <label htmlFor="name" className="block text-[11px] font-mono text-white/70 tracking-widest uppercase">Nome</label>
                         <input
                           id="name"
                           name="name"
@@ -116,14 +137,12 @@ export function LeadFormSection() {
                           required
                           disabled={isPending}
                           placeholder="Seu nome completo"
-                          className="w-full rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-white/20 focus:outline-none transition-colors disabled:opacity-40"
+                          className="w-full rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-white/45 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#161b22] disabled:opacity-40"
                           style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
-                          onFocus={e => e.currentTarget.style.borderColor = 'rgba(0,176,179,0.5)'}
-                          onBlur={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'}
                         />
                       </div>
                       <div className="space-y-2">
-                        <label htmlFor="company" className="block text-[11px] font-mono text-white/40 tracking-widest uppercase">Empresa</label>
+                        <label htmlFor="company" className="block text-[11px] font-mono text-white/70 tracking-widest uppercase">Empresa</label>
                         <input
                           id="company"
                           name="company"
@@ -131,33 +150,29 @@ export function LeadFormSection() {
                           required
                           disabled={isPending}
                           placeholder="Nome da empresa"
-                          className="w-full rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-white/20 focus:outline-none transition-colors disabled:opacity-40"
+                          className="w-full rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-white/45 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#161b22] disabled:opacity-40"
                           style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
-                          onFocus={e => e.currentTarget.style.borderColor = 'rgba(0,176,179,0.5)'}
-                          onBlur={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'}
                         />
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <label htmlFor="email" className="block text-[11px] font-mono text-white/40 tracking-widest uppercase">E-mail corporativo</label>
-                      <input
+                        <label htmlFor="email" className="block text-[11px] font-mono text-white/70 tracking-widest uppercase">E-mail corporativo</label>
+                        <input
                         id="email"
                         name="email"
-                        type="email"
-                        required
-                        disabled={isPending}
-                        placeholder="voce@suaempresa.com.br"
-                        className="w-full rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-white/20 focus:outline-none transition-colors disabled:opacity-40"
-                        style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
-                        onFocus={e => e.currentTarget.style.borderColor = 'rgba(0,176,179,0.5)'}
-                        onBlur={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'}
-                      />
-                    </div>
+                          type="email"
+                          required
+                          disabled={isPending}
+                          placeholder="voce@suaempresa.com.br"
+                          className="w-full rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-white/45 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#161b22] disabled:opacity-40"
+                          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+                        />
+                      </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <label htmlFor="whatsapp" className="block text-[11px] font-mono text-white/40 tracking-widest uppercase">WhatsApp</label>
+                        <label htmlFor="whatsapp" className="block text-[11px] font-mono text-white/70 tracking-widest uppercase">WhatsApp</label>
                         <input
                           id="whatsapp"
                           name="whatsapp"
@@ -165,24 +180,20 @@ export function LeadFormSection() {
                           required
                           disabled={isPending}
                           placeholder="(00) 00000-0000"
-                          className="w-full rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-white/20 focus:outline-none transition-colors disabled:opacity-40"
+                          className="w-full rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-white/45 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#161b22] disabled:opacity-40"
                           style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
-                          onFocus={e => e.currentTarget.style.borderColor = 'rgba(0,176,179,0.5)'}
-                          onBlur={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'}
                         />
                       </div>
                       <div className="space-y-2">
-                        <label htmlFor="monthlyVolume" className="block text-[11px] font-mono text-white/40 tracking-widest uppercase">Volume mensal</label>
+                        <label htmlFor="monthlyVolume" className="block text-[11px] font-mono text-white/70 tracking-widest uppercase">Volume mensal</label>
                         <select
                           id="monthlyVolume"
                           name="monthlyVolume"
                           required
                           disabled={isPending}
                           defaultValue=""
-                          className="w-full rounded-xl px-4 py-3.5 text-sm text-white focus:outline-none transition-colors disabled:opacity-40 appearance-none"
+                          className="w-full rounded-xl px-4 py-3.5 text-sm text-white transition-colors appearance-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#161b22] disabled:opacity-40"
                           style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
-                          onFocus={e => e.currentTarget.style.borderColor = 'rgba(0,176,179,0.5)'}
-                          onBlur={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'}
                         >
                           <option value="" disabled className="text-slate-900">Selecione o volume</option>
                           <option value="Ate 50" className="text-slate-900">Até 50 por mês</option>
@@ -197,7 +208,7 @@ export function LeadFormSection() {
                       <button
                         type="submit"
                         disabled={isPending}
-                        className="w-full relative group inline-flex items-center justify-center gap-3 bg-brand-green text-slate-950 font-manrope font-bold text-base py-4 rounded-xl shadow-[0_15px_30px_rgba(0,176,179,0.2)] hover:shadow-[0_20px_40px_rgba(0,176,179,0.3)] hover:-translate-y-0.5 active:scale-95 transition-all disabled:opacity-60 disabled:pointer-events-none"
+                        className="w-full relative group inline-flex items-center justify-center gap-3 bg-brand-green text-slate-950 font-manrope font-bold text-base py-4 rounded-xl shadow-[0_15px_30px_rgba(0,176,179,0.2)] hover:shadow-[0_20px_40px_rgba(0,176,179,0.3)] hover:-translate-y-0.5 active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#161b22] disabled:opacity-60 disabled:pointer-events-none"
                       >
                         {isPending ? (
                           <><Loader2 className="w-5 h-5 animate-spin" /> Enviando...</>
@@ -205,7 +216,7 @@ export function LeadFormSection() {
                           <>Quero ver o Fluxeer funcionando <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" /></>
                         )}
                       </button>
-                      <p className="text-center text-[11px] font-geist text-white/30 mt-4">
+                      <p className="text-center text-[11px] font-geist text-white/50 mt-4">
                         Ao enviar, nossa equipe comercial entra em contato para agendar sua demonstração.
                       </p>
                     </div>

@@ -16,6 +16,10 @@ export type LeadActionState = {
   success: boolean;
   error: string;
   message: string;
+  data?: {
+    email: string;
+    whatsapp: string;
+  };
 };
 
 export async function submitDemoLead(prevState: any, formData: FormData): Promise<LeadActionState> {
@@ -68,7 +72,15 @@ export async function submitDemoLead(prevState: any, formData: FormData): Promis
         console.warn('E-mail não disparado por falta de config, mas salvo no DB.');
     }
 
-    return { success: true, message: 'Solicitação enviada com sucesso!', error: '' };
+    return { 
+      success: true, 
+      message: 'Solicitação enviada com sucesso!', 
+      error: '',
+      data: {
+        email: validatedData.email,
+        whatsapp: validatedData.whatsapp
+      }
+    };
   } catch (error) {
     if (error instanceof z.ZodError) {
       return { success: false, error: error.issues[0]?.message || 'Erro de validação', message: '' };

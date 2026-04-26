@@ -1,14 +1,30 @@
 import type { Metadata } from "next";
+import { Geist, Manrope } from 'next/font/google';
 import "./globals.css";
 import '@/lib/deployment-debug';
+import { AnalyticsScripts } from '@/components/analytics/AnalyticsScripts';
+import { LandingPageAnalytics } from '@/components/analytics/LandingPageAnalytics';
+
+const geist = Geist({
+  subsets: ['latin'],
+  variable: '--font-geist',
+  display: 'swap',
+});
+
+const manrope = Manrope({
+  subsets: ['latin'],
+  weight: ['500', '600', '700', '800'],
+  variable: '--font-manrope',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.fluxeer.com.br'),
   title: {
-    default: "Fluxeer | Software de cobrança e contas a receber",
+    default: "Fluxeer | Software de cobrança B2B para contas a receber",
     template: "%s | Fluxeer"
   },
-  description: "Organize recebíveis, priorize cobranças e tenha mais previsibilidade para o caixa com o Fluxeer.",
+  description: "Software de cobrança B2B para equipes financeiras que precisam organizar contas a receber, priorizar risco e ganhar previsibilidade de caixa.",
   keywords: ["software de cobrança", "contas a receber", "automação financeira", "gestão de recebíveis", "fluxo de caixa"],
   authors: [{ name: "Fluxeer Team" }],
   creator: "Fluxeer",
@@ -26,22 +42,20 @@ export const metadata: Metadata = {
     locale: 'pt_BR',
     url: 'https://www.fluxeer.com.br',
     siteName: 'Fluxeer',
-    title: 'Fluxeer | Software de cobrança e contas a receber',
-    description: 'Organize recebíveis, priorize cobranças e tenha mais previsibilidade para o caixa com o Fluxeer.',
+    title: 'Fluxeer | Software de cobrança B2B para contas a receber',
+    description: 'Software de cobrança B2B para equipes financeiras que precisam organizar contas a receber, priorizar risco e ganhar previsibilidade de caixa.',
     images: [
       {
-        url: '/og-image.png', // We'll assume this exists or user will provide
-        width: 1200,
-        height: 630,
-        alt: 'Fluxeer - Inteligência Financeira',
+        url: '/logo_fluxeer.png',
+        alt: 'Fluxeer - Software de cobrança B2B',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Fluxeer | Software de cobrança e contas a receber',
-    description: 'Organize recebíveis, priorize cobranças e tenha mais previsibilidade para o caixa com o Fluxeer.',
-    images: ['/og-image.png'],
+    title: 'Fluxeer | Software de cobrança B2B para contas a receber',
+    description: 'Software de cobrança B2B para equipes financeiras que precisam organizar contas a receber, priorizar risco e ganhar previsibilidade de caixa.',
+    images: ['/logo_fluxeer.png'],
     creator: '@fluxeer',
   },
   icons: {
@@ -74,7 +88,7 @@ export default function RootLayout({
   return (
     <html
       lang="pt-BR"
-      className="h-full antialiased"
+      className={`${geist.variable} ${manrope.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>
@@ -85,6 +99,8 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
       </head>
       <body className="min-h-full flex flex-col">
+        <AnalyticsScripts />
+        <LandingPageAnalytics />
         {children}
       </body>
     </html>

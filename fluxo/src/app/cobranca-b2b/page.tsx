@@ -1,10 +1,10 @@
 import { InstitutionalLayout } from "@/components/layout/InstitutionalLayout";
 import { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, ShieldCheck, Zap, Layers, Users } from "lucide-react";
+import { ShieldCheck, Users } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: { absolute: "Cobrança B2B Especializada | Fluxeer" },
+  title: "Cobrança B2B Especializada",
   description: "O Fluxeer é especialista em cobrança B2B. Gerencie faturas complexas, trate com empresas e mantenha seu recebimento em dia com tecnologia.",
   alternates: { canonical: "https://www.fluxeer.com.br/cobranca-b2b" }
 };
@@ -25,7 +25,7 @@ export default function CobrancaB2BPage() {
               Negociar com empresas exige método e profissionalismo. O Fluxeer oferece a infraestrutura técnica para que sua cobrança B2B seja impecável, do lembrete à baixa.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link href="/#demonstracao" className="btn-shimmer bg-brand-green text-white px-8 py-4 rounded-full font-manrope font-bold text-base shadow-[0_15px_40px_rgba(0,176,179,0.25)] hover:scale-105 transition-all text-center">
+              <Link href="/#demonstracao" className="btn-shimmer bg-brand-green text-white px-8 py-4 rounded-full font-manrope font-bold text-base shadow-[0_15px_40px_rgba(0,176,179,0.25)] hover:scale-105 transition-all text-center" data-track-cta="true" data-section="cobranca-b2b" data-cta-label="profissionalizar minha cobranca">
                 Profissionalizar minha cobrança
               </Link>
             </div>

@@ -1,7 +1,7 @@
 import { InstitutionalLayout } from "@/components/layout/InstitutionalLayout";
 import { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, BarChart3, TrendingUp, Shield, Layers } from "lucide-react";
+import { ArrowRight, BarChart3, Shield } from "lucide-react";
 
 export const metadata: Metadata = {
   title: { absolute: "Previsibilidade de Caixa B2B | Fluxeer" },
@@ -25,7 +25,7 @@ export default function PrevisibilidadeCaixaPage() {
               O maior risco de uma empresa é a incerteza. Com o Fluxeer, você tem dados reais para projetar seu caixa com base no comportamento real de pagamento dos seus clientes.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link href="/#demonstracao" className="btn-shimmer bg-brand-green text-white px-8 py-4 rounded-full font-manrope font-bold text-base shadow-[0_15px_40px_rgba(0,176,179,0.25)] hover:scale-105 transition-all text-center">
+              <Link href="/#demonstracao" className="btn-shimmer bg-brand-green text-white px-8 py-4 rounded-full font-manrope font-bold text-base shadow-[0_15px_40px_rgba(0,176,179,0.25)] hover:scale-105 transition-all text-center" data-track-cta="true" data-section="previsibilidade-de-caixa" data-cta-label="ter mais previsibilidade">
                 Ter mais previsibilidade
               </Link>
             </div>
@@ -58,7 +58,7 @@ export default function PrevisibilidadeCaixaPage() {
                 <p className="text-white/50 text-lg mb-10 font-geist">
                   A previsibilidade de caixa é o que separa empresas que sobrevivem das que crescem com sustentabilidade.
                 </p>
-                <Link href="/#demonstracao" className="inline-flex items-center gap-3 bg-brand-green text-white px-8 py-4 rounded-full font-manrope font-bold text-base hover:scale-105 transition-all">
+                <Link href="/#demonstracao" className="inline-flex items-center gap-3 bg-brand-green text-white px-8 py-4 rounded-full font-manrope font-bold text-base hover:scale-105 transition-all" data-track-cta="true" data-section="previsibilidade-de-caixa" data-cta-label="conhecer o fluxeer previsibilidade">
                   Conhecer o Fluxeer
                   <ArrowRight className="w-4 h-4" />
                 </Link>

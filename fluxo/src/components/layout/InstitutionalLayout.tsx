@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Zap } from "lucide-react";
 import logoLogin from "@/assets/logo_dashboard.png";
 import logoFluxeer from "@/assets/logo_fluxeer.png";
 import logoIcon from "@/assets/logo-icone2.png";
 
 export function InstitutionalLayout({ children }: { children: React.ReactNode }) {
+  const currentYear = new Date().getFullYear();
+
   return (
     <div className="bg-gray-50 text-gray-900 antialiased min-h-screen flex flex-col">
       {/* HEADER */}
@@ -36,7 +37,7 @@ export function InstitutionalLayout({ children }: { children: React.ReactNode })
       <footer className="bg-[#f3f7f9] border-t border-slate-200/60 py-24 relative overflow-hidden mt-auto">
         {/* Background decoration */}
         <div className="absolute -bottom-20 -right-20 p-20 opacity-[0.03] pointer-events-none grayscale">
-          <Image src={logoIcon} alt="Fluxeer Icon" className="w-96 h-auto" />
+          <Image src={logoIcon} alt="" aria-hidden="true" className="w-96 h-auto" />
         </div>
 
         <div className="max-w-[1280px] mx-auto px-6 lg:px-14 flex flex-col md:flex-row justify-between items-start md:items-center gap-16 relative z-10">
@@ -44,7 +45,7 @@ export function InstitutionalLayout({ children }: { children: React.ReactNode })
             <div className="flex items-center gap-3">
               <Image src={logoFluxeer} alt="Fluxeer" className="h-8 w-auto" />
             </div>
-            <p className="text-sm text-slate-400 max-w-[280px] leading-relaxed">
+            <p className="text-sm text-slate-500 max-w-[280px] leading-relaxed">
               Inteligência e controle para operações de cobrança B2B que buscam previsibilidade real.
             </p>
           </div>
@@ -82,7 +83,7 @@ export function InstitutionalLayout({ children }: { children: React.ReactNode })
         </div>
         
         <div className="max-w-[1280px] mx-auto px-6 lg:px-14 mt-20 pt-8 border-t border-slate-200/40 flex justify-between items-center text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest">
-            <span>© 2024 Fluxeer Systems</span>
+            <span suppressHydrationWarning>© {currentYear} Fluxeer Systems</span>
             <span className="opacity-40">Desenvolvido por Studio Elephill.</span>
         </div>
       </footer>

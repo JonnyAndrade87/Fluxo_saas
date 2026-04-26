@@ -48,7 +48,7 @@ export default function ContatoPage() {
             <p className="text-sm text-slate-500 font-geist mb-8 flex-1">
               Se você quer entender como o Fluxeer pode se encaixar na sua operação, fale com nosso time.
             </p>
-            <Link href="/#demonstracao" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-950 text-white font-semibold text-sm hover:bg-slate-800 transition-colors">
+            <Link href="/#demonstracao" className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-950 text-white font-semibold text-sm hover:bg-slate-800 transition-colors" data-track-cta="true" data-section="contato" data-cta-label="quero ver o fluxeer funcionando contato">
               Quero ver o Fluxeer funcionando
               <ArrowRight className="w-4 h-4" />
             </Link>

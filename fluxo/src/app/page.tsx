@@ -1,11 +1,12 @@
 import LandingPage from "./LandingPageClient";
 import { Metadata } from "next";
+import { landingFaqs } from '@/content/landing';
 
 export const metadata: Metadata = {
   title: {
-    absolute: "Fluxeer | Software de cobrança e contas a receber",
+    absolute: "Fluxeer | Software de cobrança B2B para contas a receber",
   },
-  description: "Organize recebíveis, priorize cobranças e tenha mais previsibilidade para o caixa com o Fluxeer.",
+  description: "Software de cobrança B2B para equipes financeiras que precisam organizar contas a receber, priorizar risco e ganhar previsibilidade de caixa.",
   alternates: {
     canonical: "https://www.fluxeer.com.br",
   },
@@ -22,7 +23,7 @@ export default function Home() {
         "url": "https://www.fluxeer.com.br",
         "logo": {
           "@type": "ImageObject",
-          "url": "https://www.fluxeer.com.br/favicon.png"
+          "url": "https://www.fluxeer.com.br/logo_fluxeer.png"
         },
         "sameAs": [
           "https://www.instagram.com/fluxeer",
@@ -34,7 +35,7 @@ export default function Home() {
         "@id": "https://www.fluxeer.com.br/#website",
         "url": "https://www.fluxeer.com.br",
         "name": "Fluxeer",
-        "description": "Software de cobrança e contas a receber",
+        "description": "Software de cobrança B2B e contas a receber",
         "publisher": {
           "@id": "https://www.fluxeer.com.br/#organization"
         },
@@ -46,33 +47,19 @@ export default function Home() {
         "name": "Fluxeer",
         "applicationCategory": "BusinessApplication",
         "operatingSystem": "Web",
-        "offers": {
-          "@type": "Offer",
-          "price": "0.00",
-          "priceCurrency": "BRL"
-        }
+        "description": "Plataforma para organizar contas a receber, automatizar a régua de cobrança e melhorar a previsibilidade de caixa em operações B2B."
       },
       {
         "@type": "FAQPage",
         "@id": "https://www.fluxeer.com.br/#faq",
-        "mainEntity": [
-          {
-            "@type": "Question",
-            "name": "O que é o Fluxeer?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "O Fluxeer é um software avançado de cobrança e gestão de contas a receber focado em automatizar a régua de cobrança e trazer previsibilidade para o caixa das empresas."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Como o Fluxeer ajuda na inadimplência?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Através de uma régua de cobrança inteligente e priorização de faturas por risco, o Fluxeer permite agir antes do atraso se tornar um problema crítico."
-            }
+        "mainEntity": landingFaqs.map(faq => ({
+          "@type": "Question",
+          "name": faq.question,
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": faq.answer
           }
-        ]
+        }))
       }
     ]
   };
