@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
 import Link from "next/link";
 import Image from "next/image";
@@ -861,15 +861,24 @@ export default function LandingPage() {
 
               {/* ── Right: Real Product Preview ── */}
               <motion.div 
-                style={{ opacity: mvMockup, filter: mockupFilter }}
-                className="lg:col-span-7 w-full relative perspective-normal mt-10 lg:mt-0 anim-float"
+                style={{ opacity: mvMockup, filter: mockupFilter, perspective: "2000px" }}
+                className="lg:col-span-7 w-full relative mt-10 lg:mt-0"
               >
-                <div className="relative w-full max-w-3xl mx-auto lg:ml-auto lg:mr-0">
-                  <div className="absolute -inset-8 rounded-[2.5rem] bg-brand-green/15 blur-3xl" aria-hidden="true" />
-                  <div className="relative rounded-[2.5rem] border border-white/10 bg-white/5 p-3 backdrop-blur-sm">
+                <motion.div 
+                  initial={{ rotateY: 0, rotateX: 0, rotateZ: 0, y: 40, opacity: 0 }}
+                  animate={{ rotateY: 0, rotateX: 0, rotateZ: 0, y: 0, opacity: 1 }}
+                  whileHover={{ rotateY: -16, rotateX: 8, rotateZ: -2, scale: 1.02 }}
+                  transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+                  className="relative w-full max-w-[720px] mx-auto lg:ml-auto lg:mr-0 transform-style-3d cursor-default"
+                >
+                  <div className="absolute -inset-10 rounded-[3rem] bg-brand-green/20 blur-3xl transition-opacity duration-700" aria-hidden="true" />
+                  <div className="relative h-[480px] lg:h-[580px] rounded-[2rem] border border-white/60 bg-white p-3 backdrop-blur-sm shadow-[0_40px_100px_-20px_rgba(0,0,0,0.3)] hover:shadow-[0_60px_120px_-20px_rgba(0,0,0,0.4)] overflow-hidden transition-all duration-700">
                     <ProductScreenPreview variant="overview" />
+                    
+                    {/* Fade elegante para o corte do mockup */}
+                    <div className="absolute bottom-0 inset-x-0 h-40 bg-gradient-to-t from-white via-white/90 to-transparent pointer-events-none rounded-b-[2rem]" />
                   </div>
-                </div>
+                </motion.div>
               </motion.div>
 
             </div>
@@ -1297,7 +1306,7 @@ function PlatformSection() {
               <div className="flex flex-col items-center gap-14">
                  <Link 
                     href="#demonstracao" 
-                    className="relative bg-brand-green text-white px-10 py-5 lg:px-12 lg:py-6 rounded-full font-manrope font-bold text-lg lg:text-xl shadow-[0_20px_40px_rgba(0,176,179,0.2)] hover:shadow-[0_25px_50px_rgba(0,176,179,0.3)] hover:-translate-y-1 active:scale-95 transition-all text-center flex items-center gap-4 group"
+                    className="relative bg-brand-green text-white px-7 py-3.5 lg:px-8 lg:py-4 rounded-full font-manrope font-bold text-base lg:text-lg shadow-[0_20px_40px_rgba(0,176,179,0.2)] hover:shadow-[0_25px_50px_rgba(0,176,179,0.3)] hover:-translate-y-1 active:scale-95 transition-all text-center flex items-center justify-center gap-3 group mx-auto"
                     data-track-cta="true"
                     data-section="plataforma"
                     data-cta-label="quero conhecer o fluxeer plataforma"
@@ -1315,10 +1324,10 @@ function PlatformSection() {
                     <p className="text-[11px] lg:text-[13px] font-mono font-bold text-slate-400 uppercase tracking-[0.4em]">
                       Veja a plataforma em uma demonstração guiada.
                     </p>
-                    <div className="flex items-center justify-center gap-8 lg:gap-12 saturate-0 opacity-40">
-                       <span className="text-[9px] lg:text-[11px] font-mono font-bold text-slate-500">SEGURANÇA LGPD</span>
-                       <span className="text-[9px] lg:text-[11px] font-mono font-bold text-slate-500">INTEGRAÇÃO NATIVA</span>
-                       <span className="text-[9px] lg:text-[11px] font-mono font-bold text-slate-500">SUPORTE DEDICADO</span>
+                    <div className="flex flex-wrap items-center justify-center text-center gap-4 lg:gap-12 saturate-0 opacity-40">
+                       <span className="text-[9px] lg:text-[11px] font-mono font-bold text-slate-500 w-full sm:w-auto">SEGURANÇA LGPD</span>
+                       <span className="text-[9px] lg:text-[11px] font-mono font-bold text-slate-500 w-full sm:w-auto">INTEGRAÇÃO NATIVA</span>
+                       <span className="text-[9px] lg:text-[11px] font-mono font-bold text-slate-500 w-full sm:w-auto">SUPORTE DEDICADO</span>
                     </div>
                   </div>
                </div>
