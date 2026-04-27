@@ -9,7 +9,7 @@ import logoFluxeer from "@/assets/logo_fluxeer.png";
 import logoIcon from "@/assets/logo-icone2.png";
 
 export function InstitutionalLayout({ children }: { children: React.ReactNode }) {
-  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  const [currentYear, setCurrentYear] = useState(2026);
 
   useEffect(() => {
     setCurrentYear(new Date().getFullYear());
@@ -89,7 +89,7 @@ export function InstitutionalLayout({ children }: { children: React.ReactNode })
         </div>
         
         <div className="max-w-[1280px] mx-auto px-6 lg:px-14 mt-20 pt-8 border-t border-slate-200/40 flex justify-between items-center text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest">
-            <span>© {currentYear} Fluxeer Systems</span>
+            <span data-v="2026-fix">© {currentYear} Fluxeer Systems</span>
             <span className="opacity-40">Desenvolvido por Studio Elephill.</span>
         </div>
       </footer>
