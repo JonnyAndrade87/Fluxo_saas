@@ -9,6 +9,7 @@ import {
   setActiveLandingSection,
   setLastLandingCtaContext,
   trackLandingEvent,
+  type LandingEventName,
 } from '@/lib/landing-analytics';
 
 export function LandingPageAnalytics() {
