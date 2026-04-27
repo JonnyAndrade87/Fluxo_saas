@@ -62,11 +62,27 @@ export function LandingPageAnalytics() {
       const ctaLabel = cta.dataset.ctaLabel || cta.textContent?.trim() || 'cta';
 
       setLastLandingCtaContext(section, ctaLabel);
-      trackLandingEvent('cta_click', {
+
+      // Map to specific event names for better segmentation
+      let specificEvent: LandingEventName = 'cta_click';
+      if (section === 'header') specificEvent = 'click_cta_header';
+      else if (section === 'hero') specificEvent = 'click_cta_hero';
+      else if (section === 'footer' || section === 'demonstracao') specificEvent = 'click_cta_footer';
+
+      trackLandingEvent(specificEvent, {
         page: pathname,
         section,
         cta_label: ctaLabel,
       });
+
+      // Also trigger generic cta_click for legacy/GTM compatibility
+      if (specificEvent !== 'cta_click') {
+        trackLandingEvent('cta_click', {
+          page: pathname,
+          section,
+          cta_label: ctaLabel,
+        });
+      }
     };
 
     const onFocusIn = (event: FocusEvent) => {
@@ -79,7 +95,7 @@ export function LandingPageAnalytics() {
       formStartedRef.current = true;
       const lastCta = getLastLandingCtaContext();
 
-      trackLandingEvent('form_start', {
+      trackLandingEvent('lead_form_start', {
         page: pathname,
         section: form.dataset.section || 'demonstracao',
         source_section: lastCta.section || getActiveLandingSection() || 'demonstracao',

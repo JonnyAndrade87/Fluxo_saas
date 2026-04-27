@@ -1203,6 +1203,10 @@ Ciclo final de polimento estético e correção de bugs na Landing Page para gar
 #### Hero Mockup 3D & Polish
 - **Efeito 3D Interativo:** O mockup da primeira dobra foi refinado com um efeito de profundidade. Ele entra em posição frontal e, ao passar o mouse (`whileHover`), inclina-se suavemente em uma perspectiva diagonal dinâmica.
 - **Corte Elegante (Crop):** Para evitar que o mockup tomasse altura excessiva na tela, a altura foi limitada (`h-[480px] lg:h-[580px]`) e um gradiente de desvanecimento (`fade-out`) foi aplicado na base, mesclando o painel com o fundo da página.
+
+#### Footer & Compliance
+- **Dynamic Year Fix:** O ano do footer foi corrigido para ser dinâmico com fallback estático em `2026`, garantindo que tanto no SSR quanto no Client-side o ano exibido seja o atual. Adicionado marcador `data-v="2026-fix"` para validação de runtime.
+- **Consistência:** A correção foi aplicada tanto na `LandingPageClient` (home) quanto no `InstitutionalLayout` (páginas satélites).
 - **Dimensionamento:** Ajuste da largura máxima (`max-w-[720px]`) para um equilíbrio visual superior em telas grandes.
 
 #### Conversão & Tipografia

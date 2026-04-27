@@ -16,7 +16,8 @@ export function LeadFormSection() {
 
     const lastCta = getLastLandingCtaContext();
 
-    trackLandingEvent('form_submit', {
+    // Evento de SUCESSO REAL (Lead Convertido)
+    trackLandingEvent('lead_form_success', {
       page: '/',
       section: 'demonstracao',
       source_section: lastCta.section || getActiveLandingSection() || 'demonstracao',
@@ -24,12 +25,23 @@ export function LeadFormSection() {
       form_name: 'demo_request',
       user_data: state?.data ? {
         email: state.data.email,
-        phone_number: state.data.whatsapp?.replace(/\D/g, '') // Apenas números para melhor compatibilidade com Google Ads
+        phone_number: state.data.whatsapp?.replace(/\D/g, '')
       } : undefined
     });
 
     submitTrackedRef.current = true;
-  }, [state]);
+  }, [state, state?.success]);
+
+  // Evento de ERRO no formulário
+  useEffect(() => {
+    if (!state?.error || submitted) return;
+    
+    trackLandingEvent('lead_form_error', {
+      page: '/',
+      section: 'demonstracao',
+      form_name: 'demo_request',
+    });
+  }, [state?.error, submitted]);
 
   return (
     <section 
@@ -137,7 +149,11 @@ export function LeadFormSection() {
                           required
                           disabled={isPending}
                           placeholder="Seu nome completo"
-                          onFocus={() => trackLandingEvent('form_start', { form_name: 'demo_request', section: 'demonstracao' })}
+                          onFocus={() => {
+                            // Evento de início de preenchimento (lead_form_start)
+                            // Note: LandingPageAnalytics já possui um listener global focusin que faz isso,
+                            // mas mantemos aqui para redundância ou se o listener global falhar.
+                          }}
                           className="w-full rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-white/45 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#161b22] disabled:opacity-40"
                           style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
                         />
@@ -211,6 +227,14 @@ export function LeadFormSection() {
                         type="submit"
                         disabled={isPending}
                         className="w-full relative group inline-flex items-center justify-center gap-3 bg-brand-green text-slate-950 font-manrope font-bold text-base py-4 rounded-xl shadow-[0_15px_30px_rgba(0,176,179,0.25)] hover:shadow-[0_20px_40px_rgba(0,176,179,0.3)] hover:-translate-y-0.5 active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#161b22] disabled:opacity-60 disabled:pointer-events-none"
+                        onClick={() => {
+                          // Evento de TENTATIVA de envio
+                          trackLandingEvent('lead_form_submit', {
+                            page: '/',
+                            section: 'demonstracao',
+                            form_name: 'demo_request',
+                          });
+                        }}
                       >
                         {isPending ? (
                           <><Loader2 className="w-5 h-5 animate-spin" /> Enviando...</>

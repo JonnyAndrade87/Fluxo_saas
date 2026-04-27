@@ -764,8 +764,6 @@ export default function LandingPage() {
                 href="#demonstracao"
                 onClick={(e) => {
                   scrollTo(e, 'demonstracao');
-                  setLastLandingCtaContext('header', 'solicitar demonstracao header');
-                  trackLandingEvent('cta_click', { section: 'header', cta_label: 'solicitar demonstracao header' });
                 }}
                 data-track-cta="true"
                 data-section="header"
@@ -853,8 +851,6 @@ export default function LandingPage() {
                     className="w-full sm:w-auto group btn-shimmer btn-shimmer-dark inline-flex items-center justify-center gap-2 bg-brand-green text-slate-950 text-sm font-bold px-7 py-3.5 rounded-xl hover:bg-brand-green-hover transition-colors shadow-[0_0_24px_rgba(0,176,179,0.25)] active:scale-[0.98]"
                     onClick={(e) => {
                       scrollTo(e, 'demonstracao');
-                      setLastLandingCtaContext('hero', 'solicitar demonstracao');
-                      trackLandingEvent('cta_click', { section: 'hero', cta_label: 'solicitar demonstracao' });
                     }}
                     data-track-cta="true"
                     data-section="hero"
