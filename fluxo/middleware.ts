@@ -48,7 +48,7 @@ export default auth((req) => {
   // Strict CSP
   const cspHeader = `
     default-src 'self';
-    script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://www.googletagmanager.com https://www.google-analytics.com https://www.clarity.ms https://*.google.com https://*.googleadservices.com;
+    script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://www.googletagmanager.com https://www.google-analytics.com https://www.clarity.ms https://scripts.clarity.ms https://*.google.com https://*.google.com.br https://*.googleadservices.com https://*.doubleclick.net;
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
     font-src 'self' https://fonts.gstatic.com;
     img-src 'self' blob: data: https://lh3.googleusercontent.com https://avatars.githubusercontent.com https://*.google-analytics.com https://*.googletagmanager.com https://*.g.doubleclick.net https://*.google.com https://*.google.com.br https://*.googleadservices.com https://www.clarity.ms https://c.bing.com;
