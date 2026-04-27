@@ -137,6 +137,7 @@ export function LeadFormSection() {
                           required
                           disabled={isPending}
                           placeholder="Seu nome completo"
+                          onFocus={() => trackLandingEvent('form_start', { form_name: 'demo_request', section: 'demonstracao' })}
                           className="w-full rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-white/45 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[#161b22] disabled:opacity-40"
                           style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
                         />
@@ -206,9 +207,10 @@ export function LeadFormSection() {
 
                     <div className="pt-4">
                       <button
+                        id="cta-button"
                         type="submit"
                         disabled={isPending}
-                        className="w-full relative group inline-flex items-center justify-center gap-3 bg-brand-green text-slate-950 font-manrope font-bold text-base py-4 rounded-xl shadow-[0_15px_30px_rgba(0,176,179,0.2)] hover:shadow-[0_20px_40px_rgba(0,176,179,0.3)] hover:-translate-y-0.5 active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#161b22] disabled:opacity-60 disabled:pointer-events-none"
+                        className="w-full relative group inline-flex items-center justify-center gap-3 bg-brand-green text-slate-950 font-manrope font-bold text-base py-4 rounded-xl shadow-[0_15px_30px_rgba(0,176,179,0.25)] hover:shadow-[0_20px_40px_rgba(0,176,179,0.3)] hover:-translate-y-0.5 active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[#161b22] disabled:opacity-60 disabled:pointer-events-none"
                       >
                         {isPending ? (
                           <><Loader2 className="w-5 h-5 animate-spin" /> Enviando...</>

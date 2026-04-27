@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 
 import Link from "next/link";
 import Image from "next/image";
+import { setLastLandingCtaContext, trackLandingEvent } from "@/lib/landing-analytics";
 import { 
   ArrowRight, 
   CheckCircle2, 
@@ -758,17 +759,23 @@ export default function LandingPage() {
                 Entrar
               </Link>
               <a
+                id="cta-button"
                 className="btn-shimmer btn-shimmer-dark inline-flex items-center gap-2 bg-white/10 text-white text-sm font-semibold px-5 py-2.5 rounded-full hover:bg-white/15 transition-colors border border-white/10 backdrop-blur-md"
                 href="#demonstracao"
-                onClick={(e) => scrollTo(e, 'demonstracao')}
+                onClick={(e) => {
+                  scrollTo(e, 'demonstracao');
+                  setLastLandingCtaContext('header', 'solicitar demonstracao header');
+                  trackLandingEvent('cta_click', { section: 'header', cta_label: 'solicitar demonstracao header' });
+                }}
                 data-track-cta="true"
-                data-section="hero"
+                data-section="header"
                 data-cta-label="solicitar demonstracao header"
               >
                 Solicitar demonstração
               </a>
             </div>
           </nav>
+
         </motion.header>
 
         {/* ── HERO BODY ── */}
@@ -841,8 +848,14 @@ export default function LandingPage() {
                   className="flex flex-col sm:flex-row items-center gap-4"
                 >
                   <a
+                    id="cta-button"
                     href="#demonstracao"
                     className="w-full sm:w-auto group btn-shimmer btn-shimmer-dark inline-flex items-center justify-center gap-2 bg-brand-green text-slate-950 text-sm font-bold px-7 py-3.5 rounded-xl hover:bg-brand-green-hover transition-colors shadow-[0_0_24px_rgba(0,176,179,0.25)] active:scale-[0.98]"
+                    onClick={(e) => {
+                      scrollTo(e, 'demonstracao');
+                      setLastLandingCtaContext('hero', 'solicitar demonstracao');
+                      trackLandingEvent('cta_click', { section: 'hero', cta_label: 'solicitar demonstracao' });
+                    }}
                     data-track-cta="true"
                     data-section="hero"
                     data-cta-label="solicitar demonstracao"
@@ -850,6 +863,7 @@ export default function LandingPage() {
                     Solicitar demonstração
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                   </a>
+
                   <Link
                     href="/login"
                     className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] backdrop-blur-xl border border-white/10 text-white/80 hover:text-white text-sm font-medium transition-all shadow-[0_4px_20px_rgba(0,0,0,0.1)] active:scale-[0.98]"
