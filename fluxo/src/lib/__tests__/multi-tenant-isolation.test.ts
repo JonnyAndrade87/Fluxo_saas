@@ -29,6 +29,7 @@ vi.mock('../../../auth', () => ({ auth: vi.fn() }));
 vi.mock('@/lib/permissions', () => ({
   requireAuth: vi.fn(), requireAuthFresh: vi.fn(),
   requireRole: vi.fn(),
+  hasPermission: vi.fn().mockReturnValue(true),
 }));
 vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }));
 

@@ -76,7 +76,7 @@ describe('Onboarding e Callbacks de Autenticação', () => {
       expect(nextAuthSignIn).toHaveBeenCalledWith('credentials', {
         email: 'test@example.com',
         password: '123456',
-        redirectTo: '/cobrancas',
+        redirectTo: '/dashboard',
       });
     });
 

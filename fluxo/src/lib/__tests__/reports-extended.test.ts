@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { prismaMock, authMock, riskScoreMock } = vi.hoisted(() => ({
+const { prismaMock, authMock, riskScoreBatchMock } = vi.hoisted(() => ({
   prismaMock: {
     invoice: { findMany: vi.fn() },
   },
   authMock: vi.fn(),
-  riskScoreMock: vi.fn(),
+  riskScoreBatchMock: vi.fn(),
 }));
 
 vi.mock('@/lib/prisma', () => ({
@@ -17,7 +17,7 @@ vi.mock('../../../auth', () => ({
 }));
 
 vi.mock('@/actions/risk-score', () => ({
-  getRiskScoreForCustomer: riskScoreMock,
+  getRiskScoresBatch: riskScoreBatchMock,
 }));
 
 import { getPendingReport } from '@/actions/reports-extended';
@@ -29,7 +29,10 @@ describe('getPendingReport', () => {
     vi.setSystemTime(new Date('2026-04-16T12:00:00Z'));
 
     authMock.mockResolvedValue({ user: { tenantId: 'tenant-1' } });
-    riskScoreMock.mockResolvedValue({ level: 'Baixo', score: 10 });
+    riskScoreBatchMock.mockResolvedValue(new Map([
+      ['customer-1', { level: 'Baixo', score: 10 }],
+      ['customer-2', { level: 'Baixo', score: 10 }],
+    ]));
     prismaMock.invoice.findMany.mockResolvedValue([
       {
         id: 'invoice-1',

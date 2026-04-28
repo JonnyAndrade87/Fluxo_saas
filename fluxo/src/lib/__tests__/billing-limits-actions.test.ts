@@ -32,6 +32,7 @@ vi.mock('@/lib/prisma', () => ({
 vi.mock('@/lib/permissions', () => ({
   requireAuthFresh: vi.fn(),
   requireRole: vi.fn(),
+  hasPermission: vi.fn().mockReturnValue(true),
   AUDIT_ACTIONS: {
     CUSTOMER_CREATED: 'CUSTOMER_CREATED',
     CUSTOMER_UPDATED: 'CUSTOMER_UPDATED',

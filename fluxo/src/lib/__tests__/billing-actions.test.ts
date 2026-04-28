@@ -14,6 +14,7 @@ const { prismaMock, billingMock, permissionsMock } = vi.hoisted(() => ({
   permissionsMock: {
     requireAuthFresh: vi.fn(),
     requireRole: vi.fn(),
+    hasPermission: vi.fn().mockReturnValue(true),
   },
 }));
 
@@ -55,6 +56,7 @@ describe('Billing server actions', () => {
     expect(billingMock.createStripeCheckoutSessionForTenant).toHaveBeenCalledWith({
       tenantId: 'tenant-1',
       plan: 'pro',
+      billingCycle: 'monthly',
       customerEmail: 'admin@tenant.com',
     });
   });
@@ -64,7 +66,7 @@ describe('Billing server actions', () => {
     billingMock.createStripeCheckoutSessionForTenant.mockRejectedValue(configError);
     billingMock.isStripeBillingConfigurationError.mockReturnValue(true);
 
-    const result = await createSubscriptionCheckoutSession('starter');
+    const result = await createSubscriptionCheckoutSession('pro');
 
     expect(result).toEqual({
       error: 'Billing ainda não está configurado para este ambiente.',

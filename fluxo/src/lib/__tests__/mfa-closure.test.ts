@@ -30,14 +30,14 @@ describe('MFA Closure Proofs (16.2)', () => {
   };
 
   it('1. Admin SEM MFA configurado: Redireciona para /mfa-setup', async () => {
-    const request = req('/', 'admin', false, false);
+    const request = req('/dashboard', 'admin', false, false);
     const response = await authMiddleware(request, {} as any);
     
     expect(response?.headers.get('location')).toContain('/mfa-setup');
   });
 
   it('2. Admin COM MFA configurado (sem cookie): Redireciona para /mfa-challenge', async () => {
-    const request = req('/', 'admin', true, false);
+    const request = req('/dashboard', 'admin', true, false);
     const response = await authMiddleware(request, {} as any);
     
     expect(response?.headers.get('location')).toContain('/mfa-challenge');
@@ -67,7 +67,7 @@ describe('MFA Closure Proofs (16.2)', () => {
 
   it('6. Admin autenticado via Google: Também cai no challenge (Mismo gate do middleware)', async () => {
     // No middleware, não importa o provider, apenas o role e mfaEnabled
-    const request = req('/', 'admin', true, false);
+    const request = req('/dashboard', 'admin', true, false);
     const response = await authMiddleware(request, {} as any);
     
     expect(response?.headers.get('location')).toContain('/mfa-challenge');
