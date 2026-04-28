@@ -10,13 +10,6 @@ import { LandingPageAnalytics } from './LandingPageAnalytics';
  */
 const PUBLIC_ROUTES_WHITELIST = [
   '/',
-  '/login',
-  '/register',
-  '/activate',
-  '/verify-email',
-  '/forgot-password',
-  '/contato',
-  '/suporte',
   '/privacidade',
   '/termos',
   '/software-de-cobranca',
@@ -29,9 +22,8 @@ const PUBLIC_ROUTES_WHITELIST = [
 export function MarketingAnalytics() {
   const pathname = usePathname();
 
-  // Check if current path is in the whitelist or starts with whitelisted prefixes
-  const isWhitelisted = PUBLIC_ROUTES_WHITELIST.includes(pathname) || 
-                        pathname.startsWith('/reset-password');
+  // Check if current path is in the whitelist
+  const isWhitelisted = PUBLIC_ROUTES_WHITELIST.includes(pathname);
 
   // FAIL-CLOSED: Absolute block for any route not explicitly whitelisted (e.g., /dashboard, /clientes)
   if (!isWhitelisted) {

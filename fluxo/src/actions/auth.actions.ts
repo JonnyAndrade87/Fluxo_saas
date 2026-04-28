@@ -54,14 +54,14 @@ export async function requestPasswordReset(email: string) {
     });
 
     if (!emailResult.success) {
-      console.error('[AuthAction] Falha ao enviar e-mail de reset:', emailResult.error);
+      console.error('[AuthAction] Falha ao enviar e-mail de reset');
       // Retorna erro amigável ao frontend, mantendo detalhes técnicos no log
       return { error: 'O serviço de e-mail está instável. Tente novamente em alguns minutos.' };
     }
 
     return { success: true };
   } catch (error: unknown) {
-    console.error("Erro no fluxo do reset:", error);
+    console.error('[AuthAction] Erro no fluxo do reset');
     return { error: 'Ocorreu um erro interno. Tente de novo.' };
   }
 }
@@ -108,7 +108,7 @@ export async function resetPassword(token: string, newPasswordRaw: string) {
     return { success: true };
     
   } catch (error: unknown) {
-    console.error("Erro redefinindo credencial:", error instanceof Error ? error.message : String(error));
+    console.error('[AuthAction] Erro redefinindo credencial');
     return { error: 'Falha durante o processo de Reset.' };
   }
 }

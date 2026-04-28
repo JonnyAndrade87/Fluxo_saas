@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Not a WhatsApp API event' }, { status: 404 });
     }
   } catch (error: unknown) {
-    console.error('[WEBHOOK/WHATSAPP] Internal error:', error);
+    console.error('[WEBHOOK/WHATSAPP] Internal error occurred');
     return NextResponse.json({ success: false }, { status: 500 });
   }
 }

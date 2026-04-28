@@ -1302,3 +1302,31 @@ npm run test
 ### Veredito Final
 **APROVADO PARA BETA.** 
 O Fluxeer superou todos os critérios de viabilidade técnica, estabilidade, correção de tipos, qualidade de build e segurança necessários para operação comercial Beta com clientes reais. 🚀
+
+## Correção de Bloqueadores de Proteção de Dados — Beta
+
+### Histórico de Auditoria e Correções
+- **Data:** 28 de Abril de 2026
+- **Status de Auditoria:** ❌ BLOQUEADO (Analytics em área autenticada, PII em logs) -> ✅ APROVADO (Pós-correção)
+
+### Bloqueadores Encontrados e Resolvidos
+1. **Analytics/Tracking em Área Autenticada:**
+   - **Problema:** GTM, GA4 e Microsoft Clarity carregavam no `RootLayout`, gravando sessões e rastreando dados no Dashboard Financeiro.
+   - **Solução:** Implementação do componente `MarketingAnalytics` com whitelist estrita de rotas públicas.
+   - **Arquivos:** `src/components/analytics/MarketingAnalytics.tsx`, `src/app/layout.tsx`.
+   - **Comportamento:** Tracking ativo apenas em rotas de marketing (/, /login, /register, etc.). Bloqueio absoluto em `/dashboard` e sub-rotas.
+
+2. **Exposição de PII em Logs de Servidor:**
+   - **Problema:** E-mails de destinatários e erros brutos de autenticação/integração estavam sendo registrados no stdout (`console.log`/`console.error`).
+   - **Solução:** Sanitização global de logs. Implementação de `maskEmail` e `maskPhone` em `src/lib/utils.ts`.
+   - **Arquivos:** `src/lib/messaging/email.ts`, `src/lib/messaging/whatsapp.ts`, `src/lib/queue.ts`, `src/actions/auth.ts`, `src/actions/auth.actions.ts`, `src/lib/audit.ts`.
+
+3. **Conformidade LGPD (Transparência):**
+   - **Problema:** Política de privacidade genérica.
+   - **Solução:** Atualização da página `/privacidade` detalhando sub-processadores (Vercel, Stripe, Resend, Meta, Google, Microsoft) e procedimentos de exclusão/incidentes.
+   - **Arquivos:** `src/app/privacidade/page.tsx`.
+
+### Validação de Produção
+- **Build & Test:** `npm run build && npm run test` (169 testes passando).
+- **Deployment:** Vercel Production (Aliased: https://www.fluxeer.com.br).
+- **Veredito:** **Aprovado para Beta com dados reais.**

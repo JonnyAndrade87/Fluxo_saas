@@ -65,7 +65,7 @@ export async function POST(request: Request) {
     const result = await handleStripeEvent(event);
     return NextResponse.json({ ok: true, ...result });
   } catch (error: unknown) {
-    console.error('[WEBHOOK/STRIPE] Internal error:', error);
+    console.error('[WEBHOOK/STRIPE] Internal error occurred');
     return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }
 }
