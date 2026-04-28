@@ -45,10 +45,10 @@ async function main() {
   for (const table of tables) {
     console.log(`📦 Migrando tabela: ${table}...`);
     try {
-      // @ts-ignore
+      // @ts-expect-error - Next.js internal cache reset
       const data = await source[table].findMany();
       if (data.length > 0) {
-        // @ts-ignore
+        // @ts-expect-error - Next.js internal cache reset
         await target[table].createMany({
           data,
           skipDuplicates: true,

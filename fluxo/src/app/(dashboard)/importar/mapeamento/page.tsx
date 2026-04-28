@@ -64,28 +64,25 @@ export default function GenericMappingPage() {
   const [error, setError]               = useState<string | null>(null);
   const [noSessionData, setNoSessionData] = useState(false); // B03: tracks missing sessionStorage
 
-  useEffect(() => {
-    const storedRaw     = sessionStorage.getItem('fluxo_csv_raw');
-    const storedHeaders = sessionStorage.getItem('fluxo_csv_headers');
-    if (storedRaw && storedHeaders) {
-      try {
-        const parsed = JSON.parse(storedRaw);
-        const hdrs   = JSON.parse(storedHeaders);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setRawData(parsed);
-          setHeaders(hdrs);
-        } else {
-          // Data present but empty — treat as missing (edge case of B08 reaching here)
-          setNoSessionData(true);
-        }
-      } catch {
+  const storedRaw = typeof window !== 'undefined' ? sessionStorage.getItem('fluxo_csv_raw') : null;
+  const storedHeaders = typeof window !== 'undefined' ? sessionStorage.getItem('fluxo_csv_headers') : null;
+
+  if (storedRaw && storedHeaders && rawData.length === 0 && !noSessionData) {
+    try {
+      const parsed = JSON.parse(storedRaw);
+      const hdrs = JSON.parse(storedHeaders);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        setRawData(parsed);
+        setHeaders(hdrs);
+      } else {
         setNoSessionData(true);
       }
-    } else {
-      // B03: no sessionStorage — user navigated here directly
+    } catch {
       setNoSessionData(true);
     }
-  }, []);
+  } else if (!storedRaw && !noSessionData && typeof window !== 'undefined') {
+    setNoSessionData(true);
+  }
 
   const handleMappingChange = (csvHeader: string, fluxoField: string) => {
     setMapping(prev => ({ ...prev, [csvHeader]: fluxoField }));

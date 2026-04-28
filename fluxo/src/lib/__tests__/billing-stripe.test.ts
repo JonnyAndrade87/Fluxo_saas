@@ -57,9 +57,9 @@ beforeEach(() => {
 
   vi.stubEnv('STRIPE_SECRET_KEY', 'sk_test_123');
   vi.stubEnv('STRIPE_WEBHOOK_SECRET', 'whsec_123');
-  vi.stubEnv('STRIPE_PRICE_ID_STARTER', 'price_starter');
-  vi.stubEnv('STRIPE_PRICE_ID_PRO', 'price_pro');
-  vi.stubEnv('STRIPE_PRICE_ID_SCALE', 'price_scale');
+  vi.stubEnv('STRIPE_PRICE_ID_STARTER_MONTHLY', 'price_starter');
+  vi.stubEnv('STRIPE_PRICE_ID_PRO_MONTHLY', 'price_pro');
+  vi.stubEnv('STRIPE_PRICE_ID_SCALE_MONTHLY', 'price_scale');
   vi.stubEnv('NEXT_PUBLIC_APP_URL', 'https://app.fluxeer.test');
 });
 
@@ -100,6 +100,7 @@ describe('Stripe billing service', () => {
     const session = await createStripeCheckoutSessionForTenant({
       tenantId: 'tenant-1',
       plan: 'pro',
+      billingCycle: 'monthly',
       customerEmail: 'admin@tenant.com',
     });
 
@@ -144,6 +145,8 @@ describe('Stripe billing service', () => {
         onboardingTier: 'concierge',
         stripeCustomerId: 'cus_123',
         stripeSubscriptionId: 'sub_123',
+        stripePriceId: 'price_scale',
+        currentPeriodEnd: null,
       },
     });
     expect(result).toEqual({

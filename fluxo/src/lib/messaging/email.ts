@@ -44,7 +44,7 @@ export async function sendEmail(opts: SendEmailOptions): Promise<SendResult> {
     return { success: false, error: 'RESEND_API_KEY not configured' };
   }
 
-  const from = opts.from ?? process.env.RESEND_FROM_EMAIL ?? 'noreply@fluxo.app';
+  const from = opts.from ?? process.env.RESEND_FROM_EMAIL ?? 'no-reply@fluxeer.com.br';
 
   try {
     const { data, error } = await client.emails.send({

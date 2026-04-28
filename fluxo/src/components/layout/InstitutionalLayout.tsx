@@ -11,9 +11,9 @@ import logoIcon from "@/assets/logo-icone2.png";
 export function InstitutionalLayout({ children }: { children: React.ReactNode }) {
   const [currentYear, setCurrentYear] = useState(2026);
 
-  useEffect(() => {
+  if (currentYear !== new Date().getFullYear()) {
     setCurrentYear(new Date().getFullYear());
-  }, []);
+  }
 
   return (
     <div className="bg-gray-50 text-gray-900 antialiased min-h-screen flex flex-col">

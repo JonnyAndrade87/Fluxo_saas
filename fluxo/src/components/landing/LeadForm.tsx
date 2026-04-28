@@ -8,9 +8,9 @@ export function LeadForm() {
   const [state, action, isPending] = useActionState(submitLead, { success: false, error: '', message: '' });
   const [submitted, setSubmitted] = useState(false);
 
-  useEffect(() => {
-    if (state?.success) setSubmitted(true);
-  }, [state]);
+  if (state?.success && !submitted) {
+    setSubmitted(true);
+  }
 
   if (submitted) {
     return (

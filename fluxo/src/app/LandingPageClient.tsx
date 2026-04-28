@@ -1354,9 +1354,9 @@ function PlatformSection() {
 function Footer() {
   const [currentYear, setCurrentYear] = useState(2026);
 
-  useEffect(() => {
+  if (currentYear !== new Date().getFullYear()) {
     setCurrentYear(new Date().getFullYear());
-  }, []);
+  }
 
   return (
     <footer className="bg-[#f3f7f9] border-t border-slate-200/60 py-24 relative overflow-hidden">

@@ -3,16 +3,24 @@
 import { createHmac } from 'crypto';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { billingMock } = vi.hoisted(() => ({
+const { billingMock, prismaMock } = vi.hoisted(() => ({
   billingMock: {
     getStripeBillingConfiguration: vi.fn(),
     syncTenantBillingFromCheckoutSession: vi.fn(),
     syncTenantBillingFromStripeReferences: vi.fn(),
     syncTenantBillingFromSubscription: vi.fn(),
   },
+  prismaMock: {
+    stripeEvent: {
+      create: vi.fn(),
+    },
+  },
 }));
 
 vi.mock('@/lib/billing/stripe', () => billingMock);
+vi.mock('@/lib/prisma', () => ({
+  default: prismaMock,
+}));
 
 import { POST } from './route';
 
@@ -21,6 +29,9 @@ beforeEach(() => {
   billingMock.syncTenantBillingFromCheckoutSession.mockResolvedValue({ updated: true, tenantId: 'tenant-1' });
   billingMock.syncTenantBillingFromStripeReferences.mockResolvedValue({ updated: true, tenantId: 'tenant-1' });
   billingMock.syncTenantBillingFromSubscription.mockResolvedValue({ updated: true, tenantId: 'tenant-1' });
+
+  prismaMock.stripeEvent.create.mockReset();
+  prismaMock.stripeEvent.create.mockResolvedValue({});
 
   vi.stubEnv('STRIPE_SECRET_KEY', 'sk_test_123');
   vi.stubEnv('STRIPE_WEBHOOK_SECRET', 'whsec_test_123');
