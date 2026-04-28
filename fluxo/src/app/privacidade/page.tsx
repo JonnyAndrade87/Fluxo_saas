@@ -43,51 +43,46 @@ export default function PrivacidadePage() {
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl font-manrope font-bold text-slate-900">3. Compartilhamento de dados</h2>
+            <h2 className="text-2xl font-manrope font-bold text-slate-900">3. Compartilhamento e Sub-processadores</h2>
             <p className="text-slate-600 leading-relaxed">
-              O Fluxeer não comercializa dados pessoais. Informações poderão ser compartilhadas apenas quando necessário para a operação do serviço, com fornecedores e parceiros essenciais, ou quando houver obrigação legal, regulatória ou ordem de autoridade competente.
+              O Fluxeer utiliza fornecedores e parceiros essenciais para a prestação do serviço. Para o estágio Beta, nossos principais sub-processadores incluem:
+            </p>
+            <ul className="list-disc pl-6 text-slate-600 space-y-2">
+              <li><strong>Vercel:</strong> Hospedagem e infraestrutura de servidor.</li>
+              <li><strong>Provedor de Banco de Dados:</strong> Armazenamento seguro de dados operacionais.</li>
+              <li><strong>Stripe:</strong> Processamento de pagamentos, assinaturas e gestão de faturamento.</li>
+              <li><strong>Resend:</strong> Disparo de comunicações transacionais via e-mail.</li>
+              <li><strong>Meta (WhatsApp Business API):</strong> Disparo de notificações de cobrança via WhatsApp.</li>
+              <li><strong>Google (GTM, GA4, Ads):</strong> Analytics e marketing (<strong>apenas em páginas públicas</strong>).</li>
+              <li><strong>Microsoft (Clarity):</strong> Análise de experiência de usuário (<strong>apenas em páginas públicas</strong>).</li>
+            </ul>
+          </section>
+
+          <section className="space-y-4">
+            <h2 className="text-2xl font-manrope font-bold text-slate-900">4. Armazenamento e Proteção</h2>
+            <p className="text-slate-600 leading-relaxed">
+              Adotamos medidas técnicas como criptografia, isolamento multi-tenant rigoroso e firewalls para proteger as informações. Durante o Beta, realizamos auditorias periódicas para garantir a integridade dos dados.
             </p>
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl font-manrope font-bold text-slate-900">4. Armazenamento e proteção</h2>
+            <h2 className="text-2xl font-manrope font-bold text-slate-900">5. Retenção e Exclusão</h2>
             <p className="text-slate-600 leading-relaxed">
-              Adotamos medidas técnicas e organizacionais adequadas para proteger as informações tratadas na plataforma contra acesso não autorizado, uso indevido, alteração ou divulgação indevida.
+              Mantemos os dados enquanto a conta estiver ativa. Em conformidade com a LGPD, o usuário pode solicitar a exclusão total de seus dados a qualquer momento. Para o Beta, este procedimento é manual e realizado em até 5 dias úteis após a solicitação.
             </p>
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl font-manrope font-bold text-slate-900">5. Retenção de informações</h2>
+            <h2 className="text-2xl font-manrope font-bold text-slate-900">6. Seus Direitos e Contato</h2>
             <p className="text-slate-600 leading-relaxed">
-              As informações poderão ser mantidas pelo tempo necessário para operar o serviço, cumprir obrigações legais, resolver disputas, preservar registros e garantir a continuidade e segurança da plataforma.
+              Você possui direito de acesso, correção, anonimização ou exclusão de seus dados. Para exercer esses direitos ou relatar um incidente de segurança, entre em contato através do e-mail: <strong>privacidade@fluxeer.com.br</strong>.
             </p>
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl font-manrope font-bold text-slate-900">6. Direitos do usuário</h2>
+            <h2 className="text-2xl font-manrope font-bold text-slate-900">7. Procedimento em Caso de Incidentes</h2>
             <p className="text-slate-600 leading-relaxed">
-              Sempre que aplicável, o titular poderá solicitar informações sobre o tratamento de seus dados, bem como atualização, correção ou exclusão, observadas as obrigações legais e técnicas aplicáveis.
-            </p>
-          </section>
-
-          <section className="space-y-4">
-            <h2 className="text-2xl font-manrope font-bold text-slate-900">7. Cookies e tecnologias similares</h2>
-            <p className="text-slate-600 leading-relaxed">
-              A plataforma pode utilizar cookies e tecnologias semelhantes para melhorar navegação, desempenho, segurança e análise de uso. Esses recursos ajudam a compreender melhor a interação dos usuários com o serviço.
-            </p>
-          </section>
-
-          <section className="space-y-4">
-            <h2 className="text-2xl font-manrope font-bold text-slate-900">8. Alterações nesta política</h2>
-            <p className="text-slate-600 leading-relaxed">
-              Esta Política de Privacidade poderá ser atualizada periodicamente para refletir melhorias, ajustes operacionais, exigências legais ou mudanças no serviço. Recomendamos a consulta regular desta página.
-            </p>
-          </section>
-
-          <section className="space-y-4">
-            <h2 className="text-2xl font-manrope font-bold text-slate-900">9. Contato</h2>
-            <p className="text-slate-600 leading-relaxed">
-              Para dúvidas relacionadas a esta Política de Privacidade, entre em contato pelos canais institucionais do Fluxeer.
+              Em caso de qualquer incidente de segurança que possa acarretar risco ou dano relevante aos titulares, o Fluxeer comunicará os usuários afetados e a Autoridade Nacional de Proteção de Dados (ANPD) em prazo razoável, detalhando a natureza do incidente e as medidas de mitigação adotadas.
             </p>
           </section>
 

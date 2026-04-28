@@ -167,7 +167,7 @@ Documentação: Veja o drawer do cliente em /clientes para análise completa.
   // Log da ação
   // ────────────────────────────────────────────────────────────────────────────
 
-  console.log(`[RISK ALERT] Tarefa criada para ${customer.name} (Score ${riskScore}):`, task.id);
+  console.log(`[RISK ALERT] Tarefa criada para cliente ID ${customer.id.slice(0, 8)}... (Score ${riskScore}):`, task.id);
 
   // Revalidar para mostrar tarefa imediatamente
   revalidatePath('/');

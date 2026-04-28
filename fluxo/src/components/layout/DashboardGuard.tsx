@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { getSessionSafe } from '@/lib/safe-auth';
+import { maskEmail } from '@/lib/utils';
 
 export async function DashboardGuard() {
   const session = await getSessionSafe();
@@ -9,6 +10,6 @@ export async function DashboardGuard() {
     redirect('/login');
   }
   
-  console.log('Dashboard access granted for user:', session.user.email);
+  console.log('Dashboard access granted for user:', maskEmail(session.user.email));
   return session;
 }

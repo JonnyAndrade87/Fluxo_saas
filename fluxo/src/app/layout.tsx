@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Manrope } from 'next/font/google';
 import "./globals.css";
 import '@/lib/deployment-debug';
-import { AnalyticsScripts } from '@/components/analytics/AnalyticsScripts';
-import { LandingPageAnalytics } from '@/components/analytics/LandingPageAnalytics';
+import { MarketingAnalytics } from '@/components/analytics/MarketingAnalytics';
 
 const geist = Geist({
   subsets: ['latin'],
@@ -99,8 +98,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
       </head>
       <body className="min-h-full flex flex-col">
-        <AnalyticsScripts />
-        <LandingPageAnalytics />
+        <MarketingAnalytics />
         {children}
       </body>
     </html>

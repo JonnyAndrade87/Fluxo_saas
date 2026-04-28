@@ -53,7 +53,7 @@ export async function logAudit(params: LogAuditParams): Promise<void> {
       },
     });
   } catch (error) {
-    console.error('[AUDIT ERROR]', error);
+    console.error('[AUDIT ERROR] Failed to record activity log');
   }
 }
 

@@ -16,6 +16,7 @@ import prisma from '@/lib/prisma';
 import { sendEmail, buildBillingEmailHtml } from './messaging/email';
 import { sendWhatsApp, sendWhatsAppTemplate } from './messaging/whatsapp';
 import { checkRateLimit } from './rateLimiter';
+import { maskEmail, maskPhone } from './utils';
 
 export interface ProcessQueueResult {
   processed: number;
@@ -114,10 +115,12 @@ export async function enqueueAndSend(params: {
         action: 'MESSAGE_THROTTLED',
         entityType: 'customer',
         entityId: params.customerId,
-        metadata: JSON.stringify({ reason: rateCheck.reason, channel: params.channel }),
+        metadata: JSON.stringify({ reason: 'Rate limit reached', channel: params.channel }),
       },
-    }).catch(() => {});
-    return { communicationId: '', sent: false, error: rateCheck.reason, skipped: true };
+    }).catch(() => {
+      console.error('[AUDIT ERROR] Failed to record activity log');
+    });
+    return { communicationId: '', sent: false, error: 'Rate limit reached', skipped: true };
   }
 
   // ── Create Communication record ────────────────────────────────────────────
@@ -188,21 +191,21 @@ export async function enqueueAndSend(params: {
         data: { status: 'sent', externalId: result.messageId },
       }),
     ]);
-    console.log(`[QUEUE] Sent — channel:${params.channel} to:${params.to} messageId:${result.messageId} commId:${comm.id}`);
+    console.log(`[QUEUE] Sent — channel:${params.channel} id:${queueItem.id}`);
     return { communicationId: comm.id, sent: true };
   } else {
     await Promise.all([
       prisma.messageQueue.update({
         where: { id: queueItem.id },
-        data: { retryCount: 1, errorLog: result.error },
+        data: { retryCount: 1, errorLog: 'Send failed' },
       }),
       prisma.communication.update({
         where: { id: comm.id },
-        data: { status: 'queued', errorMessage: result.error, retryCount: 1 },
+        data: { status: 'queued', errorMessage: 'Send failed', retryCount: 1 },
       }),
     ]);
-    console.error(`[QUEUE] Send failed — channel:${params.channel} to:${params.to} error:${result.error}`);
-    return { communicationId: comm.id, sent: false, error: result.error };
+    console.error(`[QUEUE] Send failed — channel:${params.channel} id:${queueItem.id}`);
+    return { communicationId: comm.id, sent: false, error: 'Send failed' };
   }
 }
 
@@ -277,10 +280,10 @@ export async function processQueue(maxItems = 50): Promise<ProcessQueueResult> {
           data: { status: 'sent', externalId: sendResult.messageId },
         }).catch(() => {});
       }
-      console.log(`[QUEUE] ✓ Sent — id:${item.id} channel:${item.channel} messageId:${sendResult.messageId}`);
+      console.log(`[QUEUE] ✓ Sent — id:${item.id} channel:${item.channel}`);
     } else {
       result.failed++;
-      result.errors.push(`[${item.id}] ${sendResult.error}`);
+      result.errors.push(`[${item.id}] Send failure`);
 
       const newRetryCount = item.retryCount + 1;
       const exhausted = newRetryCount >= item.maxRetries;
@@ -298,35 +301,37 @@ export async function processQueue(maxItems = 50): Promise<ProcessQueueResult> {
             status: 'failed_permanent',
             isDlq: true,
             retryCount: newRetryCount,
-            errorLog: sendResult.error,
+            errorLog: 'Permanent failure',
             processingStartedAt: null,
           },
         });
         if (metadata.communicationId) {
           await prisma.communication.update({
             where: { id: metadata.communicationId },
-            data: { status: 'failed', errorMessage: sendResult.error, retryCount: newRetryCount },
+            data: { status: 'failed', errorMessage: 'Permanent failure', retryCount: newRetryCount },
           }).catch(() => {});
         }
-        console.error(`[QUEUE] ✗ DLQ — id:${item.id} channel:${item.channel} after ${newRetryCount} retries`);
+        console.error(`[QUEUE] ✗ DLQ — id:${item.id} after ${newRetryCount} retries`);
 
         // ── Channel fallback: WhatsApp → Email ────────────────────────────────
         if (item.channel === 'whatsapp' && !item.fallbackFrom) {
           const fallbackEmail = metadata.fallbackEmail as string | undefined;
           if (fallbackEmail) {
             result.fallbacks++;
-            console.log(`[QUEUE] Fallback WA→Email — original:${item.id} to:${fallbackEmail}`);
+            console.log(`[QUEUE] Fallback WA→Email — original:${item.id}`);
             await enqueueAndSend({
               tenantId: item.tenantId,
               customerId: metadata.customerId,
               invoiceId: metadata.invoiceId,
               channel: 'email',
               to: fallbackEmail,
-              subject: `Cobrança automática — Fatura #${metadata.invoiceNumber ?? ''}`,
+              subject: `Cobrança`,
               body: item.body,
               messageType: `FALLBACK:${metadata.messageType ?? 'unknown'}`,
               _fallbackFrom: item.id,
-            }).catch(e => console.error('[QUEUE] Fallback enqueue error:', e));
+            }).catch(e => {
+              console.error('[QUEUE] Fallback enqueue error');
+            });
           }
         }
       } else {

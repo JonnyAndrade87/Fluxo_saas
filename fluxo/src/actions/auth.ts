@@ -199,7 +199,7 @@ export async function register(prevState: { error?: string; success?: boolean } 
 
     return { success: true };
   } catch (error: unknown) {
-    console.error('Registration error:', error);
+    console.error('[AUTH] Registration attempt failed');
     return { error: 'Falha ao criar a conta. Tente novamente mais tarde.' };
   }
 }

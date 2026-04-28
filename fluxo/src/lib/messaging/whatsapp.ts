@@ -16,6 +16,7 @@
 
 const GRAPH_API_VERSION = 'v22.0';
 const GRAPH_API_BASE = 'https://graph.facebook.com';
+import { maskPhone } from '../utils';
 
 export interface SendWhatsAppOptions {
   to: string;        // E.164 without '+': "5511999999999"
@@ -94,7 +95,7 @@ export async function sendWhatsApp(opts: SendWhatsAppOptions): Promise<SendResul
     }
 
     const messageId = data?.messages?.[0]?.id;
-    console.log(`[WHATSAPP] Sent to ${phone} — messageId: ${messageId}`);
+    console.log(`[WHATSAPP] Sent to ${maskPhone(phone)} — messageId: ${messageId}`);
     return { success: true, messageId };
   } catch (err: any) {
     console.error('[WHATSAPP] Fetch error:', err);
@@ -148,7 +149,7 @@ export async function sendWhatsAppTemplate(opts: SendWhatsAppTemplateOptions): P
     }
 
     const messageId = data?.messages?.[0]?.id;
-    console.log(`[WHATSAPP] Template "${opts.templateName}" sent to ${phone} — messageId: ${messageId}`);
+    console.log(`[WHATSAPP] Template "${opts.templateName}" sent to ${maskPhone(phone)} — messageId: ${messageId}`);
     return { success: true, messageId };
   } catch (err: any) {
     console.error('[WHATSAPP] Template fetch error:', err);

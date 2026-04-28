@@ -9,6 +9,7 @@
  */
 
 import { Resend } from 'resend';
+import { maskEmail } from '../utils';
 
 export interface SendEmailOptions {
   to: string;
@@ -60,7 +61,7 @@ export async function sendEmail(opts: SendEmailOptions): Promise<SendResult> {
       return { success: false, error: error.message };
     }
 
-    console.log(`[EMAIL] Sent to ${opts.to} — messageId: ${data?.id}`);
+    console.log(`[EMAIL] Sent to ${maskEmail(opts.to)} — messageId: ${data?.id}`);
     return { success: true, messageId: data?.id };
   } catch (err: unknown) {
     console.error('[EMAIL] Unexpected error:', err);
