@@ -1451,3 +1451,33 @@ Toda nova feature só pode ser considerada pronta se responder **SIM** para:
 
 *Registro final: Validação logada realizada com sucesso via usuário técnico temporário. O usuário e seus dados associados foram removidos do ambiente de produção após a conclusão dos testes para garantir a limpeza do ambiente.*
 
+
+## Padronização Visual de E-mails Transacionais (30 Abril 2026)
+
+**Objetivo:** Unificar a identidade visual de todos os e-mails transacionais da plataforma com a marca oficial Fluxeer.
+
+**Arquivos Alterados:**
+- `src/lib/messaging/email.ts` — Templates e helpers de layout (Header, Footer, Wrapper).
+- `src/actions/auth.actions.ts` — Assunto do e-mail de redefinição de senha.
+- `src/lib/queue.ts` — Assunto padrão do e-mail de cobrança (fallback do processador de fila).
+
+**Ações Realizadas:**
+- Rebrand total: termos legados "Fluxo" e "BY FLUXEER" removidos de todos os templates de e-mail e assuntos.
+- Refatoração para helpers unificados: `emailHeader()`, `emailFooter()`, `wrapEmailLayout()` compartilhados por todos os templates.
+- Header dos e-mails substituído: removido o ícone genérico com letra "F" e o texto "Fluxo / BY FLUXEER". Substituído pelo logo oficial `logo_fluxeer.png`, servido via URL pública do domínio configurado em `NEXT_PUBLIC_APP_URL` (padrão: `https://www.fluxeer.com.br/logo_fluxeer.png`).
+- Templates padronizados: Redefinição de Senha, Ativação de Conta (Verificação de E-mail), Boas-vindas e Aviso de Cobrança.
+- Copy revisada: sem promessas de automação indevidas (conforme `COMMUNICATION_MODE=manual`).
+- Lógica de envio intacta: nenhuma ação de disparo foi adicionada ou alterada; mudança restrita a apresentação e branding.
+
+**Logo Oficial:**
+- Arquivo: `/public/logo_fluxeer.png`
+- URL pública usada nos e-mails: `https://www.fluxeer.com.br/logo_fluxeer.png`
+
+**Validação Técnica:**
+- Lint: Aprovado (0 erros).
+- Typecheck: Aprovado.
+- Build de produção: Aprovado.
+- Testes: 176 testes aprovados (Suíte completa sem regressões).
+
+**Pendente (ação manual):** Validação do e-mail real recebido em produção após deploy, confirmando renderização do logo, marca Fluxeer e ausência de naming legado. Após validação, registrar: "E-mail real recebido e validado em produção com logo oficial, marca Fluxeer, CTA funcional e sem naming legado."
+

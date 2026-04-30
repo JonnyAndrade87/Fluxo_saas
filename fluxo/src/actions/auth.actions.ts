@@ -45,7 +45,7 @@ export async function requestPasswordReset(email: string) {
     const emailResult = await sendEmail({
       from: getAuthEmailFrom(),
       to: email,
-      subject: 'Redefinição de Senha — Fluxo',
+      subject: 'Redefini\u00e7\u00e3o de Senha \u2014 Fluxeer',
       html: buildPasswordResetEmailHtml({
         name: user.fullName,
         resetUrl,

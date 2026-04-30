@@ -387,7 +387,7 @@ async function trySend(params: {
 
     return sendEmail({
       to: params.to,
-      subject: params.subject ?? 'Aviso de Cobrança — Fluxo',
+      subject: params.subject ?? 'Aviso de Cobran\u00e7a — Fluxeer',
       html,
       text: params.body,
     });
