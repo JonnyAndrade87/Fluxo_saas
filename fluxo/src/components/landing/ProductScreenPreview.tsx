@@ -1,9 +1,7 @@
 import {
-  AlertTriangle,
   CalendarDays,
   CheckCircle2,
   Clock,
-  FileText,
   MessageSquare,
   ShieldAlert,
   TrendingUp,
@@ -25,12 +23,12 @@ const riskItems = [
 ] as const;
 
 const taskItems = [
-  'Follow-up automático agendado',
-  'Contato do financeiro registrado',
-  'Promessa de pagamento em análise',
+  'Próxima ação registrada',
+  'Contato do financeiro confirmado',
+  'Pendência de cobrança em acompanhamento',
 ] as const;
 
-const commItems = ['WhatsApp enviado', 'E-mail pendente', 'Lembrete reagendado'] as const;
+const commItems = ['Cobrança acompanhada', 'Ação de cobrança registrada', 'Lembrete preparado'] as const;
 
 function toneClasses(tone: (typeof kpiCards)[number]['tone']) {
   switch (tone) {
@@ -146,7 +144,7 @@ export function ProductScreenPreview({ variant }: { variant: ProductScreenPrevie
               <div className="flex items-center justify-between gap-3 border-b border-slate-200 pb-4">
                 <div>
                   <p className="text-sm font-manrope font-bold text-slate-900">Comunicações da régua</p>
-                  <p className="text-xs text-slate-500">Disparos e pendências do fluxo automatizado.</p>
+                  <p className="text-xs text-slate-500">Ações e pendências do fluxo estruturado.</p>
                 </div>
                 <MessageSquare className="h-4 w-4 text-brand-green" />
               </div>
@@ -165,28 +163,7 @@ export function ProductScreenPreview({ variant }: { variant: ProductScreenPrevie
           </div>
         ) : null}
 
-        {variant === 'operacao' ? (
-          <div className="rounded-[1.75rem] border border-slate-200 bg-slate-950 p-5 text-white">
-            <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-4">
-              <div>
-                <p className="text-sm font-manrope font-bold">Faturas vencidas</p>
-                <p className="text-xs text-white/60">Visão real da carteira com dados comerciais protegidos.</p>
-              </div>
-              <AlertTriangle className="h-4 w-4 text-rose-400" />
-            </div>
-            <div className="mt-5 space-y-3">
-              {['#INV-••••', '#INV-••••', '#INV-••••'].map(item => (
-                <div key={item} className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                  <div className="flex items-center gap-3">
-                    <FileText className="h-4 w-4 text-rose-300" />
-                    <span className="text-sm font-medium">{item}</span>
-                  </div>
-                  <span className="text-[10px] font-mono font-bold uppercase tracking-[0.15em] text-rose-300">Em tratamento</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : null}
+
       </div>
     </div>
   );

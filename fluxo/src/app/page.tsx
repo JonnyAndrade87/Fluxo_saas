@@ -47,7 +47,7 @@ export default function Home() {
         "name": "Fluxeer",
         "applicationCategory": "BusinessApplication",
         "operatingSystem": "Web",
-        "description": "Plataforma para organizar contas a receber, automatizar a régua de cobrança e melhorar a previsibilidade de caixa em operações B2B."
+        "description": "Plataforma para organizar contas a receber, organizar a régua de cobrança e melhorar a previsibilidade de caixa em operações B2B."
       },
       {
         "@type": "FAQPage",

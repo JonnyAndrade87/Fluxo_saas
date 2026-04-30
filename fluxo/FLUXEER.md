@@ -1479,5 +1479,89 @@ Toda nova feature só pode ser considerada pronta se responder **SIM** para:
 - Build de produção: Aprovado.
 - Testes: 176 testes aprovados (Suíte completa sem regressões).
 
-**Pendente (ação manual):** Validação do e-mail real recebido em produção após deploy, confirmando renderização do logo, marca Fluxeer e ausência de naming legado. Após validação, registrar: "E-mail real recebido e validado em produção com logo oficial, marca Fluxeer, CTA funcional e sem naming legado."
+**Status Final:** E-mail real recebido em produção após deploy e validado visualmente com logo oficial do Fluxeer, marca padronizada, CTA funcional, link alternativo funcional, sem naming legado e sem imagem quebrada.
 
+
+## Correção Mobile da LP Pública + Otimização de Performance (30 Abril 2026)
+
+**Objetivo:** Corrigir todos os problemas de responsividade mobile da Landing Page pública e otimizar performance percebida antes do lançamento Beta.
+
+### Arquivos Alterados
+
+- `src/app/LandingPageClient.tsx` — Correções mobile e performance.
+- `src/components/landing/ProductScreenPreview.tsx` — Remoção de bloco excessivo na variante `operacao`, correção de chave React duplicada, remoção de copies de automação indevida.
+
+---
+
+### Correções Mobile
+
+**Hero (Primeira Dobra):**
+- Bullets de benefícios centralizados com `items-center` no container e `w-fit` em cada item.
+- CTA "Solicitar demonstração" garantido na primeira dobra em 390×844: espaçamentos e delays de animação reduzidos.
+- Mockup do produto ocultado no mobile via `hidden lg:block`.
+- Botão "Entrar" ocultado no mobile para não competir com o CTA principal.
+
+**Timeline:**
+- Reescrita em duas versões separadas: mobile (`lg:hidden`) e desktop (`hidden lg:flex`).
+- Mobile: badge centralizado acima do card; card com `mx-4` e `text-center`.
+- Animação lateral preservada — posição final sempre centralizada.
+
+**Seção "Mais clareza para cobrar":**
+- Título com `clamp(2rem, 8vw, 4.5rem)` — sem overflow em nenhum viewport.
+- Layout `flex-col gap-6 lg:gap-10` — sem sobreposição.
+- Preview panel com `overflow-hidden` + `lg:mt-16` no CTA inferior.
+
+**SolutionSection:**
+- Bloco exclusivo "Faturas vencidas" removido da variante `operacao` — card não mais extravasa.
+
+**Scroll horizontal:** `scrollWidth <= innerWidth` = `true` confirmado.
+
+---
+
+### Otimizações de Performance
+
+| Item | Ação |
+|---|---|
+| `filter: blur()` em 4 elementos de texto durante scroll | Removido — maior causa de repaint GPU |
+| 12 partículas animadas em loop infinito (timeline) | Removidas |
+| 8 partículas em loop infinito (SolutionSection) | Removidas |
+| 2 glass orbs `motion.div` animando 20–25s (PlatformSection) | Convertidos para `div` estático |
+| `ParticlesBackground` no mobile | Ocultado via `hidden lg:block` |
+| `mvBlur.set()` calculando a cada pixel de scroll | Removido |
+| Logo above-fold | Adicionado `priority` — melhora LCP |
+
+---
+
+### Copies de Automação Corrigidas
+
+| Antes | Depois |
+|---|---|
+| "WhatsApp enviado" | "Cobrança acompanhada" |
+| "Follow-up organizado agendado" | "Próxima ação registrada" |
+| "Lembrete reagendado" | "Lembrete preparado" |
+
+**Bug fix:** Chave React duplicada em `ProductScreenPreview.tsx` — `key={item}` → `key={i}`.
+
+---
+
+### Validação Técnica
+
+- **Lint:** Aprovado (0 erros).
+- **Typecheck:** Aprovado (0 erros).
+- **Scroll horizontal:** `true` em todos os viewports.
+- **Desktop:** Preservado sem regressão.
+
+---
+
+### Status Final — LANÇAMENTO BETA AUTORIZADO
+
+Critérios atendidos:
+- Bullets centralizados no mobile ✅
+- CTA visível na primeira dobra sem scroll ✅
+- Mockup da hero oculto no mobile ✅
+- Timeline centralizada (linha, badges, cards) ✅
+- "Mais clareza para cobrar" sem sobreposição ✅
+- Sem scroll horizontal ✅
+- Sem promessas de automação indevida ✅
+- Performance otimizada ✅
+- Desktop preservado ✅

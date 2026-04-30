@@ -4,8 +4,8 @@ import Link from "next/link";
 import { ArrowRight, Clock, MessageCircle } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Régua de Cobrança Automática",
-  description: "Implemente uma régua de cobrança automática e inteligente. O Fluxeer ajuda sua empresa a organizar lembretes, priorizar faturas e reduzir o atraso.",
+  title: "Régua de Cobrança Estruturada",
+  description: "Implemente uma régua de cobrança estruturada e inteligente. O Fluxeer ajuda sua empresa a organizar lembretes, priorizar faturas e reduzir o atraso.",
   alternates: { canonical: "https://www.fluxeer.com.br/regua-de-cobranca" }
 };
 
@@ -19,7 +19,7 @@ export default function ReguaCobrancaPage() {
               Metodologia de Recebimento
             </div>
             <h1 className="text-4xl lg:text-6xl font-manrope font-extrabold text-slate-950 mb-8 tracking-tighter leading-[0.95]">
-              Régua de cobrança <span className="text-brand-green">automática e estratégica.</span>
+              Régua de cobrança <span className="text-brand-green">estruturada e estratégica.</span>
             </h1>
             <p className="text-xl text-slate-500 font-geist leading-relaxed max-w-2xl mb-10">
               Não deixe sua cobrança para depois. Com uma régua de cobrança organizada, você mantém o contato constante com o cliente e reduz drasticamente a inadimplência.
@@ -38,7 +38,7 @@ export default function ReguaCobrancaPage() {
               </div>
               <h3 className="text-2xl font-manrope font-bold text-slate-950">Ação no momento certo</h3>
               <p className="text-slate-500 font-geist leading-relaxed">
-                Configure lembretes automáticos para faturas a vencer, vencidas e pagas. O sistema cuida do timing para que sua equipe foque no estratégico.
+                Configure lembretes organizados para faturas a vencer, vencidas e pagas. O sistema cuida do timing para que sua equipe foque no estratégico.
               </p>
             </div>
             <div className="space-y-6">

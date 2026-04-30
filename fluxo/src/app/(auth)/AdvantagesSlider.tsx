@@ -12,8 +12,8 @@ export function AdvantagesSlider() {
       color: "from-emerald-500/20",
     },
     {
-      title: "Automação Inteligente",
-      desc: "Rotinas automáticas de cobrança via E-mail e WhatsApp sem esforço.",
+      title: "Processos Estruturados",
+      desc: "Lembretes organizados de cobrança via E-mail e WhatsApp sem esforço.",
       icon: <Zap className="w-5 h-5 text-emerald-400 relative z-10" />,
       color: "from-emerald-500/20",
     },

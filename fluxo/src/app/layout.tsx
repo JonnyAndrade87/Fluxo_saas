@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     template: "%s | Fluxeer"
   },
   description: "Software de cobrança B2B para equipes financeiras que precisam organizar contas a receber, priorizar risco e ganhar previsibilidade de caixa.",
-  keywords: ["software de cobrança", "contas a receber", "automação financeira", "gestão de recebíveis", "fluxo de caixa"],
+  keywords: ["software de cobrança", "contas a receber", "organização financeira", "gestão de recebíveis", "fluxo de caixa"],
   authors: [{ name: "Fluxeer Team" }],
   creator: "Fluxeer",
   publisher: "Fluxeer",

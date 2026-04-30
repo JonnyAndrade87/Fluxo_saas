@@ -5,7 +5,7 @@ import { ArrowRight, Zap, BarChart3 } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Software de Cobrança B2B",
-  description: "O Fluxeer é o software de cobrança definitivo para empresas B2B. Organize contas a receber, automatize réguas e tenha controle total do seu caixa.",
+  description: "O Fluxeer é o software de cobrança definitivo para empresas B2B. Organize contas a receber, estruture réguas e tenha controle total do seu caixa.",
   alternates: { canonical: "https://www.fluxeer.com.br/software-de-cobranca" }
 };
 
@@ -22,7 +22,7 @@ export default function SoftwareCobrancaPage() {
               Software de cobrança inteligente para <span className="text-brand-green">operações complexas.</span>
             </h1>
             <p className="text-xl text-slate-500 font-geist leading-relaxed max-w-2xl mb-10">
-              Sua empresa não pode depender de processos manuais. O Fluxeer é o software de cobrança que traz automação, visibilidade e método para o seu contas a receber.
+              Sua empresa não pode depender de processos manuais. O Fluxeer é o software de cobrança que traz organização, visibilidade e método para o seu contas a receber.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link href="/#demonstracao" className="btn-shimmer bg-brand-green text-white px-8 py-4 rounded-full font-manrope font-bold text-base shadow-[0_15px_40px_rgba(0,176,179,0.25)] hover:scale-105 transition-all text-center" data-track-cta="true" data-section="software-de-cobranca" data-cta-label="ver demonstracao do software">
@@ -36,9 +36,9 @@ export default function SoftwareCobrancaPage() {
               <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-900">
                 <Zap className="w-6 h-6" />
               </div>
-              <h3 className="text-2xl font-manrope font-bold text-slate-950">Automação de ponta a ponta</h3>
+              <h3 className="text-2xl font-manrope font-bold text-slate-950">Organização de ponta a ponta</h3>
               <p className="text-slate-500 font-geist leading-relaxed">
-                Substitua planilhas e tarefas repetitivas por um sistema que trabalha sozinho, lembrando seus clientes e organizando suas prioridades.
+                Substitua planilhas e tarefas repetitivas por um sistema que centraliza o acompanhamento, lembrando seus clientes e organizando suas prioridades.
               </p>
             </div>
             <div className="space-y-6">

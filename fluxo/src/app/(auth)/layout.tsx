@@ -72,7 +72,7 @@ export default function AuthLayout({
               </h1>
               
               <p className="mt-8 text-base lg:text-[17px] text-white/90 max-w-md leading-relaxed font-sans font-medium">
-                Transformamos a complexidade de recebíveis em inteligência unificada. Automação, visibilidade e conciliação para focar no crescimento da sua operação.
+                Transformamos a complexidade de recebíveis em inteligência unificada. Organização, visibilidade e conciliação para focar no crescimento da sua operação.
               </p>
             </div>
 

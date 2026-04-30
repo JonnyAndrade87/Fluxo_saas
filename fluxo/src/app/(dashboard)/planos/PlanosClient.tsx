@@ -94,7 +94,7 @@ const PLAN_INFO: Record<TenantPlan, PlanInfo> = {
       'Histórico completo',
     ],
     lockedFeatures: [
-      'Comunicações automáticas',
+      'Lembretes organizados',
       'Importação em lote',
       'Relatórios avançados',
     ],
@@ -106,12 +106,12 @@ const PLAN_INFO: Record<TenantPlan, PlanInfo> = {
     yearlyLabel: 'R$ 970',
     yearlyNote: '2 meses grátis · R$ 80,83/mês',
     tagline: 'Para operações em crescimento',
-    description: 'Mais capacidade, automação e suporte para escalar sem travar.',
+    description: 'Mais capacidade, organização e suporte para escalar sem travar.',
     features: [
       '3 usuários',
       '2.000 clientes',
       '10.000 faturas',
-      'Comunicações automáticas',
+      'Lembretes organizados',
       'Importação em lote',
       'Relatórios avançados',
       'Suporte prioritário',
@@ -514,7 +514,7 @@ export default function PlanosClient({
         <div className="flex items-center justify-between gap-4 rounded-xl border border-indigo-100 bg-indigo-50/60 px-5 py-3.5 text-sm">
           <span className="text-slate-700">
             Você está no plano <strong className="text-indigo-700">Starter</strong>.
-            Faça upgrade para o Pro e desbloqueie automações, importação em lote e mais capacidade.
+            Faça upgrade para o Pro e desbloqueie lembretes organizados, importação em lote e mais capacidade.
           </span>
           <a
             href="#pro-card"

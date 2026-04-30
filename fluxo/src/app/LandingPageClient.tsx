@@ -146,30 +146,7 @@ function TimelineSection() {
         {/* Immersive Noise Texture */}
         <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }} />
         
-        {/* Immersive Background Animation: Data Flow Points */}
-        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-          {timelineParticles.map((p, i) => (
-            <motion.div
-              key={i}
-              className="absolute w-1 h-1 bg-brand-green/20 rounded-full"
-              initial={{ 
-                x: p.x, 
-                y: "100%", 
-                opacity: 0 
-              }}
-              animate={{ 
-                y: "-10%", 
-                opacity: [0, 0.5, 0] 
-              }}
-              transition={{ 
-                duration: p.duration, 
-                repeat: Infinity, 
-                delay: p.delay,
-                ease: "linear"
-              }}
-            />
-          ))}
-        </div>
+        {/* Static decorative dots - removed heavy infinite animations for performance */}
       </div>
       
       <div className="max-w-7xl mx-auto px-6 relative z-10">
@@ -185,7 +162,7 @@ function TimelineSection() {
             Inteligência em régua de cobrança e contas a receber
           </motion.div>
           
-          <h2 className="text-5xl lg:text-[4.5rem] font-manrope font-extrabold tracking-tight text-slate-950 mb-8 leading-[0.95]">
+          <h2 className="text-4xl sm:text-5xl lg:text-[4.5rem] font-manrope font-extrabold tracking-tight text-slate-950 mb-8 leading-[0.95]">
             O problema não começa no atraso.<br />
             <span className="text-gray-300 italic font-medium">Começa antes.</span>
           </h2>
@@ -202,83 +179,89 @@ function TimelineSection() {
         </div>
 
         {/* ── Timeline Construction ── */}
-        <div className="relative max-w-6xl mx-auto">
+        <div className="relative max-w-2xl lg:max-w-6xl mx-auto">
           
           {/* Active Axis Path */}
-          <div className="absolute left-[30px] lg:left-1/2 top-0 bottom-0 w-[4px] bg-gray-100 lg:-translate-x-1/2 rounded-full overflow-hidden">
+          <div className="absolute left-1/2 top-0 bottom-0 w-[2px] lg:w-[4px] bg-gray-100 -translate-x-1/2 rounded-full overflow-hidden">
             <motion.div 
               style={{ scaleY, transformOrigin: "top" }}
               className="w-full h-full bg-gradient-to-b from-brand-green via-amber-400 to-rose-500"
             />
           </div>
 
-          <div className="space-y-40 lg:space-y-64 relative">
+          <div className="space-y-20 lg:space-y-64 relative">
             {timelineSteps.map((step, i) => (
-              <motion.div 
-                key={i}
-                className={`flex flex-col lg:flex-row items-center w-full relative ${i % 2 === 0 ? 'lg:flex-row' : 'lg:flex-row-reverse'}`}
-              >
-                {/* 1. Content Card Column */}
-                <div className="w-full lg:w-[45%] z-20">
-                   <motion.div
-                     initial={{ opacity: 0, x: i % 2 === 0 ? -60 : 60, filter: "blur(10px)" }}
-                     whileInView={{ opacity: 1, x: 0, filter: "blur(0px)" }}
-                     viewport={{ once: true, margin: "-150px" }}
-                     transition={{ duration: 0.8, type: "spring", damping: 20 }}
-                     className="bg-white p-10 lg:p-12 rounded-[3rem] border border-gray-100 shadow-[0_30px_100px_rgba(0,0,0,0.04)] hover:shadow-[0_40px_120px_rgba(0,0,0,0.08)] transition-all group relative overflow-hidden active-highlight"
-                   >
-                     {/* Horizontal Anchor Connector - Animated Drawing */}
-                     <div className={`hidden lg:block absolute top-1/2 flex items-center ${i % 2 === 0 ? '-right-24' : '-left-24'} -translate-y-1/2`}>
-                        <motion.div 
-                          initial={{ width: 0 }}
-                          whileInView={{ width: 80 }}
-                          viewport={{ once: true }}
-                          transition={{ delay: 0.5, duration: 1, ease: "circOut" }}
-                          className="h-[1px] bg-gradient-to-r from-gray-300 via-gray-200 to-transparent" 
-                        />
-                        <motion.div 
-                          initial={{ scale: 0 }}
-                          whileInView={{ scale: 1 }}
-                          transition={{ delay: 1.2 }}
-                          className={`w-1.5 h-1.5 rounded-full ${step.color} shadow-sm`}
-                        />
-                     </div>
+              <div key={i} className="relative">
 
-                     <div className="relative z-10">
-                       <span className="inline-block text-[10px] font-mono font-bold text-brand-green/60 uppercase tracking-widest mb-4">Fase de Deterioração</span>
-                       <h3 className="text-2xl lg:text-3xl font-manrope font-extrabold text-slate-950 mb-4 tracking-tight group-hover:translate-x-1 transition-transform">
-                         {step.title}
-                       </h3>
-                       <p className="text-base lg:text-lg text-slate-500 font-geist leading-relaxed">
-                         {step.desc}
-                       </p>
-                     </div>
-                     
-                     {/* Subtle icon/metric backdrop inside card */}
-                     <div className="absolute -right-4 -bottom-4 text-7xl font-black text-black/[0.02] italic">{step.day}</div>
-                   </motion.div>
+                {/* Mobile: badge centered above card */}
+                <div className="flex justify-center mb-4 relative z-30 lg:hidden">
+                  <motion.div 
+                    initial={{ scale: 0, rotate: -45 }}
+                    whileInView={{ scale: 1, rotate: 0 }}
+                    viewport={{ once: true, margin: "-100px" }}
+                    className={`w-12 h-12 rounded-2xl border-4 border-white ${step.color} ${step.glow} flex items-center justify-center font-mono text-[10px] font-black text-white shadow-xl`}
+                  >
+                    {step.day}
+                  </motion.div>
                 </div>
 
-                {/* 2. Visual Pivot (Marker) */}
-                <div className="absolute left-[30px] lg:left-1/2 top-1/2 lg:top-1/2 -translate-y-1/2 -translate-x-[15px] lg:-translate-x-1/2 z-30">
-                   <motion.div 
-                     initial={{ scale: 0, rotate: -45 }}
-                     whileInView={{ scale: 1, rotate: 0 }}
-                     viewport={{ once: true, margin: "-150px" }}
-                     className={`w-14 h-14 lg:w-16 lg:h-16 rounded-2xl border-4 border-white ${step.color} ${step.glow} flex items-center justify-center font-mono text-xs lg:text-sm font-black text-white shadow-xl animate-pulse-subtle`}
-                   >
-                     {step.day}
-                   </motion.div>
-                </div>
+                {/* Desktop row layout */}
+                <motion.div 
+                  className={`hidden lg:flex flex-row items-center w-full relative ${i % 2 === 0 ? 'flex-row' : 'flex-row-reverse'}`}
+                >
+                  <div className="w-[45%] z-20">
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, margin: "-100px" }}
+                      transition={{ duration: 0.8 }}
+                      className="bg-white p-12 rounded-[3rem] border border-gray-100 shadow-[0_30px_100px_rgba(0,0,0,0.04)] group relative overflow-hidden"
+                    >
+                      <div className={`absolute top-1/2 flex items-center ${i % 2 === 0 ? '-right-24' : '-left-24'} -translate-y-1/2`}>
+                        <div className="h-[1px] w-20 bg-gradient-to-r from-gray-300 to-transparent" />
+                        <div className={`w-1.5 h-1.5 rounded-full ${step.color}`} />
+                      </div>
+                      <div className="relative z-10">
+                        <span className="inline-block text-[10px] font-mono font-bold text-brand-green/60 uppercase tracking-widest mb-4">Fase de Deterioração</span>
+                        <h3 className="text-xl sm:text-2xl lg:text-3xl font-manrope font-extrabold text-slate-950 mb-4 tracking-tight leading-tight">{step.title}</h3>
+                        <p className="text-lg text-slate-500 font-geist leading-relaxed">{step.desc}</p>
+                      </div>
+                      <div className="absolute -right-4 -bottom-4 text-7xl font-black text-black/[0.02] italic">{step.day}</div>
+                    </motion.div>
+                  </div>
+                  <div className="absolute left-1/2 top-1/2 -translate-y-1/2 -translate-x-1/2 z-30">
+                    <motion.div 
+                      initial={{ scale: 0, rotate: -45 }}
+                      whileInView={{ scale: 1, rotate: 0 }}
+                      viewport={{ once: true, margin: "-150px" }}
+                      className={`w-16 h-16 rounded-2xl border-4 border-white ${step.color} ${step.glow} flex items-center justify-center font-mono text-sm font-black text-white shadow-xl`}
+                    >
+                      {step.day}
+                    </motion.div>
+                  </div>
+                  <div className="hidden lg:flex lg:w-[45%] justify-center items-center opacity-20">
+                    <div className="text-sm font-mono font-bold uppercase tracking-[0.3em] text-slate-400">{step.metric}</div>
+                  </div>
+                </motion.div>
 
-                {/* 3. Empty/Detail Column (Desktop) */}
-                <div className="hidden lg:flex lg:w-[45%] justify-center items-center pointer-events-none opacity-20 group-hover:opacity-100 transition-opacity">
-                   <div className="flex flex-col items-center gap-2">
-                      <div className="text-sm font-mono font-bold uppercase tracking-[0.3em] text-slate-400">{step.metric}</div>
-                      <div className="w-32 h-[1px] bg-gradient-to-r from-transparent via-slate-300 to-transparent" />
-                   </div>
-                </div>
-              </motion.div>
+                {/* Mobile: card centered */}
+                <motion.div
+                  className="lg:hidden"
+                  initial={{ opacity: 0, x: i % 2 === 0 ? -30 : 30 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true, margin: "-60px" }}
+                  transition={{ duration: 0.6 }}
+                >
+                  <div className="bg-white mx-4 p-6 rounded-[2rem] border border-gray-100 shadow-[0_20px_60px_rgba(0,0,0,0.06)] relative overflow-hidden text-center">
+                    <div className="relative z-10">
+                      <span className="inline-block text-[10px] font-mono font-bold text-brand-green/60 uppercase tracking-widest mb-3">Fase de Deterioração</span>
+                      <h3 className="text-xl font-manrope font-extrabold text-slate-950 mb-3 tracking-tight leading-tight">{step.title}</h3>
+                      <p className="text-sm text-slate-500 font-geist leading-relaxed">{step.desc}</p>
+                    </div>
+                  </div>
+                </motion.div>
+
+              </div>
             ))}
           </div>
         </div>
@@ -321,7 +304,7 @@ function TimelineSection() {
               >
                 <AlertTriangle className="absolute -top-6 -left-6 w-12 h-12 text-amber-500 blur-[2px]" />
                 <p className="text-lg lg:text-2xl text-white font-medium font-geist leading-relaxed italic">
-                  “O Fluxeer interrompe esse ciclo: automatizando a régua, ditando prioridades e devolvendo a previsibilidade para seu caixa.”
+                  “O Fluxeer interrompe esse ciclo: estruturando a régua, ditando prioridades e devolvendo a previsibilidade para seu caixa.”
                 </p>
                 <div className="mt-8 h-[2px] w-12 bg-brand-green" />
               </motion.div>
@@ -342,11 +325,11 @@ function TimelineSection() {
               className="group relative px-10 py-5 bg-brand-green text-white font-manrope font-bold text-lg rounded-full overflow-hidden shadow-2xl transition-all hover:scale-105 active:scale-95"
               data-track-cta="true"
               data-section="problema"
-              data-cta-label="quero conhecer a automacao"
+              data-cta-label="quero conhecer a solucao"
             >
               <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
               <span className="relative flex items-center gap-3">
-                Quero conhecer a automação
+                Quero conhecer a solução
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </span>
             </Link>
@@ -415,22 +398,13 @@ function SolutionSection() {
         {/* Ambient Noise */}
         <div className="absolute inset-0 opacity-[0.03] mix-blend-overlay" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }} />
 
-        {/* Localized Floating Particles */}
-        {solutionAmbientParticles.map((particle, i) => (
-          <motion.div
-            key={i}
-            initial={{ y: "110%", x: particle.x, opacity: 0 }}
-            animate={{ y: "-10%", opacity: [0, 0.4, 0] }}
-            transition={{ duration: particle.duration, repeat: Infinity, delay: particle.delay }}
-            className="absolute w-px h-12 bg-gradient-to-t from-brand-green/20 to-transparent"
-          />
-        ))}
+        {/* Ambient particles removed for performance */}
       </div>
 
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         
         {/* Header Block */}
-        <div className="max-w-4xl mb-32 lg:mb-48">
+        <div className="max-w-4xl mb-24 lg:mb-48 text-center lg:text-left mx-auto lg:mx-0">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -445,7 +419,7 @@ function SolutionSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="text-5xl lg:text-[4.5rem] font-manrope font-extrabold tracking-tight text-slate-950 mb-8 leading-[0.95] lg:-ml-1"
+            className="text-4xl sm:text-5xl lg:text-[4.5rem] font-manrope font-extrabold tracking-tight text-slate-950 mb-8 leading-[0.95]"
           >
             Sua cobrança volta a operar com <span className="text-brand-green/40">lógica.</span>
           </motion.h2>
@@ -455,9 +429,9 @@ function SolutionSection() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
-            className="text-xl text-slate-500 max-w-2xl font-geist leading-relaxed"
+            className="text-lg lg:text-xl text-slate-500 max-w-2xl font-geist leading-relaxed mx-auto lg:mx-0"
           >
-            O Fluxeer é o software de cobrança B2B que organiza contas a receber, automatiza a régua de cobrança e traz mais previsibilidade para o caixa.
+            O Fluxeer é o software de cobrança B2B que organiza contas a receber, estrutura a régua de cobrança e traz mais previsibilidade para o caixa.
           </motion.p>
         </div>
 
@@ -465,7 +439,7 @@ function SolutionSection() {
         <div className="flex flex-col lg:flex-row gap-16 lg:gap-32 relative">
           
           {/* Lado Esquerdo: Capítulos Narrativos com Trilho de Progresso */}
-          <div className="lg:w-[45%] relative pl-12 lg:pl-16 space-y-32 lg:space-y-48 pb-12">
+          <div className="lg:w-[45%] relative pl-8 lg:pl-16 space-y-16 lg:space-y-48 pb-12">
              {/* Progress Rail */}
              <div className="absolute left-4 top-4 bottom-4 w-px bg-slate-200">
                 <motion.div 
@@ -483,7 +457,7 @@ function SolutionSection() {
                   key={chap.id}
                   onViewportEnter={() => setActiveStep(i)}
                   viewport={{ margin: "-45% 0px -45% 0px" }}
-                  className={`relative flex flex-col group transition-all duration-700 ${activeStep === i ? 'opacity-100 scale-100' : 'opacity-20 scale-95 blur-[0.5px]'}`}
+                  className={`relative flex flex-col items-center lg:items-start text-center lg:text-left group transition-all duration-700 ${activeStep === i ? 'opacity-100 scale-100' : 'opacity-20 scale-95 blur-[0.5px]'}`}
                 >
                   {/* Step Connector Point with Pulse */}
                   <div className={`absolute -left-[45px] top-4 w-3 h-3 rounded-full border-2 bg-white transition-all duration-500 flex items-center justify-center ${activeStep === i ? 'border-brand-green scale-125' : 'border-slate-200'}`}>
@@ -505,7 +479,7 @@ function SolutionSection() {
                      </span>
                   </div>
 
-                  <h3 className="text-3xl lg:text-5xl font-manrope font-extrabold text-slate-950 mb-6 tracking-tighter">
+                  <h3 className="text-2xl sm:text-3xl lg:text-5xl font-manrope font-extrabold text-slate-950 mb-6 tracking-tighter">
                     {chap.title}
                   </h3>
                   
@@ -574,13 +548,13 @@ function SolutionSection() {
                        </div>
                        
                        {/* 2. Título */}
-                       <h4 className="text-5xl lg:text-[4.5rem] font-manrope font-extrabold text-slate-950 tracking-tighter leading-[0.95] mb-8 max-w-2xl">
+                       <h4 className="text-[clamp(1.75rem,7vw,4.5rem)] font-manrope font-extrabold text-slate-950 tracking-tighter leading-[0.95] mb-8 max-w-2xl text-center lg:text-left">
                          Do improviso ao <br />
                          <span className="text-brand-green">controle da operação.</span>
                        </h4>
                        
                        {/* 3. Subtítulo */}
-                       <p className="text-xl text-slate-500 font-geist leading-snug max-w-xl mb-12">
+                       <p className="text-lg lg:text-xl text-slate-500 font-geist leading-snug max-w-xl mb-12 text-center lg:text-left mx-auto lg:mx-0">
                          Com mais visibilidade, prioridade e método, a cobrança deixa de ser reação e volta a funcionar como processo.
                        </p>
 
@@ -679,17 +653,18 @@ export default function LandingPage() {
   const mvBlur = useMotionValue(0);
 
   useMotionValueEvent(scrollY, "change", (y) => {
-    // Stagger: each element starts fading at progressively higher scroll positions
-    // All should be 0 by ~60% of hero height (viewport ~90vh → ~576px on 640px screen)
-    // We target: fully faded by ~500px of scroll
+    // Delay fade-out on mobile to keep content visible longer
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
+    const fadeStart = isMobile ? 600 : 0;
+    const fadeEnd = isMobile ? 1200 : 500;
+
     mvHeader.set(1 - mapRange(y, 0,   120));
-    mvOp1.set(   1 - mapRange(y, 0,   180));
-    mvOp2.set(   1 - mapRange(y, 30,  260));
-    mvOp3.set(   1 - mapRange(y, 70,  330));
-    mvOp4.set(   1 - mapRange(y, 110, 410));
-    mvOp5.set(   1 - mapRange(y, 150, 480));
-    mvMockup.set(1 - mapRange(y, 0,   550));
-    mvBlur.set(  mapRange(y, 0, 500) * 20); // 0 to 20px blur
+    mvOp1.set(   1 - mapRange(y, fadeStart,   fadeStart + 180));
+    mvOp2.set(   1 - mapRange(y, fadeStart + 30,  fadeStart + 260));
+    mvOp3.set(   1 - mapRange(y, fadeStart + 70,  fadeStart + 330));
+    mvOp4.set(   1 - mapRange(y, fadeStart + 110, fadeStart + 410));
+    mvOp5.set(   1 - mapRange(y, fadeStart + 150, fadeStart + 480));
+    mvMockup.set(1 - mapRange(y, fadeStart, fadeEnd));
   });
 
   const blurHero = useTransform(mvBlur, v => `blur(${v}px)`);
@@ -701,15 +676,16 @@ export default function LandingPage() {
   );
 
   return (
-    <div className="bg-gray-50 text-gray-900 antialiased" ref={containerRef}>
+    <div className="bg-gray-50 text-gray-900 antialiased overflow-x-hidden" ref={containerRef}>
 
       {/* ══════════════════════ HERO (EDITORIAL & PREMIUM) ══════════════════════ */}
       <section 
-        className="relative min-h-[90vh] overflow-hidden bg-slate-950 flex flex-col" 
+        className="relative min-h-screen overflow-hidden bg-slate-950 flex flex-col" 
         id="hero"
       >
 
-        <ParticlesBackground />
+        {/* Particles only on desktop for performance */}
+        <div className="hidden lg:block"><ParticlesBackground /></div>
 
         {/* Large Brand Watermark */}
         <div className="absolute inset-0 z-0 flex items-center justify-center opacity-[0.03] pointer-events-none overflow-hidden">
@@ -717,7 +693,7 @@ export default function LandingPage() {
             src={logoIcon} 
             alt="" 
             aria-hidden="true"
-            className="w-[800px] h-[800px] grayscale brightness-200 rotate-[-15deg] translate-x-[20%] translate-y-[-10%]" 
+            className="w-[300px] sm:w-[500px] lg:w-[800px] h-auto grayscale brightness-200 rotate-[-15deg] translate-x-[20%] translate-y-[-10%]" 
           />
         </div>
 
@@ -741,7 +717,7 @@ export default function LandingPage() {
         >
           <nav className="bg-transparent py-2 flex items-center justify-between w-full max-w-7xl">
             <Link href="/" className="hover:opacity-80 transition-opacity">
-              <Image src={logoLogin} alt="Fluxeer - Inteligência em Cobrança B2B" width={148} height={32} className="w-auto h-8 object-contain" />
+              <Image src={logoLogin} alt="Fluxeer - Inteligência em Cobrança B2B" width={148} height={32} priority className="w-auto h-8 object-contain" />
             </Link>
 
             <div className="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
@@ -777,20 +753,20 @@ export default function LandingPage() {
         </motion.header>
 
         {/* ── HERO BODY ── */}
-        <div className="relative z-[10] flex-1 flex items-center pb-20">
-          <div className="w-full max-w-7xl mx-auto px-6 py-12 md:py-0">
+        <div className="relative z-[10] flex-1 flex items-center pb-8 lg:pb-20">
+          <div className="w-full max-w-7xl mx-auto px-6 py-6 md:py-0">
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-8 items-center">
 
               {/* ── Left: Editorial Copy ── */}
-              <div className="lg:col-span-5 flex flex-col text-center lg:text-left z-20">
+              <div className="lg:col-span-5 flex flex-col items-center text-center lg:items-start lg:text-left z-20">
 
                 <motion.p 
                   initial={{ y: 20 }}
                   animate={{ y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.1 }}
-                  style={{ opacity: mvOp1, filter: blurHero }}
-                  className="self-center lg:self-start text-[10px] font-mono font-bold text-brand-green tracking-[0.25em] uppercase mb-6"
+                  transition={{ duration: 0.5, delay: 0 }}
+                  style={{ opacity: mvOp1 }}
+                  className="text-[10px] font-mono font-bold text-brand-green tracking-[0.25em] uppercase mb-4"
                 >
                   Inteligência em cobrança B2B
                 </motion.p>
@@ -798,9 +774,9 @@ export default function LandingPage() {
                 <motion.h1 
                   initial={{ y: 20 }}
                   animate={{ y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.2 }}
-                  style={{ opacity: mvOp2, filter: blurHero, scale: scaleHero }}
-                  className="font-manrope font-extrabold tracking-tight leading-[1.0] text-white mb-6 text-5xl lg:text-[4.5rem]"
+                  transition={{ duration: 0.6, delay: 0.1 }}
+                  style={{ opacity: mvOp2, scale: scaleHero }}
+                  className="font-manrope font-extrabold tracking-tight leading-[1.0] text-white mb-3 lg:mb-6 text-[2rem] sm:text-5xl lg:text-[4.5rem]"
                 >
                   Software de cobrança B2B<br />
                   <span className="text-brand-green">para organizar o contas a receber.</span>
@@ -809,9 +785,9 @@ export default function LandingPage() {
                 <motion.p 
                   initial={{ y: 20 }}
                   animate={{ y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.3 }}
-                  style={{ opacity: mvOp3, filter: blurHero }}
-                  className="text-xl text-white/75 leading-relaxed mb-8 max-w-xl mx-auto lg:mx-0 font-geist"
+                  transition={{ duration: 0.6, delay: 0.15 }}
+                  style={{ opacity: mvOp3 }}
+                  className="text-base lg:text-xl text-white/75 leading-snug mb-4 lg:mb-8 max-w-md mx-auto lg:mx-0 font-geist"
                 >
                   O Fluxeer ajuda times financeiros B2B a organizar contas a receber, priorizar risco por cliente e agir antes do atraso pressionar o caixa.
                 </motion.p>
@@ -820,20 +796,18 @@ export default function LandingPage() {
                 <motion.ul 
                   initial={{ y: 20 }}
                   animate={{ y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.4 }}
-                  style={{ opacity: mvOp4, filter: blurHero }}
-                  className="mb-10 flex flex-col gap-3 text-left w-full max-w-md mx-auto lg:mx-0"
+                  transition={{ duration: 0.6, delay: 0.2 }}
+                  style={{ opacity: mvOp4 }}
+                  className="mb-5 lg:mb-10 flex flex-col gap-2.5 w-full items-center lg:items-start"
                 >
                   {[
                     "Prioridades de cobrança em tempo real",
                     "Visão de risco por cliente e fatura",
                     "Mais previsibilidade para o caixa"
                   ].map((text, i) => (
-                    <li key={i} className="flex items-center gap-3 text-sm text-white/90 font-semibold transform-gpu">
-                      <div className="w-5 h-5 rounded-full bg-brand-green/20 flex items-center justify-center shrink-0 border border-brand-green/30">
-                        <CheckCircle2 className="w-3 h-3 text-brand-green" />
-                      </div>
-                      {text}
+                    <li key={i} className="flex items-center justify-center lg:justify-start gap-2.5 text-sm text-white/90 font-semibold w-fit">
+                      <CheckCircle2 className="w-4 h-4 text-brand-green shrink-0" />
+                      <span>{text}</span>
                     </li>
                   ))}
                 </motion.ul>
@@ -841,14 +815,14 @@ export default function LandingPage() {
                 <motion.div 
                   initial={{ y: 20 }}
                   animate={{ y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.5 }}
-                  style={{ opacity: mvOp5, filter: blurHero }}
-                  className="flex flex-col sm:flex-row items-center gap-4"
+                  transition={{ duration: 0.5, delay: 0.25 }}
+                  style={{ opacity: mvOp5 }}
+                  className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto"
                 >
                   <a
                     id="cta-button"
                     href="#demonstracao"
-                    className="w-full sm:w-auto group btn-shimmer btn-shimmer-dark inline-flex items-center justify-center gap-2 bg-brand-green text-slate-950 text-sm font-bold px-7 py-3.5 rounded-xl hover:bg-brand-green-hover transition-colors shadow-[0_0_24px_rgba(0,176,179,0.25)] active:scale-[0.98]"
+                    className="w-full sm:w-auto group inline-flex items-center justify-center gap-2 bg-brand-green text-slate-950 text-sm font-bold px-7 py-3.5 rounded-xl hover:opacity-90 transition-opacity shadow-[0_0_24px_rgba(0,176,179,0.25)] active:scale-[0.98]"
                     onClick={(e) => {
                       scrollTo(e, 'demonstracao');
                     }}
@@ -862,7 +836,7 @@ export default function LandingPage() {
 
                   <Link
                     href="/login"
-                    className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] backdrop-blur-xl border border-white/10 text-white/80 hover:text-white text-sm font-medium transition-all shadow-[0_4px_20px_rgba(0,0,0,0.1)] active:scale-[0.98]"
+                    className="hidden sm:inline-flex items-center justify-center px-6 py-3.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] backdrop-blur-xl border border-white/10 text-white/80 hover:text-white text-sm font-medium transition-all"
                   >
                     Entrar
                   </Link>
@@ -872,7 +846,7 @@ export default function LandingPage() {
               {/* ── Right: Real Product Preview ── */}
               <motion.div 
                 style={{ opacity: mvMockup, filter: mockupFilter, perspective: "2000px" }}
-                className="lg:col-span-7 w-full relative mt-10 lg:mt-0"
+                className="hidden lg:block lg:col-span-7 w-full relative mt-10 lg:mt-0"
               >
                 <motion.div 
                   initial={{ rotateY: 0, rotateX: 0, rotateZ: 0, y: 40, opacity: 0 }}
@@ -924,14 +898,14 @@ function SpecializedSolutions() {
     <section className="py-24 bg-white border-y border-slate-100">
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex flex-col md:flex-row items-center justify-between gap-12">
-          <div className="max-w-xl">
+          <div className="max-w-xl text-center md:text-left">
              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-green/10 border border-brand-green/20 text-[10px] font-mono font-bold text-brand-green tracking-[0.2em] uppercase mb-6">
                Ecossistema Fluxeer
              </div>
              <h2 className="text-3xl lg:text-4xl font-manrope font-extrabold text-slate-950 mb-6 tracking-tight">
                Soluções desenhadas para <span className="text-brand-green">cada desafio.</span>
              </h2>
-             <p className="text-lg text-slate-500 font-geist">
+             <p className="text-base lg:text-lg text-slate-500 font-geist">
                Além do controle operacional, oferecemos infraestrutura técnica para cenários específicos de recebimento e gestão de recebíveis B2B.
              </p>
           </div>
@@ -1043,7 +1017,7 @@ function FAQSection() {
                         >
                           <div className="px-7 pb-7">
                             <div className="h-px w-full bg-white/[0.06] mb-5" />
-                            <p className="text-sm lg:text-base text-white/75 font-geist leading-relaxed max-w-2xl">
+                            <p className="text-sm lg:text-base text-white/75 font-geist leading-relaxed max-w-2xl break-words">
                               {faq.answer}
                             </p>
                           </div>
@@ -1124,7 +1098,7 @@ function PlatformSection() {
 
   return (
     <section
-      className="relative pt-32 pb-40 overflow-hidden"
+      className="relative pt-32 pb-16 overflow-hidden"
       id="plataforma"
       style={{
         backgroundColor: '#f3f4f6',
@@ -1142,24 +1116,9 @@ function PlatformSection() {
         {/* Subtle brand glow */}
         <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_70%_20%,rgba(0,176,179,0.05)_0%,transparent_50%)]" />
         
-        {/* Animated Glass Orbs */}
-        <motion.div 
-          animate={{ 
-            y: [0, -30, 0],
-            x: [0, 20, 0],
-            rotate: [0, 5, 0]
-          }}
-          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-          className="absolute top-[10%] -left-20 w-[600px] h-[600px] bg-brand-green/5 rounded-full blur-[120px] mix-blend-multiply" 
-        />
-        <motion.div 
-          animate={{ 
-            y: [0, 40, 0],
-            x: [0, -30, 0],
-          }}
-          transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-          className="absolute bottom-[-10%] -right-20 w-[500px] h-[500px] bg-brand-green/5 rounded-full blur-[100px] mix-blend-multiply" 
-        />
+        {/* Static glass orbs - animations removed for performance */}
+        <div className="absolute top-[10%] -left-20 w-[600px] h-[600px] bg-brand-green/5 rounded-full blur-[120px] mix-blend-multiply pointer-events-none" />
+        <div className="absolute bottom-[-10%] -right-20 w-[500px] h-[500px] bg-brand-green/5 rounded-full blur-[100px] mix-blend-multiply pointer-events-none" />
 
         {/* Parallax Background Typography */}
         <motion.div 
@@ -1195,12 +1154,12 @@ function PlatformSection() {
               <span className="text-[10px] font-mono font-bold text-brand-green uppercase tracking-[0.25em]">A plataforma</span>
            </motion.div>
 
-           <h2 className="text-5xl lg:text-[4.5rem] font-manrope font-extrabold text-slate-950 tracking-tighter leading-[0.95] mb-10">
+           <h2 className="text-4xl lg:text-[4.5rem] font-manrope font-extrabold text-slate-950 tracking-tighter leading-[0.95] mb-10 text-center lg:text-left">
              Tudo o que sua cobrança precisa,<br />
              em uma operação só.
            </h2>
            
-           <p className="text-xl text-slate-500 font-geist leading-relaxed max-w-2xl mx-auto md:mx-0">
+           <p className="text-lg lg:text-xl text-slate-500 font-geist leading-relaxed max-w-2xl mx-auto lg:mx-0 text-center lg:text-left">
              Do acompanhamento da régua à previsibilidade de caixa, o Fluxeer organiza a cobrança em um fluxo mais claro, mais visível e mais confiável.
            </p>
         </div>
@@ -1270,7 +1229,7 @@ function PlatformSection() {
              whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
              viewport={{ once: true }}
              transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-             className="w-full relative h-[650px] lg:h-[750px] group/preview"
+             className="w-full relative min-h-[400px] lg:h-[750px] group/preview overflow-hidden"
            >
                <div className="absolute inset-0 bg-brand-green/10 rounded-[3rem] blur-3xl opacity-0 transition-opacity duration-1000 group-hover/preview:opacity-20" />
                <div className="relative rounded-[3rem] border border-slate-200/60 bg-white/80 p-4 shadow-[0_40px_100px_rgba(0,0,0,0.04)] backdrop-blur-sm">
@@ -1293,57 +1252,43 @@ function PlatformSection() {
       </div>
 
       {/* ── FINAL CLOSING: DECISIVE CTA ── */}
-      <div className="mt-0 relative overflow-hidden" style={{
+      <div className="mt-8 lg:mt-16 relative overflow-hidden" style={{
         backgroundColor: '#f3f4f6',
         backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.6) 2px, transparent 2px), linear-gradient(90deg, rgba(255, 255, 255, 0.6) 2px, transparent 2px)`,
         backgroundSize: '40px 40px',
       }}>
         {/* Decorative background number */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[20rem] font-manrope font-black text-black/[0.012] select-none pointer-events-none -z-10">04</div>
+        <div className="hidden lg:block absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[20rem] font-manrope font-black text-black/[0.012] select-none pointer-events-none -z-10">04</div>
 
-        <div className="max-w-[1280px] mx-auto px-6 lg:px-14 pt-24 pb-16 lg:pt-32 lg:pb-24 text-center relative z-10 border-t border-slate-200/60">
-          <div className="max-w-5xl mx-auto space-y-16">
-              <div className="space-y-8 flex flex-col items-center">
-                 <h3 className="text-5xl lg:text-[4.5rem] font-manrope font-extrabold text-slate-950 tracking-tighter leading-[0.9] mb-10 max-w-4xl">
-                   Mais clareza para cobrar.<br />
-                   <span className="text-brand-green">Mais controle para decidir.</span>
-                 </h3>
-                 <p className="text-xl text-slate-500 font-geist leading-relaxed max-w-3xl mx-auto">
-                   Quando a operação fica visível, a cobrança deixa de ser improviso e volta a funcionar como processo.
-                 </p>
+        <div className="max-w-[1280px] mx-auto px-6 lg:px-14 pt-8 lg:pt-16 pb-8 lg:pb-16 text-center relative z-10 border-t border-slate-200/60">
+          <div className="max-w-5xl mx-auto">
+            <div className="flex flex-col items-center gap-6 lg:gap-10">
+              <h3 className="text-[clamp(2rem,8vw,4.5rem)] font-manrope font-extrabold text-slate-950 tracking-tighter leading-[0.95] max-w-4xl text-center">
+                Mais clareza para cobrar.<br />
+                <span className="text-brand-green">Mais controle para decidir.</span>
+              </h3>
+              <p className="text-base lg:text-xl text-slate-500 font-geist leading-relaxed max-w-2xl mx-auto text-center">
+                Quando a operação fica visível, a cobrança deixa de ser improviso e volta a funcionar como processo.
+              </p>
+              <Link 
+                href="#demonstracao" 
+                className="inline-flex items-center justify-center gap-3 bg-brand-green text-white px-7 py-3.5 lg:px-8 lg:py-4 rounded-full font-manrope font-bold text-base lg:text-lg shadow-[0_20px_40px_rgba(0,176,179,0.2)] hover:-translate-y-1 active:scale-95 transition-all"
+                data-track-cta="true"
+                data-section="plataforma"
+                data-cta-label="quero conhecer o fluxeer plataforma"
+              >
+                Quero conhecer o Fluxeer
+                <ArrowRight className="w-5 h-5" />
+              </Link>
+              <div className="flex flex-wrap items-center justify-center gap-4 lg:gap-12 saturate-0 opacity-40">
+                <span className="text-[9px] lg:text-[11px] font-mono font-bold text-slate-500">SEGURANÇA LGPD</span>
+                <span className="text-[9px] lg:text-[11px] font-mono font-bold text-slate-500">INTEGRAÇÃO NATIVA</span>
+                <span className="text-[9px] lg:text-[11px] font-mono font-bold text-slate-500">SUPORTE DEDICADO</span>
               </div>
-
-              <div className="flex flex-col items-center gap-14">
-                 <Link 
-                    href="#demonstracao" 
-                    className="relative bg-brand-green text-white px-7 py-3.5 lg:px-8 lg:py-4 rounded-full font-manrope font-bold text-base lg:text-lg shadow-[0_20px_40px_rgba(0,176,179,0.2)] hover:shadow-[0_25px_50px_rgba(0,176,179,0.3)] hover:-translate-y-1 active:scale-95 transition-all text-center flex items-center justify-center gap-3 group mx-auto"
-                    data-track-cta="true"
-                    data-section="plataforma"
-                    data-cta-label="quero conhecer o fluxeer plataforma"
-                  >
-                   Quero conhecer o Fluxeer
-                   <motion.div
-                     animate={{ x: [0, 5, 0] }}
-                     transition={{ repeat: Infinity, duration: 2 }}
-                   >
-                     <ArrowRight className="w-5 h-5 lg:w-6 lg:h-6" />
-                   </motion.div>
-                 </Link>
-                 
-                 <div className="space-y-6 flex flex-col items-center text-center">
-                    <p className="text-[11px] lg:text-[13px] font-mono font-bold text-slate-400 uppercase tracking-[0.4em]">
-                      Veja a plataforma em uma demonstração guiada.
-                    </p>
-                    <div className="flex flex-wrap items-center justify-center text-center gap-4 lg:gap-12 saturate-0 opacity-40">
-                       <span className="text-[9px] lg:text-[11px] font-mono font-bold text-slate-500 w-full sm:w-auto">SEGURANÇA LGPD</span>
-                       <span className="text-[9px] lg:text-[11px] font-mono font-bold text-slate-500 w-full sm:w-auto">INTEGRAÇÃO NATIVA</span>
-                       <span className="text-[9px] lg:text-[11px] font-mono font-bold text-slate-500 w-full sm:w-auto">SUPORTE DEDICADO</span>
-                    </div>
-                  </div>
-               </div>
             </div>
           </div>
         </div>
+      </div>
       </section>
   );
 }
