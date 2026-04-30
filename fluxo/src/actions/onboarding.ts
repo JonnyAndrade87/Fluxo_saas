@@ -38,20 +38,26 @@ export async function getOnboardingStatus(): Promise<OnboardingStatus> {
   }
 
   // Single parallel round-trip: 3 cheap COUNT + 1 findFirst
-  const [customerCount, invoiceCount, activeBillingFlow] = await Promise.all([
+  const [customerCount, invoiceCount, activeBillingFlow, tenantData] = await Promise.all([
     prisma.customer.count({ where: { tenantId } }),
     prisma.invoice.count({ where: { tenantId } }),
     prisma.billingFlow.findFirst({
       where: { tenantId, isActive: true },
       select: { id: true },
     }),
+    prisma.tenant.findUnique({
+      where: { id: tenantId },
+      select: { documentNumber: true, name: true }
+    })
   ]);
 
   const hasCustomer     = customerCount > 0;
   const hasInvoice      = invoiceCount > 0;
   const hasBillingFlow  = !!activeBillingFlow;
+  // Considera os dados preenchidos se o documento existir ou o nome não for nulo/padrão
+  const hasCompanyData  = !!(tenantData?.documentNumber || (tenantData?.name && tenantData.name !== 'Nova Empresa'));
 
-  const steps = buildSteps({ hasCustomer, hasInvoice, hasBillingFlow });
+  const steps = buildSteps({ hasCompanyData, hasCustomer, hasInvoice, hasBillingFlow });
   const completedCount = steps.filter(s => s.completed).length;
   const totalSteps = steps.length;
   const progressPct = Math.round((completedCount / totalSteps) * 100);
@@ -73,11 +79,20 @@ export async function getOnboardingStatus(): Promise<OnboardingStatus> {
 // WhatsApp/Meta é next step recomendado — NÃO é bloqueador do dashboard.
 
 function buildSteps(flags: {
+  hasCompanyData: boolean;
   hasCustomer: boolean;
   hasInvoice: boolean;
   hasBillingFlow: boolean;
 }): OnboardingStep[] {
   return [
+    {
+      id: 'company_data',
+      label: 'Completar dados da empresa',
+      description: 'Adicione suas informações e logo nas configurações.',
+      href: '/configuracoes',
+      cta: 'Configurações',
+      completed: flags.hasCompanyData,
+    },
     {
       id: 'create_customer',
       label: 'Cadastre o primeiro cliente',
@@ -96,11 +111,19 @@ function buildSteps(flags: {
     },
     {
       id: 'configure_billing_flow',
-      label: 'Configure a régua de cobrança',
-      description: 'Defina quando e como o sistema vai contatar seus clientes automaticamente.',
+      label: 'Configurar a régua de cobrança',
+      description: 'Defina quando e como os alertas de cobrança devem ser acionados para seus clientes.',
       href: '/automacao',
       cta: 'Configurar Régua',
       completed: flags.hasBillingFlow,
+    },
+    {
+      id: 'view_dashboard',
+      label: 'Visualizar dashboard',
+      description: 'Veja os números da sua operação ganharem vida.',
+      href: '/dashboard',
+      cta: 'Ver Dashboard',
+      completed: flags.hasCompanyData && flags.hasCustomer && flags.hasInvoice && flags.hasBillingFlow, // Assumimos como completed se tudo estiver ok
     },
   ];
 }

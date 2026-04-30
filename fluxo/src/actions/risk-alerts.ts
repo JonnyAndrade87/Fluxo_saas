@@ -2,6 +2,7 @@
 
 import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
+import { requireAuthFresh } from '@/lib/permissions';
 
 /**
  * Sistema de Alertas de Cobrança Baseado em Score de Risco
@@ -24,6 +25,8 @@ export interface AlertConfig {
  * Cria alertas/tarefas automáticas baseado no score de risco
  */
 export async function createRiskAlerts(config: AlertConfig) {
+  const authCtx = await requireAuthFresh();
+
   const {
     customerId,
     tenantId,
@@ -32,6 +35,10 @@ export async function createRiskAlerts(config: AlertConfig) {
     riskJustification,
     userId
   } = config;
+
+  if (tenantId !== authCtx.tenantId) {
+    throw new Error('FORBIDDEN: Invalid tenant context');
+  }
 
   // ────────────────────────────────────────────────────────────────────────────
   // Determinar se deve criar alerta
@@ -186,6 +193,11 @@ Documentação: Veja o drawer do cliente em /clientes para análise completa.
  * (opcional: manter histórico ou auto-resolver tarefas)
  */
 export async function resolveRiskAlerts(customerId: string, tenantId: string) {
+  const authCtx = await requireAuthFresh();
+  if (tenantId !== authCtx.tenantId) {
+    throw new Error('FORBIDDEN: Invalid tenant context');
+  }
+
   // Opcional: Auto-marcar como "completed" ou apenas deixar como referência histórica
   // Por enquanto, vamos deixar para operador resolver manualmente (mais auditável)
   

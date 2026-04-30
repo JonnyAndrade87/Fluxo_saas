@@ -1330,3 +1330,111 @@ O Fluxeer superou todos os critérios de viabilidade técnica, estabilidade, cor
 - **Build & Test:** `npm run build && npm run test` (169 testes passando).
 - **Deployment:** Vercel Production (Aliased: https://www.fluxeer.com.br).
 - **Veredito:** **Aprovado para Beta com dados reais.**
+
+## 21. Auditoria Final de Blindagem de Dados — Beta (Abril 2026)
+
+**Data da rodada final:** 29/04/2026
+**Status final:** 🔒 Aprovado para Beta com dados reais
+
+### Resultados e Validações
+- **Vulnerabilidades:** Sem vulnerabilidades conhecidas após os testes executados.
+- **Isolamento de Dados:** Multi-tenant aprovado nos módulos principais.
+- **Proteção IDOR:** Testes IDOR aprovados (validação explícita em cruzamento de faturas, clientes, notas e tarefas).
+- **Auditoria de Logs:** Logs sem PII, sem secrets expostos, sem payload completo e sem stack trace sensível.
+- **Isolamento de Analytics:** Analytics, Ads e Clarity bloqueados em dashboard, clientes, faturas, login e register.
+- **Segurança de Endpoints:** Webhooks e endpoints internos operando em padrão fail-closed.
+- **Qualidade de Código:** Lint sem erro impeditivo e TypeScript limpo.
+- **Pipeline:** Build aprovado. Testes: 30 arquivos passando, 169 testes passando.
+
+### Backlog versão 1.0
+- Reduzir 280 warnings ESLint.
+- Adicionar gitleaks/trufflehog no CI/CD.
+- Remover fallbacks hardcoded e exigir envs explícitas.
+- Documentar backup/restauração.
+- Considerar pentest externo antes de escalar clientes pagantes.
+
+*Nota: Sem novas alterações agora. Autorizado a iniciar Beta controlado com dados reais.*
+
+## Correção de Segurança — Risk Alerts Server Actions
+
+Registrar:
+- **Risco encontrado:** IDOR/cross-tenant em `src/actions/risk-alerts.ts`
+- **Causa:** As server actions exportadas (`createRiskAlerts` e `resolveRiskAlerts`) aceitavam `tenantId` e `customerId` via argumento sem realizar autenticação explícita.
+- **Correção:** Implementado `requireAuthFresh()` e adicionada validação estrita, garantindo que a action use e valide apenas o `tenantId` autenticado no servidor, falhando de maneira segura (`FORBIDDEN`) em caso de divergência.
+- **Testes:** Adicionada suite completa de testes de regressão de segurança em `src/lib/__tests__/multi-tenant-isolation.test.ts`.
+- **Status:** Falha sanada, isolamento garantido e coberto por testes.
+
+## Checklist Permanente de Segurança para Novas Features
+
+**Regra de Ouro:** O servidor nunca deve confiar em dados enviados pelo cliente. Todo payload vindo do navegador deve ser tratado como manipulável.
+
+- [ ] **Billing/Preço:** O front-end envia apenas IDs públicos de planos; o servidor resolve o preço, plano e limites. O Stripe webhook valida a assinatura.
+- [ ] **Permissões/Role:** O role e as permissões vêm da sessão/banco. Toda action sensível valida o role no back-end.
+- [ ] **IDOR/Multi-tenant:** Toda query sensível, update e delete filtra pelo `tenantId` da sessão (fonte da verdade). Erros devem ser 403/404 sem vazar dados parciais.
+- [ ] **Server Actions e APIs:** Exigem sessão, exigem `tenantId`, validam role e input com schema, não confiam no payload e retornam erros seguros.
+- [ ] **Logs/PII:** Não são logados dados sensíveis completos (e-mails, telefones, senhas, payloads financeiros/webhook e tokens).
+- [ ] **Analytics em Área Sensível:** Analytics (GTM, GA4, Clarity) bloqueado em `/dashboard`, áreas autenticadas ou financeiras (fail-closed mantido).
+- [ ] **Secrets/Env:** Secrets críticos restritos ao server-side e variáveis operacionais passadas via env sem hardcoding inseguro.
+- [ ] **Webhooks/Endpoints Internos:** Validam assinatura/token, falham fechados sem secret e não logam payload completo.
+- [ ] **XSS/Input Malicioso:** Inputs livres validados em tamanho, formato e tipo, renderizados de forma segura sem `dangerouslySetInnerHTML`.
+
+## Regra de Revisão Obrigatória
+
+Toda nova feature só pode ser considerada pronta se responder **SIM** para:
+
+- [ ] Autenticação validada no back-end
+- [ ] tenantId vem da sessão
+- [ ] Role validada no back-end
+- [ ] Input validado
+- [ ] Logs sem PII
+- [ ] Analytics não roda em área sensível
+- [ ] Secrets não expostos
+- [ ] Testes de regressão adicionados quando houver risco de IDOR, billing, permissão ou dados sensíveis
+
+*Checklist implementado em 29 de Abril de 2026. A partir desta data, o checklist passa a ser obrigatório para todas as features futuras.*
+
+
+*Nota Operacional: Foi criado o checklist oficial em `.github/pull_request_template.md` para revisão de segurança e controle de regressões a cada nova feature.*
+
+
+## Guia Oficial Fluxeer — Registro Final (29 Abril 2026)
+
+### O que foi implementado
+
+- Rota /ajuda: Central de Ajuda com 10 cards de categoria.
+- FluxeerGuideDrawer: Botão fixo em telas autenticadas com gaveta lateral contextual por rota.
+- src/actions/help.ts: Server action mapeando rota para arquivo markdown via getHelpContext.
+- src/content/help/*.md: 10 arquivos de conteúdo guiado (Onde voce esta / O que fazer agora / Passo a passo / Depois disso).
+- Onboarding expandido para 5 etapas incluindo "Completar dados da empresa" e "Visualizar dashboard".
+
+### Confirmacoes de escopo
+
+- Modo manual respeitado: nenhum conteudo promete envio automatico incondicional. Toda mencao a envio e condicional ao canal e modo de comunicacao configurado no workspace.
+- O Guia Oficial nao e IA real neste momento. Funciona com conteudo estatico contextual por rota. Arquitetura preparada para integracao futura.
+- FluxeerGuideDrawer existe apenas no layout autenticado (dashboard layout). Nao aparece em login, register ou qualquer rota publica.
+- Nenhuma regra de auth, billing, Stripe, tenant, permissoes ou webhook foi alterada fora do escopo desta feature.
+
+### Validacao visual desktop/mobile realizada
+
+- /login: botao de guia ausente confirmado.
+- /ajuda sem autenticacao: redireciona corretamente para /login (307).
+- Layout mobile 375px: sem scroll horizontal, layout responsivo.
+- Build de producao aprovado com Turbopack.
+
+### Proxima fase do Guia Oficial
+
+1. Input livre no drawer para perguntas abertas do usuario.
+2. Integracao com base documental (markdowns + RAG simples).
+3. Contexto do usuario/tela injetado como system prompt para resposta personalizada.
+4. Memoria de sessao para nao repetir dicas ja vistas.
+
+### Resultado dos checks finais
+
+- Lint: 0 erros
+- TypeScript: sem erros de tipo
+- Build: aprovado
+- Testes: 30 arquivos, 176 testes passando
+- Grep de termos proibidos: limpo (apenas usos condicionais permitidos)
+- Sem vulnerabilidades conhecidas apos os testes executados.
+
+*Status: Feature Guia Oficial Fluxeer validada em ambiente local com build de produção, suite completa de testes e simulação pré-deploy. Pendente apenas validação final no ambiente de produção após deploy.*

@@ -1,6 +1,7 @@
 import { Sidebar } from "@/components/layout/Sidebar"
 import { Topbar } from "@/components/layout/Topbar"
 import NewInvoiceModal from "@/components/finance/NewInvoiceModal"
+import FluxeerGuideDrawer from "@/components/help/FluxeerGuideDrawer"
 import { cookies } from 'next/headers'
 import prisma from "@/lib/prisma"
 import { getBillingE2EFixture } from '@/lib/e2e-billing'
@@ -82,8 +83,9 @@ export default async function DashboardLayout({
         </main>
       </div>
       
-      {/* Global Injected Modals */}
+      {/* Global Injected Modals & Drawers */}
       <NewInvoiceModal />
+      <FluxeerGuideDrawer />
     </div>
   )
 }

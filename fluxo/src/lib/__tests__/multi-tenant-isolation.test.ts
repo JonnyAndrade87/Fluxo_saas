@@ -9,6 +9,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createInvoice } from '@/actions/invoices';
 import { addCustomerNote, upsertFinancialContact } from '@/actions/customers';
 import { createTask } from '@/actions/tasks';
+import { createRiskAlerts, resolveRiskAlerts } from '@/actions/risk-alerts';
 import prisma from '@/lib/prisma';
 import { auth } from '../../../auth';
 import { requireAuth, requireAuthFresh } from '@/lib/permissions';
@@ -21,7 +22,7 @@ vi.mock('@/lib/prisma', () => ({
     invoice: { findFirst: vi.fn(), count: vi.fn(), create: vi.fn() },
     financialContact: { findFirst: vi.fn(), updateMany: vi.fn(), create: vi.fn(), update: vi.fn() },
     customerNote: { create: vi.fn() },
-    task: { create: vi.fn() },
+    task: { create: vi.fn(), findFirst: vi.fn(), update: vi.fn() },
   },
 }));
 
@@ -117,6 +118,67 @@ describe('Multi-Tenant Data Isolation em Associação de Entidades', () => {
         .rejects.toThrow('Invoice not found or invalid tenant');
 
       expect(prisma.task.create).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Risk Alerts Isolation', () => {
+    const validConfig = {
+      customerId: 'valid-customer',
+      tenantId: mockTenantId,
+      riskScore: 80,
+      riskLevel: 'Crítico' as const,
+      riskJustification: 'Test',
+    };
+
+    it('createRiskAlerts falha se usuário não estiver autenticado', async () => {
+      vi.mocked(requireAuthFresh).mockRejectedValueOnce(new Error('UNAUTHORIZED: No active session.'));
+      await expect(createRiskAlerts(validConfig))
+        .rejects.toThrow('UNAUTHORIZED: No active session.');
+    });
+
+    it('createRiskAlerts falha se tenantId forjado (divergente da sessão) for informado', async () => {
+      // tenantId da sessão é mockTenantId, passa tenant-B
+      await expect(createRiskAlerts({ ...validConfig, tenantId: 'tenant-B' }))
+        .rejects.toThrow('FORBIDDEN: Invalid tenant context');
+      expect(prisma.task.create).not.toHaveBeenCalled();
+    });
+
+    it('createRiskAlerts permite execução com tenantId correto da sessão', async () => {
+      vi.mocked(prisma.customer.findFirst).mockResolvedValue(tenantOwnedCustomer);
+      vi.mocked(prisma.task.findFirst).mockResolvedValue(null); // Nenhuma task pendente
+      // @ts-expect-error Mock parcial para o test
+      vi.mocked(prisma.task.create).mockResolvedValue({ id: 'new-task-id' });
+
+      const result = await createRiskAlerts(validConfig);
+      expect(result.created).toBe(true);
+      expect(prisma.task.create).toHaveBeenCalledWith(expect.objectContaining({
+        data: expect.objectContaining({ tenantId: mockTenantId })
+      }));
+    });
+
+    it('createRiskAlerts bloqueia e falha se customerId for de outro tenant (mesmo com tenantId da config = session.tenantId)', async () => {
+      // Prisma.findFirst para o cliente no tenantId da sessão retorna null (cliente não pertence a este tenant)
+      vi.mocked(prisma.customer.findFirst).mockResolvedValue(null);
+      const result = await createRiskAlerts(validConfig);
+      expect(result.created).toBe(false);
+      expect(result.reason).toBe('Cliente não encontrado');
+      expect(prisma.task.create).not.toHaveBeenCalled();
+    });
+
+    it('resolveRiskAlerts falha se usuário não estiver autenticado', async () => {
+      vi.mocked(requireAuthFresh).mockRejectedValueOnce(new Error('UNAUTHORIZED: No active session.'));
+      await expect(resolveRiskAlerts('valid-customer', mockTenantId))
+        .rejects.toThrow('UNAUTHORIZED: No active session.');
+    });
+
+    it('resolveRiskAlerts falha se tenantId forjado (divergente da sessão) for informado', async () => {
+      await expect(resolveRiskAlerts('valid-customer', 'tenant-B'))
+        .rejects.toThrow('FORBIDDEN: Invalid tenant context');
+    });
+
+    it('resolveRiskAlerts permite execução com tenantId correto da sessão', async () => {
+      const result = await resolveRiskAlerts('valid-customer', mockTenantId);
+      expect(result.resolved).toBe(false); // Atualmente fixo para false no código
     });
   });
 });
