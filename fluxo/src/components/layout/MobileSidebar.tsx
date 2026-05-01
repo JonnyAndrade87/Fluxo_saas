@@ -70,7 +70,7 @@ export function MobileSidebar({ user }: MobileSidebarProps) {
 
           {/* Drawer panel — fixed, full viewport height, above backdrop */}
           <div
-            className="fixed top-0 left-0 z-[9999] lg:hidden h-screen w-72 max-w-[85vw] bg-[#1A3A5F] flex flex-col shadow-[6px_0_40px_rgba(0,0,0,0.5)]"
+            className="fixed top-0 left-0 z-[9999] lg:hidden h-screen w-72 max-w-[85vw] bg-[#070c18] flex flex-col shadow-[6px_0_40px_rgba(0,0,0,0.6)]"
             style={{ animation: 'mobileDrawerIn 280ms cubic-bezier(0.32, 0.72, 0, 1) both' }}
             role="dialog"
             aria-modal="true"
@@ -112,8 +112,8 @@ export function MobileSidebar({ user }: MobileSidebarProps) {
                           className={cn(
                             'group flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 border',
                             isActive
-                              ? 'bg-[#234b7a] text-[#00D2C8] border-[#2e5b8e]/50'
-                              : 'text-white/60 hover:bg-[#234b7a]/50 hover:text-white border-transparent'
+                              ? 'bg-[#1a2640] text-[#00D2C8] border-[#00D2C8]/10'
+                              : 'text-white/55 hover:bg-white/[0.06] hover:text-white border-transparent'
                           )}
                         >
                           <item.icon
@@ -167,7 +167,7 @@ export function MobileSidebar({ user }: MobileSidebarProps) {
               <div
                 onClick={() => signOut({ callbackUrl: '/login' })}
                 title="Sair do sistema"
-                className="mt-3 p-3 bg-[#112740] border border-white/5 rounded-xl shadow-sm hover:border-rose-400/50 hover:bg-rose-500/10 transition-colors cursor-pointer group flex items-center justify-between"
+                className="mt-3 p-3 bg-[#0d1628] border border-white/[0.07] rounded-xl shadow-sm hover:border-rose-400/50 hover:bg-rose-500/10 transition-colors cursor-pointer group flex items-center justify-between"
               >
                 <div className="flex items-center gap-3 overflow-hidden pr-2">
                   <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#00D2C8]/20 to-[#00D2C8]/10 border border-[#00D2C8]/30 flex items-center justify-center shrink-0">

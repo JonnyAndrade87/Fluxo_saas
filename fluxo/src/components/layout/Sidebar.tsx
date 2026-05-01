@@ -16,7 +16,8 @@ import {
   Layers,
   MessageCircle,
   ShieldAlert,
-  CreditCard
+  CreditCard,
+  Paintbrush
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { ChevronLeft, ChevronRight } from "lucide-react"
@@ -40,6 +41,7 @@ export const navGroups = [
       { name: "Relatórios", href: "/relatorios", icon: BarChart3 },
       { name: "Monitor de Fila", href: "/fila", icon: Layers },
       { name: "Planos e Billing", href: "/planos", icon: CreditCard },
+      { name: "Personalização", href: "/personalizacao", icon: Paintbrush },
       { name: "Configurações", href: "/configuracoes", icon: Settings },
     ]
   }
@@ -65,13 +67,13 @@ export function Sidebar({ user }: SidebarProps) {
   return (
     <aside 
       className={cn(
-        "hidden lg:flex flex-col h-full bg-[#1c2129] border-r border-white/5 py-6 relative transition-all duration-300 ease-in-out",
+        "hidden lg:flex flex-col h-full bg-[#070c18] border-r border-white/[0.06] py-6 relative transition-all duration-300 ease-in-out",
         isCollapsed ? "w-[88px]" : "w-[280px]"
       )}
     >
       <button 
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className="absolute -right-3.5 top-8 bg-[#1c2129] border border-white/10 w-7 h-7 rounded-full flex items-center justify-center text-white/50 hover:text-white hover:bg-[#2d3748] transition-colors z-50 shadow-md"
+        className="absolute -right-3.5 top-8 bg-[#070c18] border border-white/10 w-7 h-7 rounded-full flex items-center justify-center text-white/50 hover:text-white hover:bg-[#1a2235] transition-colors z-50 shadow-md"
       >
         {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
       </button>
@@ -121,8 +123,8 @@ export function Sidebar({ user }: SidebarProps) {
                     className={cn(
                       "group flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 border",
                       isActive 
-                        ? "bg-[#2d3748] text-[#00D2C8] shadow-sm border-white/5" 
-                        : "text-white/60 hover:bg-white/5 hover:text-white border-transparent",
+                        ? "bg-[#1a2640] text-[#00D2C8] shadow-sm border-[#00D2C8]/10" 
+                        : "text-white/55 hover:bg-white/[0.06] hover:text-white border-transparent",
                       isCollapsed ? "justify-center" : "justify-start"
                     )}
                   >
