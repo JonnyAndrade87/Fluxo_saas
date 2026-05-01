@@ -8,6 +8,12 @@ const ALLOWED_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml', 
 
 export async function POST(req: NextRequest) {
   try {
+    const token = process.env.BLOB_READ_WRITE_TOKEN;
+    if (!token) {
+      console.error('[upload/logo] Erro: BLOB_READ_WRITE_TOKEN não encontrada no ambiente.');
+      return NextResponse.json({ error: 'Configuração do servidor incompleta (Token ausente).' }, { status: 500 });
+    }
+
     const { tenantId } = await requireTenant();
 
     const formData = await req.formData();

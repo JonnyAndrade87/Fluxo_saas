@@ -72,8 +72,9 @@ export default function PersonalizacaoClient({ initialData }: PersonalizacaoClie
       setData(prev => ({ ...prev, logoUrl: json.url }));
       setUploadSuccess(true);
       setTimeout(() => setUploadSuccess(false), 3000);
-    } catch {
-      setUploadError('Falha na conexão. Tente novamente.');
+    } catch (err) {
+      console.error('Upload catch error:', err);
+      setUploadError('Falha técnica na requisição. Verifique o console ou tente novamente.');
     } finally {
       setIsUploading(false);
     }
