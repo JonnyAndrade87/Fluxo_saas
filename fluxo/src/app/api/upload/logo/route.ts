@@ -37,17 +37,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const ext = file.name.split('.').pop() ?? 'png';
-    const filename = `logos/${tenantId}-${Date.now()}.${ext}`;
-
-    const blob = await put(filename, file, {
-      access: 'public',
-      contentType: file.type,
-    });
+    let blob;
+    try {
+      blob = await put(filename, file, {
+        access: 'public',
+        contentType: file.type,
+      });
+    } catch (blobError: any) {
+      console.error('[upload/logo] Erro detalhado do @vercel/blob:', blobError);
+      return NextResponse.json({ 
+        error: `Erro no provedor de storage: ${blobError.message || 'Falha na comunicação com Vercel Blob'}` 
+      }, { status: 500 });
+    }
 
     return NextResponse.json({ url: blob.url }, { status: 200 });
-  } catch (err) {
-    console.error('[upload/logo]', err);
-    return NextResponse.json({ error: 'Erro interno ao fazer upload.' }, { status: 500 });
+  } catch (err: any) {
+    console.error('[upload/logo] Erro geral:', err);
+    return NextResponse.json({ error: err.message || 'Erro interno ao fazer upload.' }, { status: 500 });
   }
 }
