@@ -151,9 +151,11 @@ export default function PersonalizacaoClient({ initialData }: PersonalizacaoClie
             </div>
           )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Upload + Preview — equal height side by side */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+
             {/* Drop Zone */}
-            <div className="space-y-3">
+            <div className="flex flex-col gap-3">
               <div
                 role="button"
                 tabIndex={0}
@@ -162,28 +164,28 @@ export default function PersonalizacaoClient({ initialData }: PersonalizacaoClie
                 onDragOver={e => { e.preventDefault(); setIsDragOver(true); }}
                 onDragLeave={() => setIsDragOver(false)}
                 onDrop={handleDrop}
-                className={`
-                  relative flex flex-col items-center justify-center gap-3 min-h-[160px] rounded-2xl border-2 border-dashed transition-all duration-200 cursor-pointer select-none
-                  ${isDragOver
-                    ? 'border-brand-green bg-brand-green/5 scale-[1.02]'
-                    : 'border-border hover:border-brand-green/60 hover:bg-slate-50/50 bg-slate-50'}
-                  ${!isPro ? 'pointer-events-none opacity-50' : ''}
-                `}
+                className={[
+                  'flex-1 flex flex-col items-center justify-center gap-3 min-h-[180px] rounded-2xl border-2 border-dashed transition-all duration-200 cursor-pointer select-none',
+                  isDragOver
+                    ? 'border-brand-green bg-brand-green/5 scale-[1.01]'
+                    : 'border-slate-200 hover:border-brand-green/50 hover:bg-slate-50/80 bg-white',
+                  !isPro ? 'pointer-events-none opacity-50' : '',
+                ].join(' ')}
               >
                 {isUploading ? (
-                  <Loader2 className="w-8 h-8 text-brand-green animate-spin" />
+                  <Loader2 className="w-9 h-9 text-brand-green animate-spin" />
                 ) : uploadSuccess ? (
-                  <CheckCircle2 className="w-8 h-8 text-emerald-500" />
+                  <CheckCircle2 className="w-9 h-9 text-emerald-500" />
                 ) : (
-                  <Upload className={`w-8 h-8 transition-colors ${isDragOver ? 'text-brand-green' : 'text-muted-foreground'}`} />
+                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-colors ${isDragOver ? 'bg-brand-green/10' : 'bg-slate-100'}`}>
+                    <Upload className={`w-6 h-6 ${isDragOver ? 'text-brand-green' : 'text-slate-400'}`} />
+                  </div>
                 )}
-                <div className="text-center px-4">
+                <div className="text-center px-6">
                   <p className="text-sm font-semibold text-slate-700">
                     {isUploading ? 'Enviando…' : uploadSuccess ? 'Upload concluído!' : 'Clique ou arraste o arquivo aqui'}
                   </p>
-                  <p className="text-[11px] text-muted-foreground mt-1">
-                    PNG, JPG, SVG, WebP · até 500KB
-                  </p>
+                  <p className="text-[11px] text-slate-400 mt-1">PNG, JPG, SVG, WebP · até 500KB</p>
                 </div>
               </div>
 
@@ -196,7 +198,7 @@ export default function PersonalizacaoClient({ initialData }: PersonalizacaoClie
               />
 
               {uploadError && (
-                <div className="flex items-start gap-2 text-rose-600 bg-rose-50 rounded-xl px-4 py-3 text-sm">
+                <div className="flex items-start gap-2 text-rose-600 bg-rose-50 border border-rose-100 rounded-xl px-4 py-3 text-sm">
                   <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                   <span>{uploadError}</span>
                 </div>
@@ -204,29 +206,36 @@ export default function PersonalizacaoClient({ initialData }: PersonalizacaoClie
             </div>
 
             {/* Preview */}
-            <div className="space-y-3">
-              <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Pré-visualização</p>
-              <div className="h-[160px] rounded-2xl border border-dashed border-border bg-slate-950 flex items-center justify-center">
+            <div className="flex flex-col gap-3">
+              <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Pré-visualização</p>
+              <div className="flex-1 min-h-[180px] rounded-2xl bg-[#070c18] border border-white/[0.06] flex items-center justify-center relative group overflow-hidden">
+                {/* subtle grid pattern */}
+                <div className="absolute inset-0 opacity-[0.03]"
+                  style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.5) 1px,transparent 1px)', backgroundSize: '28px 28px' }}
+                />
                 {data.logoUrl ? (
-                  <div className="relative group">
+                  <div className="relative z-10 group/logo">
                     <img
                       src={data.logoUrl}
                       alt="Logo preview"
-                      className="max-h-[120px] max-w-[220px] object-contain drop-shadow-lg"
+                      className="max-h-[110px] max-w-[200px] object-contain drop-shadow-lg"
                     />
                     <button
                       onClick={() => setData(prev => ({ ...prev, logoUrl: '' }))}
-                      className="absolute -top-2 -right-2 w-6 h-6 bg-rose-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
+                      className="absolute -top-2 -right-2 w-6 h-6 bg-rose-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover/logo:opacity-100 transition-opacity shadow-md z-20"
                     >
                       <X className="w-3 h-3" />
                     </button>
                   </div>
                 ) : (
-                  <p className="text-[11px] text-white/30 font-mono">Nenhum logo carregado</p>
+                  <div className="z-10 flex flex-col items-center gap-2">
+                    <ImageIcon className="w-8 h-8 text-white/10" />
+                    <p className="text-[11px] text-white/20 font-mono">Nenhum logo carregado</p>
+                  </div>
                 )}
               </div>
-              <p className="text-[11px] text-muted-foreground">
-                Pré-visualização sobre fundo escuro (como aparece no dashboard).
+              <p className="text-[11px] text-slate-400">
+                Fundo escuro — como aparece no dashboard e comunicados.
               </p>
             </div>
           </div>
