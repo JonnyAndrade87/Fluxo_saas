@@ -1,6 +1,6 @@
 import { put } from '@vercel/blob';
 import { NextRequest, NextResponse } from 'next/server';
-import { requireTenant } from '@/lib/safe-auth';
+import { requireTenantApi } from '@/lib/safe-auth';
 
 // Max 500KB — enough for a logo, keeps dashboard fast
 const MAX_SIZE_BYTES = 500 * 1024;
@@ -14,7 +14,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Configuração do servidor incompleta (Token ausente).' }, { status: 500 });
     }
 
-    const { tenantId } = await requireTenant();
+    const auth = await requireTenantApi();
+    if (!auth) {
+      return NextResponse.json({ error: 'Sessão expirada. Faça login novamente.' }, { status: 401 });
+    }
+    const { tenantId } = auth;
 
     const formData = await req.formData();
     const file = formData.get('file') as File | null;

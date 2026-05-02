@@ -63,3 +63,19 @@ export async function requireTenant() {
     tenantId,
   };
 }
+
+/**
+ * Safe version for API Route Handlers.
+ * Returns null instead of redirecting — caller must handle the null case.
+ */
+export async function requireTenantApi(): Promise<{ user: import('next-auth').User & { id: string; tenantId?: string; role?: string }; tenantId: string } | null> {
+  try {
+    const session = await getSessionSafe();
+    if (!session?.user) return null;
+    const user = session.user as import('next-auth').User & { id: string; tenantId?: string; role?: string };
+    if (!user.tenantId) return null;
+    return { user, tenantId: user.tenantId };
+  } catch {
+    return null;
+  }
+}
