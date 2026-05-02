@@ -1565,3 +1565,14 @@ Critérios atendidos:
 - Sem promessas de automação indevida ✅
 - Performance otimizada ✅
 - Desktop preservado ✅
+
+### 11.6 Correção do Upload de Logotipo da Empresa (Maio 2026)
+- **Status**: Concluído com Sucesso.
+- **Problema**: O upload do logotipo em Configurações > Personalização exibia erro "Falha técnica na requisição. Verifique o console ou tente novamente." (ou erro interno com status 500) pois o storage `@vercel/blob` estava sendo utilizado sem a configuração da variável `BLOB_READ_WRITE_TOKEN`.
+- **Causa raiz**: Em `src/app/api/upload/logo/route.ts`, a falta de configuração lançava um erro 500. No `PersonalizacaoClient.tsx`, a captura de erros genéricos acabava ofuscando a causa em tela. 
+- **Solução (Fallback MVP)**: 
+  - A API foi convertida para usar armazenamento em banco de dados (`logoUrl` no Prisma) convertendo a imagem enviada para uma URL Base64 (`data:image/...`).
+  - Validações implementadas: Apenas arquivos PNG, JPG, SVG e WebP. Tamanho estritamente limitado a 500KB para garantir performance.
+  - Segurança: Validação via banco (`tenantUser`) garantindo que apenas administradores do tenant (`role === 'admin'`) podem modificar a identidade visual.
+  - O formato de resposta JSON da API e o cliente React foram padronizados para `{ ok: true, logoUrl: "..." }`.
+- **Testes**: As validações estritas (formato e tamanho) e a persistência (via `prisma.tenant.update`) foram comprovadas, e os dados sobrevivem ao recarregamento (reload). Linting, tipagem e build executados com sucesso pós-alteração. A migração futura para um bucket de storage externo continua como passo técnico planejado.

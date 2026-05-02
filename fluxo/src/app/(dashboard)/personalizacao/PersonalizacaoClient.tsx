@@ -62,19 +62,34 @@ export default function PersonalizacaoClient({ initialData }: PersonalizacaoClie
       formData.append('file', file);
 
       const res = await fetch('/api/upload/logo', { method: 'POST', body: formData });
-      const json = await res.json();
+      const rawText = await res.text();
 
-      if (!res.ok) {
-        setUploadError(json.error || 'Erro ao fazer upload.');
+      let json: { ok?: boolean; logoUrl?: string; error?: string };
+      try {
+        json = JSON.parse(rawText);
+      } catch {
+        // Server returned non-JSON (HTML redirect or crash page)
+        console.error('[upload] Resposta não-JSON do servidor:', rawText.slice(0, 300));
+        setUploadError(`Erro ${res.status}: Servidor retornou resposta inesperada. Veja o console.`);
         return;
       }
 
-      setData(prev => ({ ...prev, logoUrl: json.url }));
+      if (!res.ok || json.ok === false) {
+        setUploadError(json.error || `Erro ${res.status} ao fazer upload.`);
+        return;
+      }
+
+      if (!json.logoUrl) {
+        setUploadError('Upload concluído mas URL não retornada.');
+        return;
+      }
+
+      setData(prev => ({ ...prev, logoUrl: json.logoUrl! }));
       setUploadSuccess(true);
       setTimeout(() => setUploadSuccess(false), 3000);
     } catch (err) {
-      console.error('Upload catch error:', err);
-      setUploadError('Falha técnica na requisição. Verifique o console ou tente novamente.');
+      console.error('[upload] Falha de rede:', err);
+      setUploadError('Falha de rede. Verifique sua conexão e tente novamente.');
     } finally {
       setIsUploading(false);
     }

@@ -1,6 +1,6 @@
-import { put } from '@vercel/blob';
 import { NextRequest, NextResponse } from 'next/server';
-import { requireTenantApi } from '@/lib/safe-auth';
+import { getToken } from 'next-auth/jwt';
+import prisma from '@/lib/prisma';
 
 // Max 500KB — enough for a logo, keeps dashboard fast
 const MAX_SIZE_BYTES = 500 * 1024;
@@ -8,58 +8,70 @@ const ALLOWED_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml', 
 
 export async function POST(req: NextRequest) {
   try {
-    const token = process.env.BLOB_READ_WRITE_TOKEN;
+    // 1. Check token via JWT directly (works in Route Handlers, no redirect)
+    const token = await getToken({
+      req,
+      secret: process.env.AUTH_SECRET,
+    });
+
     if (!token) {
-      console.error('[upload/logo] Erro: BLOB_READ_WRITE_TOKEN não encontrada no ambiente.');
-      return NextResponse.json({ error: 'Configuração do servidor incompleta (Token ausente).' }, { status: 500 });
+      return NextResponse.json({ ok: false, error: 'Sessão expirada. Faça login novamente.' }, { status: 401 });
     }
 
-    const auth = await requireTenantApi();
-    if (!auth) {
-      return NextResponse.json({ error: 'Sessão expirada. Faça login novamente.' }, { status: 401 });
+    const tenantId = token.tenantId as string | undefined;
+    if (!tenantId) {
+      return NextResponse.json({ ok: false, error: 'Tenant não identificado.' }, { status: 403 });
     }
-    const { tenantId } = auth;
+
+    const userId = token.sub || (token as any).id;
+    if (userId) {
+      const tenantUser = await prisma.tenantUser.findUnique({
+        where: { tenantId_userId: { tenantId, userId: userId as string } }
+      });
+      // Allow if admin. If we need to allow operators as well, we can relax this.
+      // The user prompt: "Usuário sem permissão não pode alterar logo. Confirmar: admin pode alterar, operator/viewer não devem alterar se a regra atual impedir"
+      if (!tenantUser || tenantUser.role !== 'admin') {
+        return NextResponse.json({ ok: false, error: 'Acesso negado. Apenas administradores podem alterar o logotipo da empresa.' }, { status: 403 });
+      }
+    }
 
     const formData = await req.formData();
     const file = formData.get('file') as File | null;
 
     if (!file) {
-      return NextResponse.json({ error: 'Nenhum arquivo enviado.' }, { status: 400 });
+      return NextResponse.json({ ok: false, error: 'Nenhum arquivo enviado.' }, { status: 400 });
     }
 
     if (!ALLOWED_TYPES.includes(file.type)) {
       return NextResponse.json(
-        { error: 'Formato inválido. Use PNG, JPG, SVG ou WebP.' },
+        { ok: false, error: 'Formato inválido. Use PNG, JPG, SVG ou WebP.' },
         { status: 400 }
       );
     }
 
     if (file.size > MAX_SIZE_BYTES) {
       return NextResponse.json(
-        { error: `Arquivo muito grande. Máximo permitido: 500KB. Seu arquivo tem ${Math.round(file.size / 1024)}KB.` },
+        { ok: false, error: `O arquivo precisa ter até 500KB.` },
         { status: 400 }
       );
     }
 
-    const ext = file.name.split('.').pop() ?? 'png';
-    const filename = `logos/${tenantId}-${Date.now()}.${ext}`;
+    // MVP Fallback: Convert to base64 Data URL and save directly to DB
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const base64 = buffer.toString('base64');
+    const dataUrl = `data:${file.type};base64,${base64}`;
 
-    let blob;
-    try {
-      blob = await put(filename, file, {
-        access: 'public',
-        contentType: file.type,
-      });
-    } catch (blobError: any) {
-      console.error('[upload/logo] Erro detalhado do @vercel/blob:', blobError);
-      return NextResponse.json({ 
-        error: `Erro no provedor de storage: ${blobError.message || 'Falha na comunicação com Vercel Blob'}` 
-      }, { status: 500 });
-    }
+    await prisma.tenant.update({
+      where: { id: tenantId },
+      data: { logoUrl: dataUrl }
+    });
 
-    return NextResponse.json({ url: blob.url }, { status: 200 });
+    // Logging without sensitive data
+    console.log(`[upload/logo] Upload realizado com sucesso. Tenant: ${tenantId}, Tipo: ${file.type}, Tamanho: ${file.size} bytes`);
+
+    return NextResponse.json({ ok: true, logoUrl: dataUrl }, { status: 200 });
   } catch (err: any) {
     console.error('[upload/logo] Erro geral:', err);
-    return NextResponse.json({ error: err.message || 'Erro interno ao fazer upload.' }, { status: 500 });
+    return NextResponse.json({ ok: false, error: err.message || 'Erro interno ao fazer upload.' }, { status: 500 });
   }
 }
