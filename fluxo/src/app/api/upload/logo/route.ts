@@ -37,6 +37,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const ext = file.name.split('.').pop() ?? 'png';
+    const filename = `logos/${tenantId}-${Date.now()}.${ext}`;
+
     let blob;
     try {
       blob = await put(filename, file, {
