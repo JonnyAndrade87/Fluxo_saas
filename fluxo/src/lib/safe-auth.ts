@@ -71,11 +71,18 @@ export async function requireTenant() {
 export async function requireTenantApi(): Promise<{ user: import('next-auth').User & { id: string; tenantId?: string; role?: string }; tenantId: string } | null> {
   try {
     const session = await getSessionSafe();
-    if (!session?.user) return null;
+    if (!session?.user) {
+      console.warn('[AUTH] requireTenantApi: No session user found.');
+      return null;
+    }
     const user = session.user as import('next-auth').User & { id: string; tenantId?: string; role?: string };
-    if (!user.tenantId) return null;
+    if (!user.tenantId) {
+      console.warn('[AUTH] requireTenantApi: User has no tenantId.');
+      return null;
+    }
     return { user, tenantId: user.tenantId };
-  } catch {
+  } catch (error) {
+    console.error('[AUTH] requireTenantApi: Exception:', error);
     return null;
   }
 }

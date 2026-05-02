@@ -27,7 +27,23 @@ export async function POST(req: NextRequest) {
 
     const permission = checkBrandingPermission(user, tenant);
 
-    // MASKED DIAGNOSTIC FOR USER
+    // EXTREME DIAGNOSTIC LOG (SAFE)
+    const userKeys = Object.keys(user);
+    const maskedUser = { ...user } as any;
+    if (maskedUser.email) maskedUser.email = maskedUser.email.substring(0,3) + '...@' + maskedUser.email.split('@')[1];
+    if (maskedUser.id) maskedUser.id = maskedUser.id.substring(0,8) + '...';
+    if (maskedUser.tenantId) maskedUser.tenantId = maskedUser.tenantId.substring(0,8) + '...';
+
+    console.log(`[upload/logo] Deep Checkup:
+      User Keys: ${userKeys.join(', ')}
+      User Data: ${JSON.stringify(maskedUser)}
+      Tenant ID: ${tenantId.substring(0,8)}...
+      Tenant Plan: ${tenant?.plan}
+      Tenant Status: ${tenant?.subscriptionStatus}
+      Permission: ${permission.canCustomize ? 'GRANTED' : 'DENIED (' + permission.reason + ')'}
+    `);
+
+    // MASKED DIAGNOSTIC FOR USER RESPONSE
     const diag = {
       userId: user.id.substring(0, 8) + '...',
       email: user.email?.substring(0, 3) + '...@' + user.email?.split('@')[1],
@@ -39,10 +55,9 @@ export async function POST(req: NextRequest) {
       authenticated: true,
       roleIsAdmin: user.role === 'admin',
       planAllowsBranding: tenant?.plan === 'pro' || tenant?.plan === 'scale',
-      canUploadLogo: permission.canCustomize
+      canUploadLogo: permission.canCustomize,
+      sessionKeys: userKeys
     };
-
-    console.log(`[upload/logo] Diagnostic:`, diag);
 
     if (!permission.canCustomize) {
       return NextResponse.json({ 
