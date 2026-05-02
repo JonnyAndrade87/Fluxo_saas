@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { requireTenantApi } from '@/lib/safe-auth';
-import { checkBrandingPermission } from '@/lib/permissions';
+import { checkBrandingPermission } from '@/lib/permissions-shared';
 
 const MAX_SIZE_BYTES = 500 * 1024;
 const ALLOWED_TYPES = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];

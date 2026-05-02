@@ -18,7 +18,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { updateTenantBranding } from '@/actions/branding';
-import { checkBrandingPermission } from '@/lib/permissions';
+import { checkBrandingPermission } from '@/lib/permissions-shared';
 
 interface PersonalizacaoClientProps {
   initialData: {
@@ -75,7 +75,7 @@ export default function PersonalizacaoClient({ initialData }: PersonalizacaoClie
 
       const res = await fetch('/api/upload/logo', { method: 'POST', body: formData });
       
-      let json: { ok?: boolean; logoUrl?: string; error?: string; code?: string } = {};
+      let json: { ok?: boolean; logoUrl?: string; error?: string; code?: string; diag?: any } = {};
       try {
         json = await res.json();
       } catch (parseErr) {

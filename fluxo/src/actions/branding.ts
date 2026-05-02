@@ -3,7 +3,7 @@
 import prisma from '@/lib/prisma';
 import { requireTenant } from '@/lib/safe-auth';
 import { revalidatePath } from 'next/cache';
-import { checkBrandingPermission } from '@/lib/permissions';
+import { checkBrandingPermission } from '@/lib/permissions-shared';
 
 export async function getTenantBranding() {
   const { tenantId } = await requireTenant();
