@@ -62,25 +62,23 @@ export default function PersonalizacaoClient({ initialData }: PersonalizacaoClie
       formData.append('file', file);
 
       const res = await fetch('/api/upload/logo', { method: 'POST', body: formData });
-      const rawText = await res.text();
-
-      let json: { ok?: boolean; logoUrl?: string; error?: string };
+      
+      let json: { ok?: boolean; logoUrl?: string; error?: string } = {};
       try {
-        json = JSON.parse(rawText);
-      } catch {
-        // Server returned non-JSON (HTML redirect or crash page)
-        console.error('[upload] Resposta não-JSON do servidor:', rawText.slice(0, 300));
-        setUploadError(`Erro ${res.status}: Servidor retornou resposta inesperada. Veja o console.`);
+        json = await res.json();
+      } catch (parseErr) {
+        // Fallback if server returns HTML (e.g. 504 Gateway Timeout or similar)
+        setUploadError(`O servidor encontrou um problema inesperado (Erro ${res.status}). Tente novamente em instantes.`);
         return;
       }
 
       if (!res.ok || json.ok === false) {
-        setUploadError(json.error || `Erro ${res.status} ao fazer upload.`);
+        setUploadError(json.error || `Não foi possível processar o upload (Status ${res.status}).`);
         return;
       }
 
       if (!json.logoUrl) {
-        setUploadError('Upload concluído mas URL não retornada.');
+        setUploadError('O servidor não retornou o link da imagem. Tente novamente.');
         return;
       }
 
@@ -88,8 +86,8 @@ export default function PersonalizacaoClient({ initialData }: PersonalizacaoClie
       setUploadSuccess(true);
       setTimeout(() => setUploadSuccess(false), 3000);
     } catch (err) {
-      console.error('[upload] Falha de rede:', err);
-      setUploadError('Falha de rede. Verifique sua conexão e tente novamente.');
+      console.error('[upload] Network error:', err);
+      setUploadError('Falha de comunicação com o servidor. Verifique sua conexão.');
     } finally {
       setIsUploading(false);
     }

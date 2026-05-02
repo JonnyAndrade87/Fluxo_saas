@@ -1576,3 +1576,22 @@ Critérios atendidos:
   - Segurança: Validação via banco (`tenantUser`) garantindo que apenas administradores do tenant (`role === 'admin'`) podem modificar a identidade visual.
   - O formato de resposta JSON da API e o cliente React foram padronizados para `{ ok: true, logoUrl: "..." }`.
 - **Testes**: As validações estritas (formato e tamanho) e a persistência (via `prisma.tenant.update`) foram comprovadas, e os dados sobrevivem ao recarregamento (reload). Linting, tipagem e build executados com sucesso pós-alteração. A migração futura para um bucket de storage externo continua como passo técnico planejado.
+
+### 11.7 Consolidação da Tela de Personalização (Maio 2026)
+- **Status**: Concluído com Sucesso.
+- **Ação**: Remoção da duplicidade de telas. A seção "Personalização & Branding" foi removida da rota `/configuracoes` e o arquivo `BrandingClient.tsx` foi deletado.
+- **Rota Oficial**: Apenas `/personalizacao` (PersonalizacaoClient.tsx) é agora a tela válida para gestão de identidade visual.
+- **Causa Raiz do Erro 403**: O erro 403 ocorria por dois motivos:
+  1. Uso de `getToken` com `sub` em vez de `id` na API Route Handler, causando falha na busca de permissões do usuário no banco.
+  2. Ausência de validação de Plano (Gating) no backend, permitindo tentativas de upload em contas sem permissão que falhavam silenciosamente ou retornavam erro de autorização.
+- **Correções Aplicadas**:
+  - Migração para `requireTenantApi()` na API Route Handler para uma autenticação robusta e padronizada.
+  - Implementação de checagem de Role (apenas `admin`) e de Plano (apenas `pro` ou `scale`) no servidor.
+  - Padronização das respostas da API para JSON em todos os cenários (401, 403, 400, 500), garantindo que o frontend consiga exibir mensagens de erro amigáveis como "Personalização disponível no plano Pro" em vez de "Resposta inesperada".
+  - Melhoria na captura de erros no frontend (`PersonalizacaoClient.tsx`) para processar mensagens específicas do servidor.
+- **Validação Técnica**: 
+  - Lint: OK.
+  - TSC: OK.
+  - Build: OK.
+  - Testes: OK.
+- **Comportamento Final**: O upload funciona de ponta a ponta para administradores em planos Pro/Scale, salvando o logo como Base64 no banco de dados (Solução MVP) e garantindo persistência absoluta após o reload.
