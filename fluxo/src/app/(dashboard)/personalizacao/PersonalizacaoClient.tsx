@@ -63,22 +63,26 @@ export default function PersonalizacaoClient({ initialData }: PersonalizacaoClie
 
       const res = await fetch('/api/upload/logo', { method: 'POST', body: formData });
       
-      let json: { ok?: boolean; logoUrl?: string; error?: string } = {};
+      let json: { ok?: boolean; logoUrl?: string; error?: string; code?: string } = {};
       try {
         json = await res.json();
       } catch (parseErr) {
         // Fallback if server returns HTML (e.g. 504 Gateway Timeout or similar)
-        setUploadError(`O servidor encontrou um problema inesperado (Erro ${res.status}). Tente novamente em instantes.`);
+        if (res.status === 403) {
+          setUploadError('Acesso negado. Você não tem permissão para esta ação.');
+        } else {
+          setUploadError(`Erro ${res.status}: O servidor retornou uma resposta inválida.`);
+        }
         return;
       }
 
       if (!res.ok || json.ok === false) {
-        setUploadError(json.error || `Não foi possível processar o upload (Status ${res.status}).`);
+        setUploadError(json.error || `Não foi possível processar o upload (Erro ${res.status}).`);
         return;
       }
 
       if (!json.logoUrl) {
-        setUploadError('O servidor não retornou o link da imagem. Tente novamente.');
+        setUploadError('O servidor não retornou o link da imagem.');
         return;
       }
 
@@ -87,7 +91,7 @@ export default function PersonalizacaoClient({ initialData }: PersonalizacaoClie
       setTimeout(() => setUploadSuccess(false), 3000);
     } catch (err) {
       console.error('[upload] Network error:', err);
-      setUploadError('Falha de comunicação com o servidor. Verifique sua conexão.');
+      setUploadError('Falha de comunicação com o servidor.');
     } finally {
       setIsUploading(false);
     }
@@ -133,7 +137,7 @@ export default function PersonalizacaoClient({ initialData }: PersonalizacaoClie
                 Logotipo da Empresa
               </CardTitle>
               <CardDescription className="text-sm mt-1">
-                Aparece no topo do dashboard e nos seus comunicados. PNG, JPG, SVG ou WebP · Máx. 500KB
+                Aparece no topo do dashboard e nos seus comunicados. PNG, JPG ou WebP · Máx. 500KB
               </CardDescription>
             </div>
             {!isPro && (
@@ -199,14 +203,14 @@ export default function PersonalizacaoClient({ initialData }: PersonalizacaoClie
                   <p className="text-sm font-semibold text-slate-700">
                     {isUploading ? 'Enviando…' : uploadSuccess ? 'Upload concluído!' : 'Clique ou arraste o arquivo aqui'}
                   </p>
-                  <p className="text-[11px] text-slate-400 mt-1">PNG, JPG, SVG, WebP · até 500KB</p>
+                  <p className="text-[11px] text-slate-400 mt-1">PNG, JPG ou WebP · até 500KB</p>
                 </div>
               </div>
 
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/png,image/jpeg,image/jpg,image/svg+xml,image/webp"
+                accept="image/png,image/jpeg,image/jpg,image/webp"
                 onChange={handleFileChange}
                 className="hidden"
               />

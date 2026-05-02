@@ -27,8 +27,15 @@ export async function updateTenantBranding(data: {
 }) {
   const { tenantId } = await requireTenant();
   
-  // Security check: only allow pro/scale to update branding in real usage
-  // For now we allow the update if they are calling it (UI handles gating)
+  // Security check: only allow pro/scale to update branding
+  const tenant = await prisma.tenant.findUnique({
+    where: { id: tenantId },
+    select: { plan: true }
+  });
+
+  if (!tenant || (tenant.plan !== 'pro' && tenant.plan !== 'scale')) {
+    throw new Error('A personalização de marca está disponível apenas no plano Pro ou superior.');
+  }
   
   await prisma.tenant.update({
     where: { id: tenantId },
