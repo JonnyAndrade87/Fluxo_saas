@@ -1596,16 +1596,12 @@ Critérios atendidos:
   - Testes: OK.
 - **Comportamento Final**: O upload funciona de ponta a ponta para administradores em planos Pro/Scale, salvando o logo como Base64 no banco de dados (Solução MVP) e garantindo persistência absoluta após o reload.
 
-### 11.8 Correção de Diagnóstico e Gating de Personalização (Maio 2026)
-- **Status**: Concluído com Sucesso.
-- **Problema**: O upload continuava retornando 403 em produção devido a uma falha de diagnóstico que ocultava o motivo real (plano/permissão) sob uma mensagem genérica de "problema inesperado". Além disso, o suporte a SVG ainda era exibido na interface.
-- **Causa Raiz Final**:
-  1. **Mismatch de Gating**: A UI permitia que usuários em planos Starter tentassem o upload, mas o backend (corretamente) bloqueava com 403.
-  2. **Response Interception**: O frontend não conseguia processar a resposta JSON do 403 porque o Next.js/Vercel interceptava o status code e retornava HTML, ou o parsing falhava silenciosamente.
+### 11.8 Consolidação de Gating e Diagnóstico de Personalização (Maio 2026)
+- **Status**: EM VALIDAÇÃO (Diagnóstico Ativo).
+- **Problema**: O upload era bloqueado com 403 em produção mesmo para usuários Pro/Admin devido a discrepâncias entre as regras de gating da UI e do Backend.
 - **Correções Aplicadas**:
-  - **Backend**: Padronização de respostas JSON com códigos de erro específicos (`PLAN_REQUIRED`, `FORBIDDEN`, `UNAUTHENTICATED`). Remoção definitiva do suporte a arquivos SVG por segurança e solicitação do usuário.
-  - **Frontend**: Remoção de SVG de todas as labels e filtros de input. Melhoria no tratamento de erros para capturar o JSON de erro mesmo em status 403 e exibir a mensagem correta ("Personalização disponível no plano Pro") em vez de erro técnico.
-  - **Gating Estrito**: A UI agora desabilita visualmente e funcionalmente o upload para usuários sem plano Pro ou sem permissão de Admin, evitando requests desnecessárias que resultariam em 403.
-- **Validação Técnica**:
-  - Lint, TSC, Build e Testes (176 passes) validados com sucesso.
-- **Teste de Produção**: Confirmado que o upload de PNG/JPG/WebP funciona para administradores Pro, e que o bloqueio para Starter agora é amigável e visível na UI.
+  - **Fonte Única de Verdade**: Criado `src/lib/permissions.ts` com a função `checkBrandingPermission` usada em toda a aplicação (API, Actions e UI).
+  - **Diagnóstico Transparente**: A API de upload agora retorna um objeto `diag` (mascarado) em caso de erro 403, permitindo identificar ID de usuário, Tenant, Role e Plano reais da sessão.
+  - **Gating de UI Robusto**: O `PersonalizacaoClient` agora desabilita o upload preventivamente baseado na role e no plano, exibindo o motivo correto (Bloqueio por Plano ou Permissão Insuficiente) antes de qualquer tentativa de requisição.
+- **Validação Pendente**: Teste final no tenant "Admin Tenant (Produção)" para confirmar se o `canCustomize` está sendo calculado corretamente com a sessão real.
+- **SVG**: Suporte removido definitivamente de todos os níveis.

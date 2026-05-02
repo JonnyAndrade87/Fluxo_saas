@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import { Metadata } from 'next';
 import { Loader2, Palette } from 'lucide-react';
 import { getTenantBranding } from '@/actions/branding';
+import { requireTenant } from '@/lib/safe-auth';
 import PersonalizacaoClient from './PersonalizacaoClient';
 
 export const metadata: Metadata = {
@@ -11,12 +12,16 @@ export const metadata: Metadata = {
 
 export default async function PersonalizacaoPage() {
   const branding = await getTenantBranding();
+  const { user } = await requireTenant();
 
   const initialData = {
     logoUrl: branding?.logoUrl ?? '',
     primaryColor: branding?.primaryColor ?? '',
     accentColor: branding?.accentColor ?? '',
     plan: branding?.plan ?? 'starter',
+    role: user.role ?? 'operator',
+    initialUserId: user.id,
+    initialTenantId: user.tenantId,
   };
 
   return (

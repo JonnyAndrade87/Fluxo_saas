@@ -3,6 +3,7 @@
 import prisma from '@/lib/prisma';
 import { requireTenant } from '@/lib/safe-auth';
 import { revalidatePath } from 'next/cache';
+import { checkBrandingPermission } from '@/lib/permissions';
 
 export async function getTenantBranding() {
   const { tenantId } = await requireTenant();
@@ -25,7 +26,7 @@ export async function updateTenantBranding(data: {
   primaryColor?: string;
   accentColor?: string;
 }) {
-  const { tenantId } = await requireTenant();
+  const { user, tenantId } = await requireTenant();
   
   // Security check: only allow pro/scale to update branding
   const tenant = await prisma.tenant.findUnique({
@@ -33,8 +34,9 @@ export async function updateTenantBranding(data: {
     select: { plan: true }
   });
 
-  if (!tenant || (tenant.plan !== 'pro' && tenant.plan !== 'scale')) {
-    throw new Error('A personalização de marca está disponível apenas no plano Pro ou superior.');
+  const permission = checkBrandingPermission(user, tenant);
+  if (!permission.canCustomize) {
+    throw new Error(permission.message);
   }
   
   await prisma.tenant.update({

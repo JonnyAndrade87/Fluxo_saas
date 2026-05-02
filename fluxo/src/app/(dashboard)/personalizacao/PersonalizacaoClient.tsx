@@ -18,6 +18,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { updateTenantBranding } from '@/actions/branding';
+import { checkBrandingPermission } from '@/lib/permissions';
 
 interface PersonalizacaoClientProps {
   initialData: {
@@ -25,6 +26,9 @@ interface PersonalizacaoClientProps {
     primaryColor: string;
     accentColor: string;
     plan: string;
+    role: string;
+    initialUserId?: string;
+    initialTenantId?: string;
   };
 }
 
@@ -37,22 +41,30 @@ export default function PersonalizacaoClient({ initialData }: PersonalizacaoClie
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const isPro = data.plan === 'pro' || data.plan === 'scale';
+  // Single source of truth for permissions
+  const permission = checkBrandingPermission(
+    { role: data.role },
+    { plan: data.plan }
+  );
+
+  const canCustomize = permission.canCustomize;
 
   // ── Upload handler ──────────────────────────────────────────────────────
   const handleUpload = useCallback(async (file: File) => {
+    if (!canCustomize) return;
+    
     setUploadError(null);
     setUploadSuccess(false);
 
     const MAX_KB = 500;
     if (file.size > MAX_KB * 1024) {
-      setUploadError(`Arquivo muito grande. Máximo: ${MAX_KB}KB. Seu arquivo: ${Math.round(file.size / 1024)}KB.`);
+      setUploadError(`O arquivo precisa ter até 500KB.`);
       return;
     }
 
-    const allowed = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml', 'image/webp'];
+    const allowed = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
     if (!allowed.includes(file.type)) {
-      setUploadError('Formato inválido. Use PNG, JPG, SVG ou WebP.');
+      setUploadError('Envie uma imagem PNG, JPG ou WebP.');
       return;
     }
 
@@ -67,7 +79,6 @@ export default function PersonalizacaoClient({ initialData }: PersonalizacaoClie
       try {
         json = await res.json();
       } catch (parseErr) {
-        // Fallback if server returns HTML (e.g. 504 Gateway Timeout or similar)
         if (res.status === 403) {
           setUploadError('Acesso negado. Você não tem permissão para esta ação.');
         } else {
@@ -77,7 +88,7 @@ export default function PersonalizacaoClient({ initialData }: PersonalizacaoClie
       }
 
       if (!res.ok || json.ok === false) {
-        setUploadError(json.error || `Não foi possível processar o upload (Erro ${res.status}).`);
+        setUploadError(json.error || `Não foi possível processar o upload.`);
         return;
       }
 
@@ -95,11 +106,11 @@ export default function PersonalizacaoClient({ initialData }: PersonalizacaoClie
     } finally {
       setIsUploading(false);
     }
-  }, []);
+  }, [canCustomize]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) handleUpload(file);
+    if (file && canCustomize) handleUpload(file);
     e.target.value = '';
   };
 
@@ -107,12 +118,12 @@ export default function PersonalizacaoClient({ initialData }: PersonalizacaoClie
     e.preventDefault();
     setIsDragOver(false);
     const file = e.dataTransfer.files?.[0];
-    if (file) handleUpload(file);
+    if (file && canCustomize) handleUpload(file);
   };
 
   // ── Save handler ────────────────────────────────────────────────────────
   const handleSave = async () => {
-    if (!isPro) return;
+    if (!canCustomize) return;
     setIsSaving(true);
     try {
       await updateTenantBranding({
@@ -140,31 +151,39 @@ export default function PersonalizacaoClient({ initialData }: PersonalizacaoClie
                 Aparece no topo do dashboard e nos seus comunicados. PNG, JPG ou WebP · Máx. 500KB
               </CardDescription>
             </div>
-            {!isPro && (
-              <Badge className="bg-indigo-100 text-indigo-700 border-indigo-200 gap-1 px-3 py-1">
-                <Crown className="w-3.5 h-3.5" />
-                Plano Pro
+            {!canCustomize && (
+              <Badge className="bg-slate-100 text-slate-600 border-slate-200 gap-1 px-3 py-1">
+                <Lock className="w-3.5 h-3.5" />
+                Acesso Restrito
               </Badge>
             )}
           </div>
         </CardHeader>
 
         <CardContent className="p-8 relative">
-          {!isPro && (
+          {!canCustomize && (
             <div className="absolute inset-0 bg-white/70 backdrop-blur-[2px] z-10 flex items-center justify-center rounded-b-xl">
               <div className="bg-white border border-border shadow-xl rounded-2xl p-6 max-w-sm text-center">
-                <div className="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Lock className="w-6 h-6 text-indigo-600" />
+                <div className={`w-12 h-12 ${permission.reason === 'PLAN_REQUIRED' ? 'bg-indigo-50' : 'bg-rose-50'} rounded-full flex items-center justify-center mx-auto mb-4`}>
+                  {permission.reason === 'PLAN_REQUIRED' ? (
+                    <Crown className="w-6 h-6 text-indigo-600" />
+                  ) : (
+                    <Lock className="w-6 h-6 text-rose-600" />
+                  )}
                 </div>
-                <h4 className="text-lg font-bold text-obsidian">Funcionalidade Bloqueada</h4>
+                <h4 className="text-lg font-bold text-obsidian">
+                  {permission.reason === 'PLAN_REQUIRED' ? 'Plano Pro Necessário' : 'Acesso Restrito'}
+                </h4>
                 <p className="text-sm text-muted-foreground mt-2">
-                  Upload de logotipo está disponível no Plano Pro.
+                  {permission.message}
                 </p>
-                <a href="/planos">
-                  <Button className="mt-5 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold">
-                    Fazer Upgrade
-                  </Button>
-                </a>
+                {permission.reason === 'PLAN_REQUIRED' && (
+                  <a href="/planos">
+                    <Button className="mt-5 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold">
+                      Fazer Upgrade
+                    </Button>
+                  </a>
+                )}
               </div>
             </div>
           )}
@@ -177,8 +196,8 @@ export default function PersonalizacaoClient({ initialData }: PersonalizacaoClie
               <div
                 role="button"
                 tabIndex={0}
-                onClick={() => isPro && fileInputRef.current?.click()}
-                onKeyDown={e => e.key === 'Enter' && isPro && fileInputRef.current?.click()}
+                onClick={() => canCustomize && fileInputRef.current?.click()}
+                onKeyDown={e => e.key === 'Enter' && canCustomize && fileInputRef.current?.click()}
                 onDragOver={e => { e.preventDefault(); setIsDragOver(true); }}
                 onDragLeave={() => setIsDragOver(false)}
                 onDrop={handleDrop}
@@ -187,7 +206,7 @@ export default function PersonalizacaoClient({ initialData }: PersonalizacaoClie
                   isDragOver
                     ? 'border-brand-green bg-brand-green/5 scale-[1.01]'
                     : 'border-slate-200 hover:border-brand-green/50 hover:bg-slate-50/80 bg-white',
-                  !isPro ? 'pointer-events-none opacity-50' : '',
+                  !canCustomize ? 'pointer-events-none opacity-50' : '',
                 ].join(' ')}
               >
                 {isUploading ? (
@@ -216,9 +235,20 @@ export default function PersonalizacaoClient({ initialData }: PersonalizacaoClie
               />
 
               {uploadError && (
-                <div className="flex items-start gap-2 text-rose-600 bg-rose-50 border border-rose-100 rounded-xl px-4 py-3 text-sm">
-                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                  <span>{uploadError}</span>
+                <div className="flex flex-col gap-2 text-rose-600 bg-rose-50 border border-rose-100 rounded-xl px-4 py-3 text-sm">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                    <span className="font-semibold">{uploadError}</span>
+                  </div>
+                  {/* DIAGNOSTIC INFO FOR DEBUGGING (MASKED) */}
+                  {(permission.reason === 'FORBIDDEN' || permission.reason === 'PLAN_REQUIRED') && (
+                    <div className="mt-2 pt-2 border-t border-rose-200/50 text-[10px] font-mono opacity-80 grid grid-cols-2 gap-x-4 gap-y-1">
+                      <div>User ID: {initialData.initialUserId?.substring(0, 8)}...</div>
+                      <div>Role: {data.role}</div>
+                      <div>Tenant: {initialData.initialTenantId?.substring(0, 8)}...</div>
+                      <div>Plan: {data.plan}</div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -227,7 +257,6 @@ export default function PersonalizacaoClient({ initialData }: PersonalizacaoClie
             <div className="flex flex-col gap-3">
               <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Pré-visualização</p>
               <div className="flex-1 min-h-[180px] rounded-2xl bg-[#070c18] border border-white/[0.06] flex items-center justify-center relative group overflow-hidden">
-                {/* subtle grid pattern */}
                 <div className="absolute inset-0 opacity-[0.03]"
                   style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.5) 1px,transparent 1px)', backgroundSize: '28px 28px' }}
                 />
@@ -273,29 +302,24 @@ export default function PersonalizacaoClient({ initialData }: PersonalizacaoClie
                 Cor primária e accent são aplicadas em botões, badges e destaques da sua conta.
               </CardDescription>
             </div>
-            {!isPro && (
-              <Badge className="bg-indigo-100 text-indigo-700 border-indigo-200 gap-1 px-3 py-1">
-                <Crown className="w-3.5 h-3.5" />
-                Plano Pro
-              </Badge>
-            )}
           </div>
         </CardHeader>
 
         <CardContent className="p-8 relative">
-          {!isPro && (
+          {!canCustomize && (
             <div className="absolute inset-0 bg-white/70 backdrop-blur-[2px] z-10 flex items-center justify-center rounded-b-xl">
               <div className="bg-white border border-border shadow-xl rounded-2xl p-6 max-w-sm text-center">
-                <div className="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Lock className="w-6 h-6 text-indigo-600" />
+                <div className={`w-12 h-12 ${permission.reason === 'PLAN_REQUIRED' ? 'bg-indigo-50' : 'bg-rose-50'} rounded-full flex items-center justify-center mx-auto mb-4`}>
+                  {permission.reason === 'PLAN_REQUIRED' ? (
+                    <Crown className="w-6 h-6 text-indigo-600" />
+                  ) : (
+                    <Lock className="w-6 h-6 text-rose-600" />
+                  )}
                 </div>
-                <h4 className="text-lg font-bold text-obsidian">Cores Personalizadas</h4>
-                <p className="text-sm text-muted-foreground mt-2">Disponível no Plano Pro.</p>
-                <a href="/planos">
-                  <Button className="mt-5 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold">
-                    Fazer Upgrade
-                  </Button>
-                </a>
+                <h4 className="text-lg font-bold text-obsidian">
+                  {permission.reason === 'PLAN_REQUIRED' ? 'Cores Personalizadas' : 'Acesso Restrito'}
+                </h4>
+                <p className="text-sm text-muted-foreground mt-2">{permission.message}</p>
               </div>
             </div>
           )}
@@ -314,7 +338,7 @@ export default function PersonalizacaoClient({ initialData }: PersonalizacaoClie
                     placeholder={field.placeholder}
                     value={data[field.key]}
                     onChange={e => setData(prev => ({ ...prev, [field.key]: e.target.value }))}
-                    disabled={!isPro}
+                    disabled={!canCustomize}
                     className="font-mono"
                   />
                   <div
@@ -332,7 +356,7 @@ export default function PersonalizacaoClient({ initialData }: PersonalizacaoClie
       <div className="flex justify-end">
         <Button
           onClick={handleSave}
-          disabled={isSaving || !isPro}
+          disabled={isSaving || !canCustomize}
           className="bg-brand-green hover:bg-brand-green/90 text-white px-8 h-12 rounded-xl font-bold gap-2 shadow-lg transition-all"
         >
           {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
