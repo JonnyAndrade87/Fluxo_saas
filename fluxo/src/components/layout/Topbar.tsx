@@ -194,7 +194,7 @@ export function Topbar({
                 <img 
                   src={logoUrl} 
                   alt={tenantName} 
-                  className="w-full h-full object-cover group-hover:opacity-0 transition-opacity" 
+                  className="w-full h-full object-contain bg-white group-hover:opacity-0 transition-opacity p-1" 
                 />
               ) : (
                 <span className="text-sm font-bold tracking-tight group-hover:opacity-0 transition-opacity">

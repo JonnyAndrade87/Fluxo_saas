@@ -53,10 +53,11 @@ interface SidebarProps {
     email?: string | null;
     role?: string | null;
     isSuperAdmin?: boolean | null;
-  } | null
+  } | null;
+  logoUrl?: string | null;
 }
 
-export function Sidebar({ user }: SidebarProps) {
+export function Sidebar({ user, logoUrl }: SidebarProps) {
   const pathname = usePathname()
   const [isCollapsed, setIsCollapsed] = useState(false)
 
@@ -86,19 +87,22 @@ export function Sidebar({ user }: SidebarProps) {
           )}
         >
           {/* Logo Extensa */}
-          <div className={cn("absolute inset-0 transition-opacity duration-300", isCollapsed ? "opacity-0 pointer-events-none" : "opacity-100")}>
+          <div className={cn("absolute inset-0 transition-opacity duration-300 flex items-center", isCollapsed ? "opacity-0 pointer-events-none" : "opacity-100")}>
             <img 
-              src="/logo_fluxeer_dashboard.png" 
-              alt="Fluxeer Logo" 
-              className="w-full h-full object-contain object-left drop-shadow-lg"
+              src={logoUrl || "/logo_fluxeer_dashboard.png"} 
+              alt="Company Logo" 
+              className={cn(
+                "w-full h-full object-contain drop-shadow-lg",
+                logoUrl ? "object-left" : "object-left"
+              )}
             />
           </div>
           {/* Logo Ícone */}
-          <div className={cn("absolute inset-0 transition-opacity duration-300", isCollapsed ? "opacity-100" : "opacity-0 pointer-events-none")}>
+          <div className={cn("absolute inset-0 transition-opacity duration-300 flex items-center justify-center", isCollapsed ? "opacity-100" : "opacity-0 pointer-events-none")}>
              <img 
-              src="/logo_fluxeer_icone.png" 
-              alt="Fluxeer Icone" 
-              className="w-full h-full object-contain object-center drop-shadow-lg"
+              src={logoUrl || "/logo_fluxeer_icone.png"} 
+              alt="Company Icon" 
+              className="w-full h-full object-contain drop-shadow-lg"
             />
           </div>
         </div>

@@ -69,7 +69,7 @@ export default async function DashboardLayout({
         }
       `}} />
 
-      <Sidebar user={user} />
+      <Sidebar user={user} logoUrl={isPro ? tenantData.logoUrl : null} />
       <div className="flex flex-col flex-1 min-w-0 overflow-x-clip">
         <Topbar 
           tenantName={tenantData.name} 
