@@ -17,7 +17,7 @@ import {
   CheckCircle2,
   AlertCircle,
 } from 'lucide-react';
-import { updateTenantBranding } from '@/actions/branding';
+import { updateTenantBranding, uploadLogoAction } from '@/actions/branding';
 import { checkBrandingPermission } from '@/lib/permissions-shared';
 
 interface PersonalizacaoClientProps {
@@ -37,7 +37,6 @@ export default function PersonalizacaoClient({ initialData }: PersonalizacaoClie
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const [apiDiag, setApiDiag] = useState<any>(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -55,7 +54,6 @@ export default function PersonalizacaoClient({ initialData }: PersonalizacaoClie
     if (!canCustomize) return;
     
     setUploadError(null);
-    setApiDiag(null);
     setUploadSuccess(false);
 
     const MAX_KB = 500;
@@ -75,37 +73,18 @@ export default function PersonalizacaoClient({ initialData }: PersonalizacaoClie
       const formData = new FormData();
       formData.append('file', file);
 
-      const res = await fetch('/api/upload/logo', { method: 'POST', body: formData });
-      
-      let json: { ok?: boolean; logoUrl?: string; error?: string; code?: string; diag?: any } = {};
-      try {
-        json = await res.json();
-      } catch (parseErr) {
-        if (res.status === 403) {
-          setUploadError('Acesso negado. Você não tem permissão para esta ação.');
-        } else {
-          setUploadError(`Erro ${res.status}: O servidor retornou uma resposta inválida.`);
-        }
+      const result = await uploadLogoAction(formData);
+
+      if (!result.ok || !result.logoUrl) {
+        setUploadError(result.error || `Não foi possível processar o upload.`);
         return;
       }
 
-      if (json.diag) setApiDiag(json.diag);
-
-      if (!res.ok || json.ok === false) {
-        setUploadError(json.error || `Não foi possível processar o upload.`);
-        return;
-      }
-
-      if (!json.logoUrl) {
-        setUploadError('O servidor não retornou o link da imagem.');
-        return;
-      }
-
-      setData(prev => ({ ...prev, logoUrl: json.logoUrl! }));
+      setData(prev => ({ ...prev, logoUrl: result.logoUrl! }));
       setUploadSuccess(true);
       setTimeout(() => setUploadSuccess(false), 3000);
     } catch (err) {
-      console.error('[upload] Network error:', err);
+      console.error('[upload] Action error:', err);
       setUploadError('Falha de comunicação com o servidor.');
     } finally {
       setIsUploading(false);
@@ -245,13 +224,12 @@ export default function PersonalizacaoClient({ initialData }: PersonalizacaoClie
                     <span className="font-semibold">{uploadError}</span>
                   </div>
                   {/* DIAGNOSTIC INFO FOR DEBUGGING (MASKED) */}
-                  {(apiDiag || permission.reason === 'FORBIDDEN' || permission.reason === 'PLAN_REQUIRED') && (
+                  {(permission.reason === 'FORBIDDEN' || permission.reason === 'PLAN_REQUIRED') && (
                     <div className="mt-2 pt-2 border-t border-rose-200/50 text-[10px] font-mono opacity-80 grid grid-cols-2 gap-x-4 gap-y-1">
-                      <div>User ID: {apiDiag?.userId || initialData.initialUserId?.substring(0, 8) + '...'}</div>
-                      <div>Role: {apiDiag?.role || data.role}</div>
-                      <div>Tenant: {apiDiag?.tenantId || initialData.initialTenantId?.substring(0, 8) + '...'}</div>
-                      <div>Plan: {apiDiag?.plan || data.plan}</div>
-                      {apiDiag && <div className="col-span-2 text-indigo-600 font-bold mt-1">API Status: {apiDiag.canUploadLogo ? 'GRANTED' : 'DENIED'}</div>}
+                      <div>User ID: {initialData.initialUserId?.substring(0, 8)}...</div>
+                      <div>Role: {data.role}</div>
+                      <div>Tenant: {initialData.initialTenantId?.substring(0, 8)}...</div>
+                      <div>Plan: {data.plan}</div>
                     </div>
                   )}
                 </div>
