@@ -684,8 +684,8 @@ export default function LandingPage() {
         id="hero"
       >
 
-        {/* Particles enabled on desktop */}
-        <div className="hidden lg:block absolute inset-0 z-[1]"><ParticlesBackground /></div>
+        {/* Particles enabled on all devices */}
+        <div className="absolute inset-0 z-[1]"><ParticlesBackground /></div>
 
         {/* Large Brand Watermark */}
         <div className="absolute inset-0 z-0 flex items-center justify-center opacity-[0.03] pointer-events-none overflow-hidden">
@@ -713,7 +713,7 @@ export default function LandingPage() {
         {/* ── REFINED NAV ── */}
         <motion.header 
           style={{ opacity: mvHeader }}
-          className="relative z-[20] w-full pt-8 px-6 flex justify-center"
+          className="relative z-[20] w-full pt-4 sm:pt-8 px-6 flex justify-center"
         >
           <nav className="bg-transparent py-2 flex items-center justify-between w-full max-w-7xl">
             <Link href="/" className="hover:opacity-80 transition-opacity">
@@ -753,10 +753,10 @@ export default function LandingPage() {
         </motion.header>
 
         {/* ── HERO BODY ── */}
-        <div className="relative z-[10] flex-1 flex items-start lg:items-center pt-8 lg:pt-0 pb-8 lg:pb-20">
-          <div className="w-full max-w-7xl mx-auto px-6 py-4 md:py-0">
+        <div className="relative z-[10] flex-1 flex items-start lg:items-center pt-4 lg:pt-0 pb-4 lg:pb-12">
+          <div className="w-full max-w-7xl mx-auto px-6 py-2 md:py-0">
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-8 items-center">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 lg:gap-8 items-center">
 
               {/* ── Left: Editorial Copy ── */}
               <div className="lg:col-span-5 flex flex-col items-center text-center lg:items-start lg:text-left z-20">
@@ -766,7 +766,7 @@ export default function LandingPage() {
                   animate={{ y: 0 }}
                   transition={{ duration: 0.5, delay: 0 }}
                   style={{ opacity: mvOp1 }}
-                  className="text-[9px] lg:text-[10px] font-mono font-bold text-brand-green tracking-[0.25em] uppercase mb-3 lg:mb-4"
+                  className="text-[9px] lg:text-[10px] font-mono font-bold text-brand-green tracking-[0.25em] uppercase mb-2 lg:mb-4"
                 >
                   Inteligência em cobrança B2B
                 </motion.p>
@@ -776,7 +776,7 @@ export default function LandingPage() {
                   animate={{ y: 0 }}
                   transition={{ duration: 0.6, delay: 0.1 }}
                   style={{ opacity: mvOp2, scale: scaleHero }}
-                  className="font-manrope font-extrabold tracking-tight leading-[1.0] text-white mb-4 lg:mb-8 text-[2.5rem] sm:text-6xl lg:text-[6rem]"
+                  className="font-manrope font-extrabold tracking-tight leading-[1.0] text-white mb-3 lg:mb-6 text-[3.2rem] sm:text-6xl lg:text-[4.5rem]"
                 >
                   Software de cobrança B2B<br />
                   <span className="text-brand-green">para organizar o contas a receber.</span>
@@ -787,7 +787,7 @@ export default function LandingPage() {
                   animate={{ y: 0 }}
                   transition={{ duration: 0.6, delay: 0.15 }}
                   style={{ opacity: mvOp3 }}
-                  className="text-base lg:text-xl text-white/75 leading-snug mb-6 lg:mb-10 max-w-lg mx-auto lg:mx-0 font-geist"
+                  className="text-base lg:text-xl text-white/75 leading-snug mb-4 lg:mb-8 max-w-lg mx-auto lg:mx-0 font-geist"
                 >
                   O Fluxeer ajuda times financeiros B2B a organizar contas a receber, priorizar risco por cliente e agir antes do atraso pressionar o caixa.
                 </motion.p>
@@ -798,7 +798,7 @@ export default function LandingPage() {
                   animate={{ y: 0 }}
                   transition={{ duration: 0.6, delay: 0.2 }}
                   style={{ opacity: mvOp4 }}
-                  className="mb-5 lg:mb-10 flex flex-col gap-2.5 w-full items-center lg:items-start"
+                  className="mb-4 lg:mb-8 flex flex-col gap-2 w-full items-center lg:items-start"
                 >
                   {[
                     "Prioridades de cobrança em tempo real",
@@ -822,21 +822,21 @@ export default function LandingPage() {
                   <a
                     id="cta-button"
                     href="#demonstracao"
-                    className="w-full sm:w-auto group inline-flex items-center justify-center gap-2 bg-brand-green text-slate-950 text-sm font-bold px-7 py-3.5 rounded-xl hover:opacity-90 transition-opacity shadow-[0_0_24px_rgba(0,176,179,0.25)] active:scale-[0.98]"
+                    className="w-full sm:w-auto group inline-flex items-center justify-center gap-2 bg-brand-green text-slate-950 text-sm font-bold px-7 py-3 rounded-xl hover:opacity-90 transition-opacity shadow-[0_0_24px_rgba(0,176,179,0.25)] active:scale-[0.98]"
                     onClick={(e) => {
                       scrollTo(e, 'demonstracao');
                     }}
                     data-track-cta="true"
                     data-section="hero"
-                    data-cta-label="solicitar demonstracao"
+                    data-cta-label="quero conhecer hero"
                   >
-                    Solicitar demonstração
+                    Quero conhecer!
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                   </a>
 
                   <Link
                     href="/login"
-                    className="hidden sm:inline-flex items-center justify-center px-6 py-3.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] backdrop-blur-xl border border-white/10 text-white/80 hover:text-white text-sm font-medium transition-all"
+                    className="hidden sm:inline-flex items-center justify-center px-6 py-3.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] backdrop-blur-xl border border-white/10 text-white/80 hover:text-white text-sm font-medium transition-all"
                   >
                     Entrar
                   </Link>
