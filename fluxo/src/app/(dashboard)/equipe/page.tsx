@@ -1,22 +1,20 @@
-import { auth } from '../../../../auth';
 import { getTeamMembers } from '@/actions/users';
 import TeamClient from './TeamClient';
-import { redirect } from 'next/navigation';
+import { requireTenant } from '@/lib/safe-auth';
 
 export const metadata = { title: 'Equipe — Fluxo' };
 
-type DashboardSessionUser = {
-  role?: string | null;
-  tenantId?: string | null;
-};
-
 export default async function TeamPage() {
-  const session = await auth();
-  const sessionUser = session?.user as DashboardSessionUser | undefined;
-  const isAdmin = sessionUser?.role === 'admin';
+  const { user } = await requireTenant();
+  const isAdmin = user.role === 'admin';
 
   if (!isAdmin) {
-    redirect('/dashboard');
+    // A segurança de role pode ser feita aqui ou dentro do action
+    return (
+      <div className="py-20 text-center">
+        <p className="text-muted-foreground">Você não tem permissão para acessar esta página.</p>
+      </div>
+    );
   }
 
   const members = await getTeamMembers().catch(() => []);
