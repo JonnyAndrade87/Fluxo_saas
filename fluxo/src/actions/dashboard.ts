@@ -44,16 +44,8 @@ export interface DashboardKPIs {
 
 // ─── Main action ────────────────────────────────────────────────────────────
 
-export async function getDashboardMetrics() {
+export async function getDashboardMetrics(tenantId: string, userId: string) {
   try {
-    const session = await auth();
-    const tenantId = session?.user?.tenantId;
-    const userId = session?.user?.id;
-
-    if (!tenantId || !userId) {
-      throw new Error('Unauthorized');
-    }
-
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -185,7 +177,9 @@ export async function getDashboardMetrics() {
 
     const totalEmitted = totalPending + totalOverdue;
     const defaultRate = totalEmitted > 0 ? (totalOverdue / totalEmitted) * 100 : 0;
-    const recoveryRate = totalOverdue > 0 ? (recoveredOverdueThisMonth / (totalOverdue + recoveredOverdueThisMonth)) * 100 : 0;
+    const recoveryRate = (totalOverdue + recoveredOverdueThisMonth) > 0 
+      ? (recoveredOverdueThisMonth / (totalOverdue + recoveredOverdueThisMonth)) * 100 
+      : 0;
 
     // Aging distribution
     const agingDistribution: AgingBucket[] = [
@@ -283,7 +277,7 @@ export async function getDashboardMetrics() {
     const todaysTasks = todaysTasksRaw.map((t) => ({
       id: t.id,
       title: t.title,
-      customerName: t.customer.name,
+      customerName: t.customer?.name ?? 'Cliente',
       dueDate: t.dueDate,
       overdue: t.dueDate < today,
     }));
@@ -318,7 +312,7 @@ export async function getDashboardMetrics() {
         id: p.id,
         type: 'broken_promise',
         title: 'Promessa Quebrada',
-        description: `${p.invoice.customer.name} — R$ ${p.amount.toFixed(2)} para ${p.promisedDate.toLocaleDateString('pt-BR')}`,
+        description: `${p.invoice.customer?.name ?? 'Cliente'} — R$ ${p.amount.toFixed(2)} para ${p.promisedDate.toLocaleDateString('pt-BR')}`,
         amount: p.amount,
         actionUrl: `/historico?faturaId=${p.invoiceId}`,
       });
@@ -328,7 +322,7 @@ export async function getDashboardMetrics() {
         id: c.id,
         type: 'delivery_failed',
         title: 'Falha de Entrega',
-        description: `Não foi possível enviar ${c.channel} para ${c.customer.name}`,
+        description: `Não foi possível enviar ${c.channel} para ${c.customer?.name ?? 'Cliente'}`,
         actionUrl: `/historico?clienteId=${c.customerId}`,
       });
     });

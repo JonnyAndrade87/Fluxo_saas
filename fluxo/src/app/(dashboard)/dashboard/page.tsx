@@ -51,12 +51,13 @@ const COMM_STATUS_LABELS: Record<string, string> = {
 
 
 export default async function Dashboard() {
+  const { user, tenantId } = await requireTenant();
+  const userId = user.id;
+
   try {
-    const onboardingStatus = await getOnboardingStatus();
+    const onboardingStatus = await getOnboardingStatus(tenantId);
 
     // ── Tela de Setup Dedicada ───────────────────────────────────────────────
-    // Exibida enquanto o tenant não atingiu a maturidade operacional mínima:
-    // 1 cliente | 1 fatura | 1 régua ativa
     if (!onboardingStatus.isComplete) {
       return (
         <div className="max-w-2xl mx-auto px-4 py-10 sm:py-14">
@@ -65,8 +66,8 @@ export default async function Dashboard() {
       );
     }
 
-    // ── Dashboard Completo (só carrega quando setup concluído) ──────────────
-    const metrics = await getDashboardMetrics();
+    // ── Dashboard Completo ───────────────────────────────────────────────────
+    const metrics = await getDashboardMetrics(tenantId, userId);
     const totalAgingAmount = metrics.agingDistribution.reduce((s, b) => s + b.amount, 0);
 
   return (

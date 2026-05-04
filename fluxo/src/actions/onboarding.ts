@@ -24,54 +24,60 @@ export interface OnboardingStatus {
   nextStep: OnboardingStep | null;
 }
 
-export async function getOnboardingStatus(): Promise<OnboardingStatus> {
-  const session = await auth();
+export async function getOnboardingStatus(tenantId: string): Promise<OnboardingStatus> {
+  try {
+    if (!tenantId) {
+      throw new Error('Tenant ID is required');
+    }
 
-  if (!session?.user) {
-    redirect('/login');
+    // Single parallel round-trip: 3 cheap COUNT + 1 findFirst
+    const [customerCount, invoiceCount, activeBillingFlow, tenantData] = await Promise.all([
+      prisma.customer.count({ where: { tenantId } }),
+      prisma.invoice.count({ where: { tenantId } }),
+      prisma.billingFlow.findFirst({
+        where: { tenantId, isActive: true },
+        select: { id: true },
+      }),
+      prisma.tenant.findUnique({
+        where: { id: tenantId },
+        select: { documentNumber: true, name: true }
+      })
+    ]);
+
+    const hasCustomer     = customerCount > 0;
+    const hasInvoice      = invoiceCount > 0;
+    const hasBillingFlow  = !!activeBillingFlow;
+    // Considera os dados preenchidos se o documento existir ou o nome não for nulo/padrão
+    const hasCompanyData  = !!(tenantData?.documentNumber || (tenantData?.name && tenantData.name !== 'Nova Empresa'));
+
+    const steps = buildSteps({ hasCompanyData, hasCustomer, hasInvoice, hasBillingFlow });
+    const completedCount = steps.filter(s => s.completed).length;
+    const totalSteps = steps.length;
+    const progressPct = Math.round((completedCount / totalSteps) * 100);
+    const isComplete = completedCount === totalSteps;
+    const nextStep = steps.find(s => !s.completed) ?? null;
+
+    return {
+      isComplete,
+      completedCount,
+      totalSteps,
+      progressPct,
+      steps,
+      nextStep,
+    };
+  } catch (error) {
+    console.error('[Onboarding] Error fetching status:', error);
+    // Return a safe "incomplete" state that won't crash the UI
+    const steps = buildSteps({ hasCompanyData: false, hasCustomer: false, hasInvoice: false, hasBillingFlow: false });
+    return {
+      isComplete: false,
+      completedCount: 0,
+      totalSteps: steps.length,
+      progressPct: 0,
+      steps,
+      nextStep: steps[0],
+    };
   }
-
-  const tenantId = session.user.tenantId;
-
-  if (!tenantId) {
-    redirect('/onboarding');
-  }
-
-  // Single parallel round-trip: 3 cheap COUNT + 1 findFirst
-  const [customerCount, invoiceCount, activeBillingFlow, tenantData] = await Promise.all([
-    prisma.customer.count({ where: { tenantId } }),
-    prisma.invoice.count({ where: { tenantId } }),
-    prisma.billingFlow.findFirst({
-      where: { tenantId, isActive: true },
-      select: { id: true },
-    }),
-    prisma.tenant.findUnique({
-      where: { id: tenantId },
-      select: { documentNumber: true, name: true }
-    })
-  ]);
-
-  const hasCustomer     = customerCount > 0;
-  const hasInvoice      = invoiceCount > 0;
-  const hasBillingFlow  = !!activeBillingFlow;
-  // Considera os dados preenchidos se o documento existir ou o nome não for nulo/padrão
-  const hasCompanyData  = !!(tenantData?.documentNumber || (tenantData?.name && tenantData.name !== 'Nova Empresa'));
-
-  const steps = buildSteps({ hasCompanyData, hasCustomer, hasInvoice, hasBillingFlow });
-  const completedCount = steps.filter(s => s.completed).length;
-  const totalSteps = steps.length;
-  const progressPct = Math.round((completedCount / totalSteps) * 100);
-  const isComplete = completedCount === totalSteps;
-  const nextStep = steps.find(s => !s.completed) ?? null;
-
-  return {
-    isComplete,
-    completedCount,
-    totalSteps,
-    progressPct,
-    steps,
-    nextStep,
-  };
 }
 
 // ── Step definitions ──────────────────────────────────────────────────────────
