@@ -507,7 +507,7 @@ function SolutionSection() {
 
           {/* Lado Direito: Mockup Sticky Reativo */}
           <div className="lg:w-[55%] hidden lg:block">
-             <div className="sticky top-24">
+             <div className="sticky top-[25vh] py-12">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.9, rotateY: -10 }}
                   whileInView={{ opacity: 1, scale: 1, rotateY: 0 }}
