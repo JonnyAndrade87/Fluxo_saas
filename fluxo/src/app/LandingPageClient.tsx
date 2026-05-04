@@ -753,7 +753,7 @@ export default function LandingPage() {
         </motion.header>
 
         {/* ── HERO BODY ── */}
-        <div className="relative z-[10] flex-1 flex items-start lg:items-center pt-10 lg:pt-0 pb-4 lg:pb-12">
+        <div className="relative z-[10] flex-1 flex items-start lg:items-center pt-20 lg:pt-0 pb-6 lg:pb-12">
           <div className="w-full max-w-7xl mx-auto px-6 py-2 md:py-0">
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 lg:gap-8 items-center">
@@ -776,7 +776,7 @@ export default function LandingPage() {
                   animate={{ y: 0 }}
                   transition={{ duration: 0.6, delay: 0.1 }}
                   style={{ opacity: mvOp2, scale: scaleHero }}
-                  className="font-manrope font-extrabold tracking-tight leading-[1.0] text-white mb-4 lg:mb-6 text-[3.2rem] sm:text-6xl lg:text-[4.5rem]"
+                  className="font-manrope font-extrabold tracking-tight leading-[1.0] text-white mb-6 lg:mb-6 text-[3.2rem] sm:text-6xl lg:text-[4.5rem]"
                 >
                   Software de cobrança B2B<br />
                   <span className="text-brand-green">para organizar o contas a receber.</span>
@@ -787,7 +787,7 @@ export default function LandingPage() {
                   animate={{ y: 0 }}
                   transition={{ duration: 0.6, delay: 0.15 }}
                   style={{ opacity: mvOp3 }}
-                  className="text-base lg:text-xl text-white/75 leading-snug mb-5 lg:mb-8 max-w-lg mx-auto lg:mx-0 font-geist"
+                  className="text-base lg:text-xl text-white/75 leading-snug mb-6 lg:mb-8 max-w-lg mx-auto lg:mx-0 font-geist"
                 >
                   O Fluxeer ajuda times financeiros B2B a organizar contas a receber, priorizar risco por cliente e agir antes do atraso pressionar o caixa.
                 </motion.p>
@@ -798,7 +798,7 @@ export default function LandingPage() {
                   animate={{ y: 0 }}
                   transition={{ duration: 0.6, delay: 0.2 }}
                   style={{ opacity: mvOp4 }}
-                  className="mb-6 lg:mb-8 flex flex-col gap-2 w-full items-center lg:items-start"
+                  className="mb-8 lg:mb-8 flex flex-col gap-2 w-full items-center lg:items-start"
                 >
                   {[
                     "Prioridades de cobrança em tempo real",
