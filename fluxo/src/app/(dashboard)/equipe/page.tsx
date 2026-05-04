@@ -1,4 +1,4 @@
-import { auth } from '../../../auth';
+import { auth } from '../../../../auth';
 import { getTeamMembers } from '@/actions/users';
 import TeamClient from './TeamClient';
 import { redirect } from 'next/navigation';
