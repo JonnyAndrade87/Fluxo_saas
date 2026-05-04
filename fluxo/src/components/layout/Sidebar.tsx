@@ -42,6 +42,7 @@ export const navGroups = [
       { name: "Monitor de Fila", href: "/fila", icon: Layers },
       { name: "Planos e Billing", href: "/planos", icon: CreditCard },
       { name: "Personalização", href: "/personalizacao", icon: Paintbrush },
+      { name: "Equipe", href: "/equipe", icon: Users },
       { name: "Configurações", href: "/configuracoes", icon: Settings },
     ]
   }

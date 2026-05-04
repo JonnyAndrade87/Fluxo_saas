@@ -1,9 +1,5 @@
 import { auth } from '../../../../auth';
-import { cookies } from 'next/headers';
-import { getTeamMembers } from '@/actions/users';
-import prisma from '@/lib/prisma';
 import ReguaClient from './ReguaClient';
-import TeamClient from './TeamClient';
 
 export const metadata = { title: 'Configurações — Fluxo' };
 
@@ -13,19 +9,18 @@ type DashboardSessionUser = {
 };
 
 export default async function ConfiguracoesPage() {
-  const cookieStore = await cookies();
   const session = await auth();
   const sessionUser = session?.user as DashboardSessionUser | undefined;
   const isAdmin = sessionUser?.role === 'admin';
 
-  const [members] = await Promise.all([
-    isAdmin ? getTeamMembers().catch(() => []) : Promise.resolve([]),
-  ]);
-
   return (
-    <div className="space-y-0">
+    <div className="max-w-4xl mx-auto px-4 py-8">
       {isAdmin && <ReguaClient />}
-      {isAdmin && <TeamClient members={members} />}
+      {!isAdmin && (
+        <div className="py-20 text-center">
+          <p className="text-muted-foreground">Você não tem permissão para acessar esta página.</p>
+        </div>
+      )}
     </div>
   );
 }
