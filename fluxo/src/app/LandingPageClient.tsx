@@ -1229,7 +1229,7 @@ function PlatformSection() {
              whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
              viewport={{ once: true }}
              transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
-             className="w-full relative min-h-[400px] lg:h-[750px] group/preview overflow-hidden"
+             className="hidden lg:block w-full relative lg:h-[750px] group/preview overflow-hidden"
            >
                <div className="absolute inset-0 bg-brand-green/10 rounded-[3rem] blur-3xl opacity-0 transition-opacity duration-1000 group-hover/preview:opacity-20" />
                <div className="relative rounded-[3rem] border border-slate-200/60 bg-white/80 p-4 shadow-[0_40px_100px_rgba(0,0,0,0.04)] backdrop-blur-sm">
