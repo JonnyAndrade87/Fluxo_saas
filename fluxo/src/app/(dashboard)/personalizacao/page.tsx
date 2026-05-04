@@ -25,7 +25,7 @@ export default async function PersonalizacaoPage() {
   };
 
   return (
-    <div className="flex-1 overflow-auto p-6 lg:p-10">
+    <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-10">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">

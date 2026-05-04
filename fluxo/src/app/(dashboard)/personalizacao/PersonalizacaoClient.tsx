@@ -123,7 +123,7 @@ export default function PersonalizacaoClient({ initialData }: PersonalizacaoClie
     <div className="space-y-6">
       {/* ── Logotipo ─────────────────────────────────────────────────── */}
       <Card className="border-border/50 shadow-sm overflow-hidden">
-        <CardHeader className="bg-slate-50/50 border-b border-border/50 px-8 py-6">
+        <CardHeader className="bg-slate-50/50 border-b border-border/50 px-5 sm:px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-xl font-bold text-obsidian flex items-center gap-2">
@@ -143,10 +143,10 @@ export default function PersonalizacaoClient({ initialData }: PersonalizacaoClie
           </div>
         </CardHeader>
 
-        <CardContent className="p-8 relative">
+        <CardContent className="p-5 sm:p-8 relative">
           {!canCustomize && (
             <div className="absolute inset-0 bg-white/70 backdrop-blur-[2px] z-10 flex items-center justify-center rounded-b-xl">
-              <div className="bg-white border border-border shadow-xl rounded-2xl p-6 max-w-sm text-center">
+              <div className="bg-white border border-border shadow-xl rounded-2xl p-6 w-[calc(100%-32px)] max-w-sm text-center mx-4">
                 <div className={`w-12 h-12 ${permission.reason === 'PLAN_REQUIRED' ? 'bg-indigo-50' : 'bg-rose-50'} rounded-full flex items-center justify-center mx-auto mb-4`}>
                   {permission.reason === 'PLAN_REQUIRED' ? (
                     <Crown className="w-6 h-6 text-indigo-600" />
@@ -274,7 +274,7 @@ export default function PersonalizacaoClient({ initialData }: PersonalizacaoClie
 
       {/* ── Cores ────────────────────────────────────────────────────── */}
       <Card className="border-border/50 shadow-sm overflow-hidden">
-        <CardHeader className="bg-slate-50/50 border-b border-border/50 px-8 py-6">
+        <CardHeader className="bg-slate-50/50 border-b border-border/50 px-5 sm:px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-xl font-bold text-obsidian flex items-center gap-2">
@@ -288,10 +288,10 @@ export default function PersonalizacaoClient({ initialData }: PersonalizacaoClie
           </div>
         </CardHeader>
 
-        <CardContent className="p-8 relative">
+        <CardContent className="p-5 sm:p-8 relative">
           {!canCustomize && (
             <div className="absolute inset-0 bg-white/70 backdrop-blur-[2px] z-10 flex items-center justify-center rounded-b-xl">
-              <div className="bg-white border border-border shadow-xl rounded-2xl p-6 max-w-sm text-center">
+              <div className="bg-white border border-border shadow-xl rounded-2xl p-6 w-[calc(100%-32px)] max-w-sm text-center mx-4">
                 <div className={`w-12 h-12 ${permission.reason === 'PLAN_REQUIRED' ? 'bg-indigo-50' : 'bg-rose-50'} rounded-full flex items-center justify-center mx-auto mb-4`}>
                   {permission.reason === 'PLAN_REQUIRED' ? (
                     <Crown className="w-6 h-6 text-indigo-600" />
@@ -336,11 +336,11 @@ export default function PersonalizacaoClient({ initialData }: PersonalizacaoClie
       </Card>
 
       {/* ── Save ─────────────────────────────────────────────────────── */}
-      <div className="flex justify-end">
+      <div className="flex justify-center md:justify-end">
         <Button
           onClick={handleSave}
           disabled={isSaving || !canCustomize}
-          className="bg-brand-green hover:bg-brand-green/90 text-white px-8 h-12 rounded-xl font-bold gap-2 shadow-lg transition-all"
+          className="w-full md:w-auto bg-brand-green hover:bg-brand-green/90 text-white px-8 h-12 rounded-xl font-bold gap-2 shadow-lg transition-all"
         >
           {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
           Salvar Personalização
