@@ -68,7 +68,7 @@ function TimelineSection() {
   // Track continuous scroll progress for the central line
   const { scrollYProgress } = useScroll({
     target: sectionRef,
-    offset: ["start 75%", "end 95%"]
+    offset: ["start 80%", "0.75 center"]
   });
 
   // Track scroll progress for the final statement box tilt
@@ -133,7 +133,7 @@ function TimelineSection() {
   ];
 
   return (
-    <section ref={sectionRef} className="relative bg-[#fcfcfd] py-32 lg:py-48 overflow-hidden" id="problema">
+    <section ref={sectionRef} className="relative bg-[#fcfcfd] py-24 lg:py-40 overflow-hidden" id="problema">
       {/* ── Visual Backdrop ── */}
       <div className="pointer-events-none absolute inset-0 z-0">
         <div className="absolute inset-0 grid-lines-light opacity-[0.4]" />
@@ -151,7 +151,7 @@ function TimelineSection() {
       
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         {/* Header */}
-        <div className="max-w-4xl mx-auto text-center mb-40">
+        <div className="max-w-4xl mx-auto text-center mb-32 lg:mb-40">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
@@ -189,7 +189,7 @@ function TimelineSection() {
             />
           </div>
 
-          <div className="space-y-20 lg:space-y-64 relative">
+          <div className="space-y-16 lg:space-y-48 relative">
             {timelineSteps.map((step, i) => (
               <div key={i} className="relative">
 
@@ -267,7 +267,7 @@ function TimelineSection() {
         </div>
 
         {/* ── Closing High-Impact Statement ── */}
-        <div className="mt-64 relative" style={{ perspective: "2000px" }}>
+        <div className="mt-24 lg:mt-32 relative" style={{ perspective: "2000px" }}>
           <div className="absolute inset-0 flex items-center justify-center -z-10">
              <div className="w-[80%] h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
           </div>
