@@ -319,7 +319,7 @@ function TimelineSection() {
             transition={{ delay: 0.5 }}
             className="mt-20 flex flex-col items-center gap-6"
           >
-            <p className="text-sm font-mono text-slate-400 uppercase tracking-widest">Resolva a causa raiz da inadimplência</p>
+            <p className="text-sm font-mono text-slate-400 uppercase tracking-widest text-center">Resolva a causa raiz da inadimplência</p>
             <Link 
               href="#demonstracao" 
               className="group relative px-10 py-5 bg-brand-green text-white font-manrope font-bold text-lg rounded-full overflow-hidden shadow-2xl transition-all hover:scale-105 active:scale-95"
