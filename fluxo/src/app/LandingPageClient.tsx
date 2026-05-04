@@ -604,13 +604,13 @@ function SolutionSection() {
                        {/* 3. CTA */}
                        <Link 
                          href="#demonstracao" 
-                         className="btn-shimmer bg-brand-green text-white px-8 py-4.5 lg:py-5 rounded-full font-manrope font-bold text-base shadow-[0_15px_40px_rgba(0,176,179,0.25)] hover:scale-105 active:scale-95 transition-all text-center w-full block h-fit"
+                         className="btn-shimmer bg-brand-green text-white px-4 sm:px-8 py-4.5 lg:py-5 rounded-full font-manrope font-bold text-[15px] sm:text-base whitespace-nowrap shadow-[0_15px_40px_rgba(0,176,179,0.25)] hover:scale-105 active:scale-95 transition-all text-center w-full block h-fit"
                          data-track-cta="true"
                          data-section="solucao"
                          data-cta-label="quero conhecer o fluxeer solucao"
                          style={{ paddingBlock: '1.1rem' }}
                        >
-                         Quero Conhecer o Fluxeer
+                         Quero Conhecer o Fluxeer!
                        </Link>
 
                        {/* 4. Microcopy inferior */}
