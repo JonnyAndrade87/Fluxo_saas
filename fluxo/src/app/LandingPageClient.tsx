@@ -684,8 +684,8 @@ export default function LandingPage() {
         id="hero"
       >
 
-        {/* Particles only on desktop for performance */}
-        <div className="hidden lg:block"><ParticlesBackground /></div>
+        {/* Particles enabled on desktop */}
+        <div className="hidden lg:block absolute inset-0 z-[1]"><ParticlesBackground /></div>
 
         {/* Large Brand Watermark */}
         <div className="absolute inset-0 z-0 flex items-center justify-center opacity-[0.03] pointer-events-none overflow-hidden">
@@ -698,13 +698,13 @@ export default function LandingPage() {
         </div>
 
         {/* Minimal ambient glow */}
-        <div className="absolute inset-0 z-[1] pointer-events-none">
+        <div className="absolute inset-0 z-[2] pointer-events-none">
           <div className="absolute top-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full opacity-20" style={{ background: 'radial-gradient(circle, rgba(0, 176, 179, 0.4) 0%, transparent 70%)', filter: 'blur(100px)' }} />
           <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-slate-950 to-transparent" />
         </div>
 
         {/* Subdued Grid lines */}
-        <div className="pointer-events-none absolute inset-0 z-[2] grid-lines-dark overflow-hidden opacity-50">
+        <div className="pointer-events-none absolute inset-0 z-[3] grid-lines-dark overflow-hidden opacity-50">
           <div className="gl-v left-[20%]" />
           <div className="gl-v left-[50%]" />
           <div className="gl-v left-[80%]" />
@@ -759,7 +759,7 @@ export default function LandingPage() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-8 items-center">
 
               {/* ── Left: Editorial Copy ── */}
-              <div className="lg:col-span-6 flex flex-col items-center text-center lg:items-start lg:text-left z-20">
+              <div className="lg:col-span-5 flex flex-col items-center text-center lg:items-start lg:text-left z-20">
 
                 <motion.p 
                   initial={{ y: 20 }}
@@ -776,7 +776,7 @@ export default function LandingPage() {
                   animate={{ y: 0 }}
                   transition={{ duration: 0.6, delay: 0.1 }}
                   style={{ opacity: mvOp2, scale: scaleHero }}
-                  className="font-manrope font-extrabold tracking-tight leading-[1.0] text-white mb-4 lg:mb-8 text-[2.5rem] sm:text-6xl lg:text-[5rem]"
+                  className="font-manrope font-extrabold tracking-tight leading-[1.0] text-white mb-4 lg:mb-8 text-[2.5rem] sm:text-6xl lg:text-[6rem]"
                 >
                   Software de cobrança B2B<br />
                   <span className="text-brand-green">para organizar o contas a receber.</span>
