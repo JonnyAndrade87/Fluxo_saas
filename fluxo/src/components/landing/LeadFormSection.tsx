@@ -61,7 +61,7 @@ export function LeadFormSection() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
           
           {/* ── LEFT COLUMN: COPY ── */}
-          <div className="flex flex-col">
+          <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-brand-green/25 bg-brand-green/10 text-[10px] font-mono font-bold text-brand-green tracking-[0.25em] uppercase mb-8 w-max">
               Solicite uma demonstração
             </div>
@@ -71,24 +71,24 @@ export function LeadFormSection() {
               <span className="text-brand-green">pode organizar sua cobrança.</span>
             </h2>
             
-            <p className="text-base lg:text-lg text-white/75 font-geist leading-relaxed mb-10 max-w-lg">
+            <p className="text-base lg:text-lg text-white/75 font-geist leading-relaxed mb-10 max-w-lg mx-auto lg:mx-0">
               Preencha os dados abaixo e nossa equipe entra em contato para entender sua operação e apresentar a melhor configuração para o seu contas a receber.
             </p>
 
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
+            <div className="space-y-4 w-full flex flex-col items-center lg:items-start">
+              <div className="flex items-center gap-3 w-fit">
                 <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
                   <PlayCircle className="w-4 h-4 text-brand-green" />
                 </div>
                 <span className="text-sm text-white/80 font-geist">Demonstração guiada</span>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 w-fit">
                 <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
                   <Clock className="w-4 h-4 text-brand-green" />
                 </div>
                 <span className="text-sm text-white/80 font-geist">Resposta em até 24h úteis</span>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 w-fit">
                 <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
                   <ShieldCheck className="w-4 h-4 text-brand-green" />
                 </div>
