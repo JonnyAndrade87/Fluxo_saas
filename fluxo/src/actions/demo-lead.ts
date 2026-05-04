@@ -47,24 +47,31 @@ export async function submitDemoLead(prevState: any, formData: FormData): Promis
     });
 
     // 2. Notificar comercial via e-mail
-    const commercialEmail = process.env.RESEND_FROM_EMAIL || 'comercial@fluxeer.com.br';
+    const notificationEmail = process.env.LEAD_NOTIFICATION_EMAIL || 'contato@fluxeer.com.br';
     
     const htmlBody = `
-      <div style="font-family: sans-serif; padding: 20px;">
-        <h2> Novo Lead da Landing Page 🎉</h2>
-        <p><strong>Nome:</strong> ${validatedData.name}</p>
-        <p><strong>Empresa:</strong> ${validatedData.company}</p>
-        <p><strong>E-mail:</strong> ${validatedData.email}</p>
-        <p><strong>WhatsApp:</strong> ${validatedData.whatsapp}</p>
-        <p><strong>Volume Mensal:</strong> ${validatedData.monthlyVolume}</p>
-        <p>Este lead solicitou uma demonstração através da nova Landing Page Pública.</p>
+      <div style="font-family: sans-serif; padding: 30px; background: #f8fafc; border-radius: 20px; border: 1px solid #e2e8f0; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #0f172a; margin-bottom: 24px; font-size: 20px;">🎉 Novo Lead da Landing Page</h2>
+        
+        <div style="background: #ffffff; padding: 20px; border-radius: 12px; border: 1px solid #f1f5f9; margin-bottom: 20px;">
+          <p style="margin: 0 0 12px;"><strong>Nome:</strong> ${validatedData.name}</p>
+          <p style="margin: 0 0 12px;"><strong>Empresa:</strong> ${validatedData.company}</p>
+          <p style="margin: 0 0 12px;"><strong>E-mail:</strong> ${validatedData.email}</p>
+          <p style="margin: 0 0 12px;"><strong>WhatsApp:</strong> <a href="https://wa.me/${validatedData.whatsapp.replace(/\D/g, '')}" style="color: #00b0b3; text-decoration: none; font-weight: 600;">${validatedData.whatsapp}</a></p>
+          <p style="margin: 0;"><strong>Volume Mensal:</strong> ${validatedData.monthlyVolume}</p>
+        </div>
+
+        <p style="color: #64748b; font-size: 13px; line-height: 1.6;">Este lead solicitou uma demonstração através da Landing Page do Fluxeer.</p>
+        <div style="border-top: 1px solid #f1f5f9; padding-top: 20px; margin-top: 20px; text-align: center;">
+          <a href="mailto:${validatedData.email}" style="display: inline-block; background: #00b0b3; color: #ffffff; padding: 12px 24px; border-radius: 10px; text-decoration: none; font-weight: bold; font-size: 14px;">Responder por E-mail</a>
+        </div>
       </div>
     `;
 
     const result = await sendEmail({
-      to: commercialEmail,
+      to: notificationEmail,
       from: getAuthEmailFrom(),
-      subject: `🚨 Novo Lead Fluxeer: ${validatedData.company}`,
+      subject: `🚨 [Fluxeer Lead] ${validatedData.company} - ${validatedData.name}`,
       html: htmlBody,
     });
 
