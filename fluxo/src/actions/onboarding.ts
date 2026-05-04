@@ -24,10 +24,26 @@ export interface OnboardingStatus {
   nextStep: OnboardingStep | null;
 }
 
-export async function getOnboardingStatus(tenantId: string): Promise<OnboardingStatus> {
+export async function getOnboardingStatus(providedTenantId?: string): Promise<OnboardingStatus> {
   try {
+    let tenantId = providedTenantId;
+
     if (!tenantId) {
-      throw new Error('Tenant ID is required');
+      const session = await auth();
+      tenantId = session?.user?.tenantId ?? undefined;
+    }
+
+    if (!tenantId) {
+      // Return a safe "incomplete" state that won't crash the UI if not logged in
+      const steps = buildSteps({ hasCompanyData: false, hasCustomer: false, hasInvoice: false, hasBillingFlow: false });
+      return {
+        isComplete: false,
+        completedCount: 0,
+        totalSteps: steps.length,
+        progressPct: 0,
+        steps,
+        nextStep: steps[0],
+      };
     }
 
     // Single parallel round-trip: 3 cheap COUNT + 1 findFirst
