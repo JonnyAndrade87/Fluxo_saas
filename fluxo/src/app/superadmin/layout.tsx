@@ -40,7 +40,7 @@ export default async function SuperAdminLayout({
              <span className="text-white/60 font-mono text-[11px] hidden sm:inline-block">
                {session.user.email}
              </span>
-             <Link href="/" className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold py-2 px-4 rounded-lg transition-colors ml-2">
+             <Link href="/dashboard" className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold py-2 px-4 rounded-lg transition-colors ml-2">
                Voltar ao Dashboard
              </Link>
           </div>
