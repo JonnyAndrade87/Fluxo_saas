@@ -96,10 +96,10 @@ export default async function SuperAdminPage() {
               <thead className="bg-slate-50 border-b border-slate-200">
                 <tr>
                   <th className="px-4 py-3 font-semibold text-slate-500 uppercase tracking-wider text-[11px]">Tenant</th>
-                  <th className="px-4 py-3 font-semibold text-slate-500 uppercase tracking-wider text-[11px]">Documentação</th>
-                  <th className="px-4 py-3 font-semibold text-slate-500 uppercase tracking-wider text-[11px]">Volume</th>
-                  <th className="px-4 py-3 font-semibold text-slate-500 uppercase tracking-wider text-[11px]">Criação</th>
-                  <th className="text-right px-4 py-3 font-semibold text-slate-500 uppercase tracking-wider text-[11px]">Carteira Aberta</th>
+                  <th className="px-4 py-3 font-semibold text-slate-500 uppercase tracking-wider text-[11px]">Usuários</th>
+                  <th className="px-4 py-3 font-semibold text-slate-500 uppercase tracking-wider text-[11px]">Plano / Volume</th>
+                  <th className="px-4 py-3 font-semibold text-slate-500 uppercase tracking-wider text-[11px]">Desde</th>
+                  <th className="text-right px-4 py-3 font-semibold text-slate-500 uppercase tracking-wider text-[11px]">Carteira</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -107,23 +107,47 @@ export default async function SuperAdminPage() {
                   <tr key={t.id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-4 py-3">
                       <p className="font-semibold text-slate-800">{t.name}</p>
-                      <p className="text-xs text-slate-400 font-mono mt-0.5" title={t.id}>{t.id.split('-')[0]}...</p>
+                      <p className="text-[10px] text-slate-400 font-mono mt-0.5" title={t.id}>{t.documentNumber}</p>
                     </td>
-                    <td className="px-4 py-3 font-mono text-xs text-slate-600">
-                      {t.documentNumber}
+                    <td className="px-4 py-3">
+                      {t.users.length > 0 ? (
+                        <div className="space-y-1">
+                          {t.users.map((u, idx) => (
+                            <div key={idx} className="flex flex-col">
+                              <span className="text-[11px] font-bold text-slate-700 leading-tight">{u.fullName}</span>
+                              <span className="text-[10px] text-slate-400 font-medium leading-tight truncate max-w-[150px]">{u.email}</span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-[10px] text-slate-300 italic">Sem usuários</span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-xs">
                       <div className="flex flex-col gap-1">
-                        <span className="flex items-center gap-1.5 text-slate-600">
-                          <Users className="w-3 h-3 text-indigo-400" /> {t.customerCount} clientes
+                        <span className={`inline-flex items-center px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider w-fit ${
+                          t.plan === 'scale' ? 'bg-indigo-100 text-indigo-700' :
+                          t.plan === 'pro' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600'
+                        }`}>
+                          {t.plan}
                         </span>
-                        <span className="flex items-center gap-1.5 text-slate-600">
-                          <FileText className="w-3 h-3 text-amber-400" /> {t.invoiceCount} faturas
-                        </span>
+                        <div className="flex items-center gap-2 mt-0.5 opacity-70">
+                          <span className="flex items-center gap-1 text-[10px]">
+                            <Users className="w-3 h-3 text-indigo-400" /> {t.customerCount}
+                          </span>
+                          <span className="flex items-center gap-1 text-[10px]">
+                            <FileText className="w-3 h-3 text-amber-400" /> {t.invoiceCount}
+                          </span>
+                        </div>
                       </div>
                     </td>
                     <td className="px-4 py-3 text-slate-500 text-xs">
-                      {t.createdAt.toLocaleDateString("pt-BR")}
+                      <div className="flex flex-col">
+                        <span className="font-medium text-slate-700">{t.createdAt.toLocaleDateString("pt-BR")}</span>
+                        <span className="text-[10px] text-slate-400 italic">
+                          {Math.floor((new Date().getTime() - t.createdAt.getTime()) / (1000 * 60 * 60 * 24))} dias
+                        </span>
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-right font-semibold text-slate-700">
                       {fmt.format(t.totalReceivables)}

@@ -23,10 +23,15 @@ export interface TenantRow {
   id: string;
   name: string;
   documentNumber: string;
+  plan: string;
   createdAt: Date;
   customerCount: number;
   invoiceCount: number;
   totalReceivables: number;
+  users: {
+    fullName: string;
+    email: string;
+  }[];
 }
 
 export async function getGlobalMetrics(): Promise<GlobalMetrics> {
@@ -78,11 +83,18 @@ export async function getTenantsList(): Promise<TenantRow[]> {
   const session = await auth();
   assertSuperAdmin(session);
 
-  // We query all tenants with their explicit aggregates
+  // We query all tenants with their explicit aggregates and users
   const tenants = await prisma.tenant.findMany({
     include: {
       _count: {
         select: { customers: true, invoices: true }
+      },
+      users: {
+        include: {
+          user: {
+            select: { fullName: true, email: true }
+          }
+        }
       }
     },
     orderBy: { createdAt: 'desc' }
@@ -103,9 +115,14 @@ export async function getTenantsList(): Promise<TenantRow[]> {
     id: t.id,
     name: t.name,
     documentNumber: t.documentNumber,
+    plan: t.plan,
     createdAt: t.createdAt,
     customerCount: t._count.customers,
     invoiceCount: t._count.invoices,
     totalReceivables: receivablesMap.get(t.id) || 0,
+    users: t.users.map(tu => ({
+      fullName: tu.user.fullName,
+      email: tu.user.email
+    }))
   }));
 }
