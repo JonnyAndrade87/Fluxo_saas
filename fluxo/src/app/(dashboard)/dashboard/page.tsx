@@ -26,16 +26,10 @@ import {
 import { getDashboardMetrics } from "@/actions/dashboard"
 import { getOnboardingStatus } from "@/actions/onboarding"
 import { requireTenant } from "@/lib/safe-auth"
+import DashboardChart from "./DashboardChart"
 import OnboardingSetup from "@/components/onboarding/OnboardingSetup"
 import ActionsBanner from "@/components/dashboard/ActionsBanner"
 import { CashForecast } from "@/components/dashboard/CashForecast"
-import { OverdueSnapshot } from "@/components/dashboard/OverdueSnapshot"
-import { AgingChart } from "@/components/dashboard/AgingChart"
-import { KPIStats } from "@/components/dashboard/KPIStats"
-import { DashboardChart } from "@/components/dashboard/DashboardChart"
-import { RiskRanking } from "@/components/dashboard/RiskRanking"
-import { RecentActivity } from "@/components/dashboard/RecentActivity"
-import { TodaysTasks } from "@/components/dashboard/TodaysTasks"
 
 const fmt = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const formatCurrency = (val: number) => fmt.format(val).replace('R$\u00a0', '').replace('R$ ', '').trim();
