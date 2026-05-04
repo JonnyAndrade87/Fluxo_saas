@@ -68,7 +68,7 @@ function TimelineSection() {
   // Track continuous scroll progress for the central line
   const { scrollYProgress } = useScroll({
     target: sectionRef,
-    offset: ["start 70%", "end 80%"]
+    offset: ["start 75%", "end 95%"]
   });
 
   // Track scroll progress for the final statement box tilt
