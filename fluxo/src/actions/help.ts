@@ -21,9 +21,14 @@ const contextMap: Record<string, { title: string; category: string; file: string
     file: 'clientes.md',
   },
   '/cobrancas': {
-    title: 'Faturas',
-    category: 'faturas',
+    title: 'Cobranças',
+    category: 'cobrancas',
     file: 'faturas.md',
+  },
+  '/historico': {
+    title: 'Histórico',
+    category: 'historico',
+    file: 'historico.md',
   },
   '/automacao': {
     title: 'Régua de Cobrança',
@@ -35,10 +40,25 @@ const contextMap: Record<string, { title: string; category: string; file: string
     category: 'previsibilidade-de-caixa',
     file: 'previsibilidade-de-caixa.md',
   },
+  '/importar': {
+    title: 'Importar Lote',
+    category: 'importar',
+    file: 'importar-lote.md',
+  },
   '/comunicacoes': {
     title: 'Comunicações',
     category: 'comunicacoes',
     file: 'comunicacoes.md',
+  },
+  '/relatorios': {
+    title: 'Relatórios',
+    category: 'relatorios',
+    file: 'relatorios.md',
+  },
+  '/fila': {
+    title: 'Monitor de Fila',
+    category: 'motor-de-fila',
+    file: 'motor-de-fila.md',
   },
   '/configuracoes': {
     title: 'Configurações',

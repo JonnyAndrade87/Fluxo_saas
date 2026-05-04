@@ -38,30 +38,35 @@ const STUCK_THRESHOLD_MS = 10 * 60 * 1000; // 10 minutes
  * Get queue stats and DLQ items for the current tenant.
  */
 export async function getQueueStats(): Promise<{ stats: QueueStats; dlqItems: DlqItem[] } | null> {
-  const session = await auth();
-  const tenantId = session?.user?.tenantId;
-  if (!tenantId) return null;
+  try {
+    const session = await auth();
+    const tenantId = session?.user?.tenantId;
+    if (!tenantId) return null;
 
-  const stuckCutoff = new Date(Date.now() - STUCK_THRESHOLD_MS);
+    const stuckCutoff = new Date(Date.now() - STUCK_THRESHOLD_MS);
 
-  const [queued, sending, sent, failed, dlq, stuck, dlqItems] = await Promise.all([
-    prisma.messageQueue.count({ where: { tenantId, status: 'queued', isDlq: false } }),
-    prisma.messageQueue.count({ where: { tenantId, status: 'sending' } }),
-    prisma.messageQueue.count({ where: { tenantId, status: 'sent' } }),
-    prisma.messageQueue.count({ where: { tenantId, status: 'failed' } }),
-    prisma.messageQueue.count({ where: { tenantId, isDlq: true } }),
-    prisma.messageQueue.count({ where: { tenantId, status: 'sending', processingStartedAt: { lt: stuckCutoff } } }),
-    prisma.messageQueue.findMany({
-      where: { tenantId, isDlq: true },
-      orderBy: { createdAt: 'desc' },
-      take: 50,
-    }),
-  ]);
+    const [queued, sending, sent, failed, dlq, stuck, dlqItems] = await Promise.all([
+      prisma.messageQueue.count({ where: { tenantId, status: 'queued', isDlq: false } }),
+      prisma.messageQueue.count({ where: { tenantId, status: 'sending' } }),
+      prisma.messageQueue.count({ where: { tenantId, status: 'sent' } }),
+      prisma.messageQueue.count({ where: { tenantId, status: 'failed' } }),
+      prisma.messageQueue.count({ where: { tenantId, isDlq: true } }),
+      prisma.messageQueue.count({ where: { tenantId, status: 'sending', processingStartedAt: { lt: stuckCutoff } } }),
+      prisma.messageQueue.findMany({
+        where: { tenantId, isDlq: true },
+        orderBy: { createdAt: 'desc' },
+        take: 50,
+      }),
+    ]);
 
-  return {
-    stats: { queued, sending, sent, failed, dlq, stuck },
-    dlqItems: dlqItems as DlqItem[],
-  };
+    return {
+      stats: { queued, sending, sent, failed, dlq, stuck },
+      dlqItems: dlqItems as DlqItem[],
+    };
+  } catch (error) {
+    console.error('Error in getQueueStats:', error);
+    return null;
+  }
 }
 
 /**

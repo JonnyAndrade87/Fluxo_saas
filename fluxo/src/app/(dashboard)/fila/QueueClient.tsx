@@ -144,7 +144,12 @@ export default function QueueClient({ initialStats, initialDlqItems }: Props) {
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {dlqItems.map(item => {
-                  const meta = item.metadata ? JSON.parse(item.metadata) : {};
+                  let meta = {};
+                  try {
+                    meta = item.metadata ? JSON.parse(item.metadata) : {};
+                  } catch (e) {
+                    console.error('Failed to parse metadata for item', item.id, e);
+                  }
                   return (
                     <tr key={item.id} className="hover:bg-rose-50/30 transition-colors">
                       <td className="px-4 py-3">
