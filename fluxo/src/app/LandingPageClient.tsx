@@ -279,18 +279,18 @@ function TimelineSection() {
               scale: boxScale,
               transformStyle: "preserve-3d" 
             }}
-            className="bg-slate-950 rounded-[4rem] p-12 lg:p-24 shadow-[0_50px_100px_rgba(0,0,0,0.3)] relative overflow-hidden group border border-white/5"
+            className="bg-slate-950 rounded-[2.5rem] lg:rounded-[4rem] p-8 sm:p-12 lg:p-24 shadow-[0_50px_100px_rgba(0,0,0,0.3)] relative overflow-hidden group border border-white/5 mx-4 md:mx-0"
           >
             {/* Background elements for the closing card */}
             <div className="absolute top-0 right-0 w-1/2 h-full opacity-20 pointer-events-none" style={{ background: 'radial-gradient(circle at center, rgba(0, 176, 179, 0.4) 0%, transparent 70%)', transform: "translateZ(10px)" }} />
             
-            <div className="flex flex-col lg:flex-row items-center gap-16 relative z-10" style={{ transform: "translateZ(30px)" }}>
+            <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-16 relative z-10" style={{ transform: "translateZ(30px)" }}>
               <div className="flex-1 text-center lg:text-left">
-                <h4 className="text-4xl lg:text-6xl font-manrope font-extrabold text-white tracking-tighter leading-[0.95] mb-8">
+                <h4 className="text-3xl sm:text-4xl lg:text-6xl font-manrope font-extrabold text-white tracking-tighter leading-[0.95] mb-6 lg:mb-8">
                   Mais do que atrasos.<br />
                   <span className="text-brand-green">Perda de controle total.</span>
                 </h4>
-                <p className="text-lg text-white/40 max-md:mx-auto max-w-md">
+                <p className="text-base lg:text-lg text-white/40 max-md:mx-auto max-w-md">
                   Quando a régua de cobrança é reativa, o custo operacional consome o que deveria ser lucro líquido.
                 </p>
               </div>
@@ -300,13 +300,13 @@ function TimelineSection() {
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.4 }}
-                className="bg-white/[0.03] backdrop-blur-3xl rounded-[3rem] p-10 lg:p-12 border border-white/10 max-w-lg shadow-2xl relative"
+                className="bg-white/[0.03] backdrop-blur-3xl rounded-[2rem] lg:rounded-[3rem] p-6 sm:p-10 lg:p-12 border border-white/10 max-w-lg shadow-2xl relative"
               >
-                <AlertTriangle className="absolute -top-6 -left-6 w-12 h-12 text-amber-500 blur-[2px]" />
-                <p className="text-lg lg:text-2xl text-white font-medium font-geist leading-relaxed italic">
+                <AlertTriangle className="absolute -top-4 -left-4 lg:-top-6 lg:-left-6 w-8 h-8 lg:w-12 lg:h-12 text-amber-500 blur-[1px] lg:blur-[2px]" />
+                <p className="text-base lg:text-2xl text-white font-medium font-geist leading-relaxed italic">
                   “O Fluxeer interrompe esse ciclo: estruturando a régua, ditando prioridades e devolvendo a previsibilidade para seu caixa.”
                 </p>
-                <div className="mt-8 h-[2px] w-12 bg-brand-green" />
+                <div className="mt-6 lg:mt-8 h-[2px] w-12 bg-brand-green" />
               </motion.div>
             </div>
           </motion.div>
