@@ -195,7 +195,7 @@ export default function ReguaClient() {
 
 
         {/* MAIN CONTENT AREA */}
-        <div className="lg:col-span-9 space-y-6">
+        <div className="lg:col-span-9 space-y-6 min-w-0 overflow-hidden lg:overflow-visible">
           
           {/* TAB 1: SEQUÊNCIA DA RÉGUA */}
           {activeTab === 'regua' && (
@@ -421,30 +421,32 @@ export default function ReguaClient() {
                </div>
 
                <Card className="bg-white shadow-sm border border-border/80 overflow-hidden">
-                  <table className="w-full text-[13px] text-left">
-                     <thead className="bg-[#FAFAFB] text-muted-foreground text-[11px] font-bold uppercase tracking-wider border-b border-border/60">
-                        <tr>
-                          <th className="py-4 px-5">Status</th>
-                          <th className="py-4 px-5">Data/Hora</th>
-                          <th className="py-4 px-5">Ação/Canal</th>
-                          <th className="py-4 px-5 text-right"></th>
-                        </tr>
-                     </thead>
-                     <tbody className="font-medium text-obsidian">
-                        <tr className="border-b border-border/30 hover:bg-slate-50 transition-colors group">
-                          <td className="py-3.5 px-5">
-                             <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-emerald-50 text-emerald-700 text-[11px] font-bold"><Check className="w-3 h-3"/> Sucesso</div>
-                          </td>
-                          <td className="py-3.5 px-5 text-muted-foreground">Hoje, 09:00</td>
-                          <td className="py-3.5 px-5">
-                             <span className="flex items-center gap-1.5 text-emerald-600"><MessageSquare className="w-3.5 h-3.5"/> WhatsApp Pós-ven.</span>
-                          </td>
-                          <td className="py-3.5 px-5 text-right">
-                             <Button variant="ghost" size="icon" className="w-8 h-8 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => { setSelectedLog({ status: 'Sucesso', date: 'Hoje, 09:00', client: 'Borda Tech Ltda', invoice: 'INV-9921', channel: 'WhatsApp Pós-ven.', payload: '{"event": "message.sent", "to": "551199999999", "status": "delivered", "template": "remind_due"}' }); setIsLogModalOpen(true); }}><Eye className="w-4 h-4 m-0" /></Button>
-                          </td>
-                        </tr>
-                     </tbody>
-                  </table>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-[13px] text-left min-w-[500px]">
+                       <thead className="bg-[#FAFAFB] text-muted-foreground text-[11px] font-bold uppercase tracking-wider border-b border-border/60">
+                          <tr>
+                            <th className="py-4 px-5">Status</th>
+                            <th className="py-4 px-5">Data/Hora</th>
+                            <th className="py-4 px-5">Ação/Canal</th>
+                            <th className="py-4 px-5 text-right"></th>
+                          </tr>
+                       </thead>
+                       <tbody className="font-medium text-obsidian">
+                          <tr className="border-b border-border/30 hover:bg-slate-50 transition-colors group">
+                            <td className="py-3.5 px-5">
+                               <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-emerald-50 text-emerald-700 text-[11px] font-bold"><Check className="w-3 h-3"/> Sucesso</div>
+                            </td>
+                            <td className="py-3.5 px-5 text-muted-foreground">Hoje, 09:00</td>
+                            <td className="py-3.5 px-5">
+                               <span className="flex items-center gap-1.5 text-emerald-600"><MessageSquare className="w-3.5 h-3.5"/> WhatsApp Pós-ven.</span>
+                            </td>
+                            <td className="py-3.5 px-5 text-right">
+                               <Button variant="ghost" size="icon" className="w-8 h-8 opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => { setSelectedLog({ status: 'Sucesso', date: 'Hoje, 09:00', client: 'Borda Tech Ltda', invoice: 'INV-9921', channel: 'WhatsApp Pós-ven.', payload: '{"event": "message.sent", "to": "551199999999", "status": "delivered", "template": "remind_due"}' }); setIsLogModalOpen(true); }}><Eye className="w-4 h-4 m-0" /></Button>
+                            </td>
+                          </tr>
+                       </tbody>
+                    </table>
+                  </div>
                </Card>
             </div>
           )}

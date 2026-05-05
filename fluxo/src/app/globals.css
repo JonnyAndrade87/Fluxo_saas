@@ -161,6 +161,15 @@
     @apply transform -translate-y-1 shadow-md border-border/80;
   }
 
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
   /* Interactive Beam Animation */
   .btn-beam {
     position: relative;
