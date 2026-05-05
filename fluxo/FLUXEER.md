@@ -120,8 +120,8 @@ Observação: a tabela abaixo cobre as variáveis de ambiente de aplicação e d
 | `SUPER_ADMIN_EMAILS` | Condicional | preview, prod | `auth.ts`, `.env.production.local` | Lista de e-mails que recebem `isSuperAdmin` | Se ausente, a área `/superadmin` fica inacessível. |
 | `MFA_SECRET_KEY` | Condicional, mas prática obrigatória para admin com MFA | dev, preview, prod, CI | `src/actions/mfa.actions.ts`, `src/lib/crypto.ts` | Assinatura de cookie MFA e criptografia do segredo TOTP | Sem ela o fluxo de MFA quebra. |
 | `NEXT_PUBLIC_APP_URL` | Condicional, fortemente recomendada | dev, preview, prod, E2E | `src/actions/auth.ts`, `src/actions/auth.actions.ts`, `src/lib/billing/stripe.ts`, `src/lib/messaging/email.ts`, `playwright.config.ts` | Base URL para links de ativação, reset e Stripe | Quando falta, vários fluxos caem no fallback `https://fluxeer.com.br`. |
-| `RESEND_API_KEY` | Condicional | dev, preview, prod | `src/lib/messaging/email.ts`, `scripts/test-resend.ts` | Habilita envio real de e-mail | Se faltar, `sendEmail()` falha de forma graciosa e não envia. |
-| `RESEND_FROM_EMAIL` | Não | dev, preview, prod | `src/lib/messaging/email.ts`, `src/actions/auth.ts`, `scripts/test-resend.ts` | Remetente padrão do pipeline genérico de e-mail | Sem ela o fallback genérico é `noreply@fluxo.app`. |
+| `RESEND_API_KEY` | Condicional | dev, preview, prod | `src/lib/messaging/email.ts`, `fluxo/scripts/test-resend.ts` | Habilita envio real de e-mail | Se faltar, `sendEmail()` falha de forma graciosa e não envia. |
+| `RESEND_FROM_EMAIL` | Não | dev, preview, prod | `src/lib/messaging/email.ts`, `src/actions/auth.ts`, `fluxo/scripts/test-resend.ts` | Remetente padrão do pipeline genérico de e-mail | Sem ela o fallback genérico é `noreply@fluxo.app`. |
 | `RESEND_AUTH_FROM_EMAIL` | Não | dev, preview, prod | `src/lib/messaging/email.ts` | Remetente específico dos e-mails de auth | Se faltar, o fallback é `no-reply@fluxeer.com.br`. |
 | `WEBHOOK_SECRET_RESEND` | Condicional | preview, prod | `src/lib/webhookVerify.ts`, `src/app/api/webhooks/resend/route.ts` | Verificação Svix do webhook da Resend | Sem ela o webhook falha fechado. |
 | `WHATSAPP_ACCESS_TOKEN` | Condicional | preview, prod | `src/lib/messaging/whatsapp.ts` | Token da Meta Cloud API | Sem ela não há envio real de WhatsApp. |
@@ -180,6 +180,7 @@ e2e/
 scripts/
 public/
 .github/workflows/
+docs/
 ```
 
 ### Responsabilidades por diretório
@@ -206,7 +207,7 @@ public/
 | `scripts` | Scripts operacionais e smoke tests | `create-admin.ts`, `reset-admin.ts`, `test_cron_engine.ts`, `test-resend.ts` | Mistura scripts úteis e artefatos pouco padronizados. |
 | `public` | Assets estáticos | logos e favicons | Sem impacto arquitetural além de branding. |
 | `.github/workflows` | Pipeline CI | `ci.yml` | Executa lint, test, build e audit. |
-| Arquivos raiz de config | Configuração de build, deploy e runtime | `package.json`, `vercel.json`, `Dockerfile`, `docker-compose.yml`, `playwright.config.ts`, `vitest.config.ts`, `eslint.config.mjs` | Há drift entre `docker-compose.yml` e o runtime atual de mensageria. |
+| `docs` | Documentação técnica e roadmap | `implementation/`, `roadmap/`, `archive/` | Documentação central do projeto. |
 
 ## 5. Serviços, jobs e models de cada app
 
@@ -366,41 +367,27 @@ Esta subseção documenta somente o que foi encontrado no código.
 
 | Processo | Gatilho real encontrado | Horário | Evidência | Observações |
 | --- | --- | --- | --- | --- |
-| Billing engine / dunning | `GET /api/cron` com autenticação interna | Horário não explicitado no código | `src/app/api/cron/route.ts`, `src/lib/internalEndpointAuth.ts` | O comentário diz “runs once per day”, mas não há scheduler em `vercel.json`. |
-| Processamento de fila | `POST /api/send-queue` com autenticação interna | Horário não explicitado no código | `src/app/api/send-queue/route.ts` | Processa fila, retry, DLQ e stuck recovery. |
-| Garbage collection de rate limits | Executado dentro de `/api/cron` | Depende do horário do cron, não explicitado | `src/app/api/cron/route.ts` | Limpa `RateLimit` expirado. |
-| Garbage collection de auditoria | Executado dentro de `/api/cron` | Depende do horário do cron, não explicitado | `src/app/api/cron/route.ts` | Remove `ActivityLog` com mais de 90 dias. |
-| Geração manual de comunicação | Ação do usuário em `/comunicacoes` | Sem horário fixo; on-demand | `src/actions/communicationLog.actions.ts`, `src/app/(dashboard)/comunicacoes/CommunicationsClient.tsx` | Gera `CommunicationLog`, não envia provider real. |
-| Enfileiramento e tentativa de envio | Chamado pelo cron ou por fluxo interno de enqueue | Sem horário próprio; acoplado ao chamador | `src/lib/queue.ts`, `src/app/api/cron/route.ts` | Cria `Communication` + `MessageQueue` e tenta envio imediato. |
-| Retry/backoff de fila | Calculado por `nextRetryAt` e reprocessado quando `/api/send-queue` roda | Horário não explicitado; depende da próxima execução do endpoint | `src/lib/queue.ts` | O retry não se autoexecuta sozinho; depende de agendador externo. |
-| Webhook Stripe | Evento externo | Event-driven | `src/app/api/webhooks/stripe/route.ts` | Atualiza billing e usa idempotência por `StripeEvent`. |
-| Webhook Resend | Evento externo | Event-driven | `src/app/api/webhooks/resend/route.ts` | Atualiza status de `Communication` com base no `externalId`. |
-| Webhook WhatsApp | Evento externo | Event-driven | `src/app/api/webhooks/whatsapp/route.ts` | Valida challenge e assinatura Meta; atualiza status de `Communication`. |
-| Health check | `GET /api/health` | On-demand | `src/app/api/health/route.ts`, `Dockerfile` | O `Dockerfile` usa esse endpoint no `HEALTHCHECK`. |
-
-Observações do pipeline implementado:
-
-- Não foi encontrada definição de horário em `vercel.json`, `.github/workflows/ci.yml` ou outro arquivo de scheduler.
-- Os campos `time` configurados em `BillingFlow.rules` não são consumidos pelo cron real.
-- O modo `COMMUNICATION_MODE=manual` existe e muda o comportamento da régua.
+| Billing engine / dunning | `GET /api/cron` com autenticação interna | 08:00 (dias úteis) | `src/app/api/cron/route.ts` | Acionado pelo cron do Vercel/Scheduler. |
+| Processamento de fila | `POST /api/send-queue` com autenticação interna | 08:15 (dias úteis) | `src/app/api/send-queue/route.ts` | Processa fila, retry, DLQ e stuck recovery. |
+| Garbage collection de rate limits | Executado dentro de `/api/cron` | 08:00 (dias úteis) | `src/app/api/cron/route.ts` | Limpa `RateLimit` expirado. |
+| Garbage collection de auditoria | Executado dentro de `/api/cron` | 08:00 (dias úteis) | `src/app/api/cron/route.ts` | Remove `ActivityLog` com mais de 90 dias. |
+| Geração manual de comunicação | Ação do usuário em `/comunicacoes` | Sem horário fixo; on-demand | `src/actions/communicationLog.actions.ts` | Gera `CommunicationLog`, não envia provider real. |
+| Enfileiramento e tentativa de envio | Chamado pelo cron ou por fluxo interno de enqueue | Sem horário próprio | `src/lib/queue.ts` | Cria `Communication` + `MessageQueue`. |
+| Retry/backoff de fila | Calculado por `nextRetryAt` e reprocessado quando `/api/send-queue` roda | 08:15 (dias úteis) | `src/lib/queue.ts` | O retry depende do endpoint. |
+| Webhook Stripe | Evento externo | Event-driven | `src/app/api/webhooks/stripe/route.ts` | Atualiza billing e usa idempotência. |
+| Webhook Resend | Evento externo | Event-driven | `src/app/api/webhooks/resend/route.ts` | Atualiza status de `Communication`. |
+| Webhook WhatsApp | Evento externo | Event-driven | `src/app/api/webhooks/whatsapp/route.ts` | Valida challenge e assinatura Meta. |
+| Health check | `GET /api/health` | On-demand | `src/app/api/health/route.ts` | Usado pelo `HEALTHCHECK` do Docker. |
 
 ### 8.2 Pipeline operacional recomendado
 
-Esta subseção é recomendação operacional baseada na arquitetura encontrada. Não foi encontrada implementação explícita desses horários no repositório.
-
 | Dia / frequência | Horário sugerido | Ação recomendada | Motivo |
 | --- | --- | --- | --- |
-| Todos os dias úteis | 08:00 | Acionar `GET /api/cron` | Gera cobranças do dia, limpa `RateLimit` expirado e faz GC de auditoria. |
-| Todos os dias úteis | 08:15 | Acionar `POST /api/send-queue` | Processa fila, retries, stuck recovery e DLQ. |
-| Todos os dias úteis | 09:00 | Revisar `/fila` | Confirmar DLQ, stuck items e falhas permanentes. |
-| Todos os dias úteis | 09:30 | Revisar `/comunicacoes` | Validar logs pendentes, enviados, pulados e falhos. |
-| Todos os dias úteis | 17:30 | Rodar checagem de saúde e revisão curta de erros | Evita acumular falhas para o dia seguinte. |
-| Segunda-feira | 09:00 | Revisão de billing e Stripe | Conferir assinaturas, `past_due`, portal e webhook Stripe. |
-| Terça-feira | 09:00 | Revisão da régua e envios | Validar se billing flow, cron e templates estão coerentes. |
-| Quarta-feira | 09:00 | Auditoria de auth, MFA e permissões | Revisar admins, superadmins, roles e acesso ao `/superadmin`. |
-| Quinta-feira | 09:00 | Revisão de relatórios, risco e forecast | Conferir consistência entre dashboard, relatórios e previsão. |
-| Sexta-feira | 09:00 | Revisão de envs, webhooks e deploy readiness | Verificar segredos, drift de config e estado do CI. |
-| Sexta-feira | 16:00 | Checklist de manutenção semanal | Fechar pendências de DLQ, retries, logs e documentação. |
+| Todos os dias úteis | 08:00 | Acionar `GET /api/cron` | Gera cobranças do dia. |
+| Todos os dias úteis | 08:15 | Acionar `POST /api/send-queue` | Processa fila. |
+| Todos os dias úteis | 09:00 | Revisar `/fila` | Confirmar DLQ. |
+| Todos os dias úteis | 09:30 | Revisar `/comunicacoes` | Validar logs. |
+| Todos os dias úteis | 17:30 | Revisão final do dia | Evita acumular falhas. |
 
 ## 9. Checklist pós-implementação
 
@@ -763,8 +750,8 @@ Todos os riscos arquiteturais identificados na seção 10 foram resolvidos ou mi
 
 ## 12.4 Sprint 4 — UX de Comunicações, Fila e Responsividade de Tabelas
 
-**Data:** Abril 2026  
-**Status:** ✅ Concluída  
+**Data:** Abril 2026
+**Status:** ✅ Concluída
 **Commit:** `295e837`
 
 ### Objetivo
@@ -812,8 +799,8 @@ Reduzir atrito operacional e melhorar legibilidade funcional nas telas de Comuni
 
 ## 12.5 Sprint 5 — UX de Clientes + Histórico
 
-**Data:** Abril 2026  
-**Status:** ✅ Concluída  
+**Data:** Abril 2026
+**Status:** ✅ Concluída
 **Commit:** `3a781c4`
 
 ### Objetivo
@@ -889,8 +876,8 @@ Melhorar legibilidade, priorização visual, navegação operacional e responsiv
 
 ## 12.6 Sprint 6 — UX de Cobranças + Importação/Mapeamento
 
-**Data:** Abril 2026  
-**Status:** ✅ Concluída  
+**Data:** Abril 2026
+**Status:** ✅ Concluída
 **Commit:** `ac16328`
 
 ### Objetivo
@@ -961,7 +948,7 @@ Tornar a tela central de operação financeira (Cobranças) mais escaneável e a
 
 ## 13. Estado Beta — Freeze de Escopo
 
-**Data:** Abril 2026  
+**Data:** Abril 2026
 **Status:** 🔒 Freeze ativo — apenas bugfix, ajuste fino e documentação
 
 ### Sprints de polimento concluídas
@@ -998,12 +985,12 @@ Tokens legados removidos em todas as telas do beta:
 
 ## 14. Bugfixes de RC — Pré-release
 
-**Data:** Abril 2026  
+**Data:** Abril 2026
 **Status:** ✅ Todos os P1 fechados — Release Candidate ativo
 
 ### B01 — Eliminação de `window.alert`, `window.prompt`, `window.confirm`
 
-**Commit:** `8a66d2b`  
+**Commit:** `8a66d2b`
 **Arquivo:** `ReceivablesClient.tsx`
 
 Todas as APIs nativas de browser que bloqueiam a UI em mobile foram substituídas por modais controlados:
@@ -1024,7 +1011,7 @@ Todos os botões desabilitam durante `isPending`. Zero ocorrências residuais co
 
 ### B03 — Acesso direto a `/importar/mapeamento` sem sessionStorage
 
-**Commit:** `3923ed4`  
+**Commit:** `3923ed4`
 **Arquivo:** `/importar/mapeamento/page.tsx`
 
 **Problema:** usuário navegando diretamente para `/importar/mapeamento` encontrava tabela com "0 registros", sem contexto, sem next action.
@@ -1038,7 +1025,7 @@ Todos os botões desabilitam durante `isPending`. Zero ocorrências residuais co
 
 ### B08 — CSV com 0 linhas válidas não gerava erro
 
-**Commit:** `3923ed4`  
+**Commit:** `3923ed4`
 **Arquivo:** `/importar/page.tsx`
 
 **Problema:** `Papa.parse` com `skipEmptyLines: true` retorna array vazio sem lançar erro — o arquivo era aceito, salvo no sessionStorage e o usuário navegava para mapeamento sem registros.
@@ -1059,7 +1046,7 @@ Todos os botões desabilitam durante `isPending`. Zero ocorrências residuais co
 
 ## 15. Release Candidate RC-1
 
-**Data:** Abril 2026  
+**Data:** Abril 2026
 **Status:** 🚀 RC-1 declarado
 
 ### Critérios de pronto — status
@@ -1101,7 +1088,7 @@ Todos os botões desabilitam durante `isPending`. Zero ocorrências residuais co
 
 ## 16. Release Candidate RC-2
 
-**Data:** Abril 2026  
+**Data:** Abril 2026
 **Status:** 🚀 RC-2 declarado — Whitelabel & Personalização
 
 Nesta versão, o Fluxeer ganha maturidade como produto SaaS B2B, permitindo que cada cliente (Tenant) tenha sua própria identidade visual dentro da plataforma.
@@ -1143,7 +1130,7 @@ Nesta versão, o Fluxeer ganha maturidade como produto SaaS B2B, permitindo que 
 
 ## 17. Evolução Design System & Auth (Abril 2026)
 
-**Data:** Abril 2026  
+**Data:** Abril 2026
 **Status:** ✅ Concluído
 
 ### O que foi feito
@@ -1158,7 +1145,7 @@ Nesta versão, o Fluxeer ganha maturidade como produto SaaS B2B, permitindo que 
 
 ## 18. Landing Page & Conversion Engine (Abril 2026)
 
-**Data:** Abril 2026  
+**Data:** Abril 2026
 **Status:** 🚀 Produção — Conversão & Institucional
 
 Transformação da página inicial em uma ferramenta de vendas de alta conversão, integrada com backend e automação de leads.
@@ -1193,7 +1180,7 @@ Transformação da página inicial em uma ferramenta de vendas de alta conversã
 
 ## 19. Refinamentos Visuais e Estabilidade da Landing Page (Abril 2026)
 
-**Data:** Abril 2026  
+**Data:** Abril 2026
 **Status:** ✅ Concluído
 
 Ciclo final de polimento estético e correção de bugs na Landing Page para garantir uma experiência de usuário premium e estável.
@@ -1300,7 +1287,7 @@ npm run test
 - **Billing e Funcionalidade Geral:** O pipeline operou normalmente.
 
 ### Veredito Final
-**APROVADO PARA BETA.** 
+**APROVADO PARA BETA.**
 O Fluxeer superou todos os critérios de viabilidade técnica, estabilidade, correção de tipos, qualidade de build e segurança necessários para operação comercial Beta com clientes reais. 🚀
 
 ## Correção de Bloqueadores de Proteção de Dados — Beta
@@ -1569,8 +1556,8 @@ Critérios atendidos:
 ### 11.6 Correção do Upload de Logotipo da Empresa (Maio 2026)
 - **Status**: Concluído com Sucesso.
 - **Problema**: O upload do logotipo em Configurações > Personalização exibia erro "Falha técnica na requisição. Verifique o console ou tente novamente." (ou erro interno com status 500) pois o storage `@vercel/blob` estava sendo utilizado sem a configuração da variável `BLOB_READ_WRITE_TOKEN`.
-- **Causa raiz**: Em `src/app/api/upload/logo/route.ts`, a falta de configuração lançava um erro 500. No `PersonalizacaoClient.tsx`, a captura de erros genéricos acabava ofuscando a causa em tela. 
-- **Solução (Fallback MVP)**: 
+- **Causa raiz**: Em `src/app/api/upload/logo/route.ts`, a falta de configuração lançava um erro 500. No `PersonalizacaoClient.tsx`, a captura de erros genéricos acabava ofuscando a causa em tela.
+- **Solução (Fallback MVP)**:
   - A API foi convertida para usar armazenamento em banco de dados (`logoUrl` no Prisma) convertendo a imagem enviada para uma URL Base64 (`data:image/...`).
   - Validações implementadas: Apenas arquivos PNG, JPG, SVG e WebP. Tamanho estritamente limitado a 500KB para garantir performance.
   - Segurança: Validação via banco (`tenantUser`) garantindo que apenas administradores do tenant (`role === 'admin'`) podem modificar a identidade visual.
@@ -1589,7 +1576,7 @@ Critérios atendidos:
   - Implementação de checagem de Role (apenas `admin`) e de Plano (apenas `pro` ou `scale`) no servidor.
   - Padronização das respostas da API para JSON em todos os cenários (401, 403, 400, 500), garantindo que o frontend consiga exibir mensagens de erro amigáveis como "Personalização disponível no plano Pro" em vez de "Resposta inesperada".
   - Melhoria na captura de erros no frontend (`PersonalizacaoClient.tsx`) para processar mensagens específicas do servidor.
-- **Validação Técnica**: 
+- **Validação Técnica**:
   - Lint: OK.
   - TSC: OK.
   - Build: OK.
@@ -1605,3 +1592,31 @@ Critérios atendidos:
   - **Gating de UI Robusto**: O `PersonalizacaoClient` agora desabilita o upload preventivamente baseado na role e no plano, exibindo o motivo correto (Bloqueio por Plano ou Permissão Insuficiente) antes de qualquer tentativa de requisição.
 - **Validação Pendente**: Teste final no tenant "Admin Tenant (Produção)" para confirmar se o `canCustomize` está sendo calculado corretamente com a sessão real.
 - **SVG**: Suporte removido definitivamente de todos os níveis.
+
+---
+
+## 22. Organização de Repositório & Higiene de Código (Maio 2026)
+
+**Data:** 05/05/2026
+**Status:** ✅ Concluído — Repositório Profissional
+
+Realizada a consolidação segura de documentação técnica, scripts utilitários e referências visuais para garantir um ambiente de desenvolvimento limpo e escalável.
+
+### Ações Realizadas
+- **Documentação:** Consolidação de 15 arquivos `.md` espalhados na pasta `docs/` (subpastas `implementation/`, `roadmap/`, `archive/`).
+- **Scripts:** Realocação de 12 scripts de teste e utilitários da raiz para a pasta `scripts/`. Imports de `./src` foram corrigidos para `../src`.
+- **Design & Assets:** Pastas `Design System/` e `assets/` movidas para `docs/design-reference/`, mantendo o histórico visual protegido sem poluir a raiz.
+- **Limpeza:** Remoção de arquivos temporários (`lint-errors.txt`, `out.log`) e pastas vazias/redundantes (`templates/`).
+- **Configurações:** `eslint.config.mjs` e `tsconfig.json` atualizados para ignorar a nova pasta `docs/`.
+
+### Garantias de Integridade
+- **Escopo Preservado:** A aplicação principal continua isolada na pasta `fluxo/`. Nenhuma alteração em `src/`, `app/`, `prisma/` ou regras de negócio.
+- **Infraestrutura:** Root directory da Vercel e configurações de deploy permanecem intactos.
+- **Segurança:** Nenhuma variável de ambiente (`.env`) ou segredo exposto no histórico.
+- **Validação Técnica:**
+  - `npm run lint`: OK (ignorando docs).
+  - `npx tsc --noEmit`: Sucesso (zero erros de tipo após ajuste de scripts).
+  - `npm run build`: Sucesso absoluto.
+  - `npm run test`: 176/176 testes passando.
+
+*Status: Repositório higienizado, organizado e pronto para escalabilidade v1.0.*

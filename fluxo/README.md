@@ -36,9 +36,9 @@ npm run dev
 
 - **📊 Vercel Dashboard:** https://vercel.com/jonattans-projects-5e32c066/fluxoyarn dev
 
-- **📖 Deployment Guide:** [DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md)
+- **📖 Deployment Guide:** [DEPLOYMENT_CHECKLIST.md](./docs/implementation/DEPLOYMENT_CHECKLIST.md)
 
-- **📝 Deployment Docs:** [DEPLOYMENT.md](./DEPLOYMENT.md)> ✅ **Production Ready** | 28 rotas | 17 Server Actions | 10 APIs | 100% TypeScript# or
+- **📝 Deployment Docs:** [DEPLOYMENT.md](./docs/implementation/DEPLOYMENT.md)> ✅ **Production Ready** | 28 rotas | 17 Server Actions | 10 APIs | 100% TypeScript# or
 
 
 
@@ -206,13 +206,13 @@ npm install
 
 ```bash
 
-- [DEPLOYMENT.md](./DEPLOYMENT.md) - 3 formas de fazer deploynpm run dev
+- [DEPLOYMENT.md](./docs/implementation/DEPLOYMENT.md) - 3 formas de fazer deploynpm run dev
 
-- [DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md) - Checklist pós-deploy```
+- [DEPLOYMENT_CHECKLIST.md](./docs/implementation/DEPLOYMENT_CHECKLIST.md) - Checklist pós-deploy```
 
-- [CONTRIBUTING.md](./CONTRIBUTING.md) - Padrões de código e workflow
+- [CONTRIBUTING.md](./docs/implementation/CONTRIBUTING.md) - Padrões de código e workflow
 
-- [PROJETO_ORGANIZACAO.md](./PROJETO_ORGANIZACAO.md) - Detalhes da reorganizaçãoVisite: [http://localhost:3000](http://localhost:3000)
+- [PROJETO_ORGANIZACAO.md](./docs/archive/PROJETO_ORGANIZACAO.md) - Detalhes da reorganizaçãoVisite: [http://localhost:3000](http://localhost:3000)
 
 
 
@@ -290,31 +290,31 @@ npm run seed
 
 ```### Deployment & Operations
 
-- **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Deploy via Vercel, Docker, Railway (3 opções)
+- **[DEPLOYMENT.md](./docs/implementation/DEPLOYMENT.md)** - Deploy via Vercel, Docker, Railway (3 opções)
 
----- **[CONTRIBUTING.md](./CONTRIBUTING.md)** - Padrões de código, workflow, CI/CD
+---- **[CONTRIBUTING.md](./docs/implementation/CONTRIBUTING.md)** - Padrões de código, workflow, CI/CD
 
-- **[PROJETO_ORGANIZACAO.md](./PROJETO_ORGANIZACAO.md)** - Roadmap de estabilização
+- **[PROJETO_ORGANIZACAO.md](./docs/archive/PROJETO_ORGANIZACAO.md)** - Roadmap de estabilização
 
 ## 📁 Estrutura de Pastas
 
 ### FOCOs (Módulos)
 
-```- **[FOCO_1_CONCLUSAO.md](./FOCO_1_CONCLUSAO.md)** - Score de Risco
+```- **[FOCO_1_CONCLUSAO.md](./docs/roadmap/FOCO_1_CONCLUSAO.md)** - Score de Risco
 
-fluxo/- **[FOCO_2_PREVISAO_CAIXA.md](./FOCO_2_PREVISAO_CAIXA.md)** - Previsão de Caixa (algoritmos)
+fluxo/- **[FOCO_2_PREVISAO_CAIXA.md](./docs/roadmap/FOCO_2_PREVISAO_CAIXA.md)** - Previsão de Caixa (algoritmos)
 
-├── src/- **[FOCO_3_RELATORIOS.md](./FOCO_3_RELATORIOS.md)** - 5 Relatórios (filtros, export)
+├── src/- **[FOCO_3_RELATORIOS.md](./docs/roadmap/FOCO_3_RELATORIOS.md)** - 5 Relatórios (filtros, export)
 
-│   ├── app/                 # Next.js app router- **[FOCO_4_PERMISSOES.md](./FOCO_4_PERMISSOES.md)** - Permissões & Auditoria
+│   ├── app/                 # Next.js app router- **[FOCO_4_PERMISSOES.md](./docs/roadmap/FOCO_4_PERMISSOES.md)** - Permissões & Auditoria
 
 │   │   ├── api/             # 10 endpoints REST
 
 │   │   ├── auth/            # Autenticação### Quick References
 
-│   │   ├── dashboard/       # Dashboard principal- **[QUICKSTART_FOCOS.md](./QUICKSTART_FOCOS.md)** - Referência rápida dos FOCOs
+│   │   ├── dashboard/       # Dashboard principal- **[QUICKSTART_FOCOS.md](./docs/implementation/QUICKSTART_FOCOS.md)** - Referência rápida dos FOCOs
 
-│   │   ├── layout.tsx       # Layout global- **[ROADMAP_ESTABILIZACAO.md](./ROADMAP_ESTABILIZACAO.md)** - Próximas 4 semanas
+│   │   ├── layout.tsx       # Layout global- **[ROADMAP_ESTABILIZACAO.md](./docs/roadmap/ROADMAP_ESTABILIZACAO.md)** - Próximas 4 semanas
 
 │   │   └── ...              # Outras páginas
 
@@ -362,7 +362,7 @@ npx prisma studio       # Abrir Prisma Studio (DB UI)
 
 npx prisma migrate dev  # Criar + rodar migrations
 
-Veja [DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md) para setup completo.
+Veja [DEPLOYMENT_CHECKLIST.md](./docs/implementation/DEPLOYMENT_CHECKLIST.md) para setup completo.
 
 # 🐳 Docker
 
@@ -452,7 +452,7 @@ docker run -p 3000:3000 \```
 
   -e DATABASE_URL="..." \
 
-  -e AUTH_SECRET="..." \→ Veja [DEPLOYMENT.md](./DEPLOYMENT.md) para instruções detalhadas!
+  -e AUTH_SECRET="..." \→ Veja [DEPLOYMENT.md](./docs/implementation/DEPLOYMENT.md) para instruções detalhadas!
 
   fluxo:latest
 
@@ -550,7 +550,7 @@ ZAPI_API_TOKEN=api_token
 
 | **Routes** | ✅ | 28 rotas (estáticas + dinâmicas) |
 
-Veja [CONTRIBUTING.md](./CONTRIBUTING.md) para:| **Server Actions** | ✅ | 17 actions, todas tipadas |
+Veja [CONTRIBUTING.md](./docs/implementation/CONTRIBUTING.md) para:| **Server Actions** | ✅ | 17 actions, todas tipadas |
 
 - Padrões de código| **APIs** | ✅ | 10 endpoints REST |
 
@@ -570,13 +570,13 @@ Veja [CONTRIBUTING.md](./CONTRIBUTING.md) para:| **Server Actions** | ✅ | 17 a
 
 
 
-- 📖 Docs: [DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md)### Frontend
+- 📖 Docs: [./docs/implementation/DEPLOYMENT_CHECKLIST.md](./docs/implementation/DEPLOYMENT_CHECKLIST.md)
+### Frontend
 
 - 🐛 Issues: GitHub Issues- **Next.js 16.2.0** - React framework com App Router
 
 - 💬 Discussions: GitHub Discussions- **React 19** - UI library
 
-- **TypeScript 5.3** - Type safety
 
 ---- **Tailwind CSS 4** - Styling
 
@@ -602,7 +602,7 @@ MIT - Veja [LICENSE](./LICENSE) para detalhes- **Prisma 6** - ORM database-agnos
 
 
 
-[🌐 App Live](https://fluxo-psi-sepia.vercel.app) | [📊 Dashboard](https://vercel.com/jonattans-projects-5e32c066/fluxo) | [📖 Docs](./DEPLOYMENT.md)### DevOps
+[🌐 App Live](https://fluxo-psi-sepia.vercel.app) | [📊 Dashboard](https://vercel.com/jonattans-projects-5e32c066/fluxo) | [📖 Docs](./docs/implementation/DEPLOYMENT.md)### DevOps
 
 - **Docker** - Containerização
 
@@ -642,13 +642,13 @@ npx prisma migrate status
 npm run dev -- -p 3001
 ```
 
-Mais em [DEPLOYMENT.md - Troubleshooting](./DEPLOYMENT.md#-troubleshooting)
+Mais em [DEPLOYMENT.md - Troubleshooting](./docs/implementation/DEPLOYMENT.md#-troubleshooting)
 
 ---
 
 ## 🤝 Como Contribuir
 
-Leia [CONTRIBUTING.md](./CONTRIBUTING.md) para:
+Leia [CONTRIBUTING.md](./docs/implementation/CONTRIBUTING.md) para:
 - ✅ Coding standards (TypeScript, React)
 - ✅ Workflow de desenvolvimento
 - ✅ Como fazer pull requests
