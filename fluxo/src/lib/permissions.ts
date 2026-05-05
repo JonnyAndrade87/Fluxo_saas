@@ -14,7 +14,7 @@ export interface AuthContext {
  */
 export async function requireAuth(): Promise<AuthContext> {
   const session = await auth();
-  const user = session?.user as any;
+  const user = session?.user as { id?: string; sub?: string; tenantId?: string; role?: string } | undefined;
 
   if (!user?.tenantId) {
     throw new Error('UNAUTHORIZED: No active session or tenant.');

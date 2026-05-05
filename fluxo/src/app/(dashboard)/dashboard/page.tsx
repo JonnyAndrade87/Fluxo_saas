@@ -56,21 +56,47 @@ export default async function Dashboard() {
   const { user, tenantId } = await requireTenant();
   const userId = user.id;
 
+  let onboardingStatus;
+  let metrics;
+
   try {
-    const onboardingStatus = await getOnboardingStatus(tenantId);
+    onboardingStatus = await getOnboardingStatus(tenantId);
 
-    // ── Tela de Setup Dedicada ───────────────────────────────────────────────
-    if (!onboardingStatus.isComplete) {
-      return (
-        <div className="max-w-2xl mx-auto px-4 py-10 sm:py-14">
-          <OnboardingSetup status={onboardingStatus} />
-        </div>
-      );
+    if (onboardingStatus.isComplete) {
+      metrics = await getDashboardMetrics(tenantId, userId);
     }
+  } catch (err) {
+    console.error('[Dashboard] Error rendering dashboard:', err);
+    return (
+      <div className="flex flex-col items-center justify-center py-24 text-center px-6">
+        <div className="w-16 h-16 rounded-2xl bg-rose-50 flex items-center justify-center mb-4">
+          <AlertTriangle className="w-8 h-8 text-rose-500" />
+        </div>
+        <h2 className="text-xl font-bold text-slate-900">Erro ao carregar dashboard</h2>
+        <p className="text-slate-500 text-sm mt-2 max-w-sm">
+          Não conseguimos processar os indicadores agora. Isso pode ser instabilidade temporária no banco de dados.
+        </p>
+        <Link href="/dashboard" className="mt-6">
+          <Button className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl px-6">
+            Tentar novamente
+          </Button>
+        </Link>
+      </div>
+    );
+  }
 
-    // ── Dashboard Completo ───────────────────────────────────────────────────
-    const metrics = await getDashboardMetrics(tenantId, userId);
-    const totalAgingAmount = metrics.agingDistribution.reduce((s, b) => s + b.amount, 0);
+  // ── Tela de Setup Dedicada ───────────────────────────────────────────────
+  if (!onboardingStatus.isComplete) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-10 sm:py-14">
+        <OnboardingSetup status={onboardingStatus} />
+      </div>
+    );
+  }
+
+  // ── Dashboard Completo ───────────────────────────────────────────────────
+  if (!metrics) return null;
+  const totalAgingAmount = metrics!.agingDistribution.reduce((s: any, b: any) => s + b.amount, 0);
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12">
@@ -563,23 +589,4 @@ export default async function Dashboard() {
 
     </div>
   );
-  } catch (err) {
-    console.error('[Dashboard] Error rendering dashboard:', err);
-    return (
-      <div className="flex flex-col items-center justify-center py-24 text-center px-6">
-        <div className="w-16 h-16 rounded-2xl bg-rose-50 flex items-center justify-center mb-4">
-          <AlertTriangle className="w-8 h-8 text-rose-500" />
-        </div>
-        <h2 className="text-xl font-bold text-slate-900">Erro ao carregar dashboard</h2>
-        <p className="text-slate-500 text-sm mt-2 max-w-sm">
-          Não conseguimos processar os indicadores agora. Isso pode ser instabilidade temporária no banco de dados.
-        </p>
-        <Link href="/dashboard" className="mt-6">
-          <Button className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl px-6">
-            Tentar novamente
-          </Button>
-        </Link>
-      </div>
-    );
-  }
 }
