@@ -1743,3 +1743,25 @@ Sem vulnerabilidades conhecidas após os testes executados.
   - `npm run build` -> Sucesso
   - `npm run test` -> 176/176 aprovados (testes de auth intactos)
 - **Status Final:** Vulnerabilidade expurgada. Nenhum fluxo de autenticação (Google, Credentials, callbacks, redirecionamentos) quebrou. O fechamento visual depende do novo scan do Snyk.
+
+---
+
+## 27. Correção Definitiva de Segurança: Remoção do pacote `pdfmake` (Maio 2026)
+
+**Data:** 07/05/2026
+**Status:** ✅ Concluído
+
+- **Contexto:** A mitigação anterior por update para `pdfmake@0.3.8` (Seção 25) não zera o alerta do Snyk (SNYK-JS-PDFMAKE-15467449 / CVE-2026-26801) porque o advisory informa que não há versão fixa segura disponível para a biblioteca.
+- **Vulnerabilidade visada:** Server-side Request Forgery (SSRF)
+- **Estratégia aplicada:** O pacote `pdfmake` foi **removido completamente** do projeto.
+- **Implementação substituta:** A exportação de relatório (`src/lib/pdf/reportPdf.ts`) foi substituída por uma solução em HTML imprimível via `window.print()` totalmente client-side, sem qualquer dependência externa, garantindo a mesma utilidade visual.
+- **Risco de SSRF:** Sem superfície SSRF identificada no fluxo atual, pois o pacote pdfmake foi removido e a exportação passou a ser client-side, sem fetch remoto, sem URLs externas e sem processamento server-side.
+- **Comandos de validação executados:**
+  - `npm uninstall pdfmake @types/pdfmake`
+  - `npm list pdfmake` -> (empty)
+  - `npm audit` -> 0 vulnerabilidades
+  - `npm run lint` -> 0 errors
+  - `npx tsc --noEmit` -> Sucesso
+  - `npm run build` -> Sucesso
+  - `npm run test` -> Aprovados
+- **Status Final:** Pacote defasado extirpado com sucesso. Relatório preservado via CSS/HTML client-side. O fechamento visual da vulnerabilidade no dashboard depende de novo scan no Snyk.

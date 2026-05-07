@@ -1,9 +1,5 @@
 import type { ReportMetrics } from '@/actions/reports';
 
-// pdfmake is browser-only — dynamic import only on client side
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type PdfMakeModule = any;
-
 const fmt = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 const fmtShort = (v: number) => {
   if (v >= 1_000_000) return `R$ ${(v / 1_000_000).toFixed(2)}M`;
@@ -15,172 +11,27 @@ const nowLabel = () => {
   const d = new Date();
   return d.toLocaleDateString('pt-BR') + ' às ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 };
-const fileDate = () => new Date().toISOString().slice(0, 10);
 
-// ─── Design tokens ─────────────────────────────────────────────────────────
-const OBSIDIAN   = '#111111';
-const INDIGO     = '#4F46E5';
-const EMERALD    = '#059669';
-const ROSE       = '#E11D48';
-const AMBER      = '#D97706';
-const GRAY_100   = '#F4F4F5';
-const GRAY_300   = '#D4D4D8';
-const GRAY_500   = '#71717A';
-const GRAY_700   = '#3F3F46';
-const WHITE      = '#FFFFFF';
+// Simple HTML escaper
+function escapeHtml(unsafe: string): string {
+  if (!unsafe) return '';
+  return String(unsafe)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
 
-const RISK_COLORS: Record<string, string> = {
-  'Crítico': ROSE,
-  'Alto':    AMBER,
-  'Médio':   '#B45309',
-  'Baixo':   EMERALD,
-};
-
-// ─── Builder ───────────────────────────────────────────────────────────────
 export async function generateReportPdf(
   data: ReportMetrics,
   tenantName: string = 'Empresa',
   period: string = '6m'
 ): Promise<void> {
-  const pdfmake: PdfMakeModule = await import('pdfmake/build/pdfmake');
-  const pdfFonts: PdfMakeModule = await import('pdfmake/build/vfs_fonts');
-  pdfmake.default.vfs = pdfFonts.default.vfs;
-  const pdfMake = pdfmake.default;
-
   const generatedAt = nowLabel();
-  const filename = `relatorio_fluxo_${fileDate()}.pdf`;
-
-  /* ── helpers ─────────────────────────────────────────────────────────── */
-  const H1 = (text: string) => ({
-    text, fontSize: 20, bold: true, color: OBSIDIAN,
-    margin: [0, 0, 0, 4],
-  });
-  const H2 = (text: string) => ({
-    text, fontSize: 13, bold: true, color: OBSIDIAN,
-    margin: [0, 16, 0, 6],
-  });
-  const label = (text: string) => ({ text, fontSize: 8, color: GRAY_500, bold: true, characterSpacing: 1 });
-  const value = (text: string, color = OBSIDIAN) => ({ text, fontSize: 18, bold: true, color, margin: [0, 2, 0, 0] });
-  const divider = (marginV = 12) => ({ canvas: [{ type: 'line', x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 0.5, lineColor: GRAY_300 }], margin: [0, marginV, 0, marginV] });
-
-  /* ── KPI block ────────────────────────────────────────────────────────── */
-  const kpiGrid = {
-    columns: [
-      {
-        width: '*', stack: [
-          { text: 'FATURAMENTO BRUTO', fontSize: 8, color: GRAY_500, bold: true, characterSpacing: 1 },
-          { text: fmtShort(data.totalBilled), fontSize: 18, bold: true, color: OBSIDIAN, margin: [0, 2, 0, 0] },
-        ]
-      },
-      {
-        width: '*', stack: [
-          { text: 'CAIXA REALIZADO', fontSize: 8, color: GRAY_500, bold: true, characterSpacing: 1 },
-          { text: fmtShort(data.totalPaid), fontSize: 18, bold: true, color: EMERALD, margin: [0, 2, 0, 0] },
-        ]
-      },
-      {
-        width: '*', stack: [
-          { text: 'INADIMPLÊNCIA', fontSize: 8, color: GRAY_500, bold: true, characterSpacing: 1 },
-          { text: fmtShort(data.totalOverdue), fontSize: 18, bold: true, color: data.totalOverdue > 0 ? ROSE : EMERALD, margin: [0, 2, 0, 0] },
-        ]
-      },
-    ],
-    columnGap: 20,
-    margin: [0, 0, 0, 0],
-  };
-
-  const kpiGrid2 = {
-    columns: [
-      {
-        width: '*', stack: [
-          { text: 'A RECEBER', fontSize: 8, color: GRAY_500, bold: true, characterSpacing: 1 },
-          { text: fmtShort(data.totalPending), fontSize: 18, bold: true, color: INDIGO, margin: [0, 2, 0, 0] },
-        ]
-      },
-      {
-        width: '*', stack: [
-          { text: 'TICKET MÉDIO', fontSize: 8, color: GRAY_500, bold: true, characterSpacing: 1 },
-          { text: fmtShort(data.avgTicket), fontSize: 18, bold: true, color: OBSIDIAN, margin: [0, 2, 0, 0] },
-        ]
-      },
-      {
-        width: '*', stack: [
-          { text: '% INADIMPLÊNCIA', fontSize: 8, color: GRAY_500, bold: true, characterSpacing: 1 },
-          { text: pct(data.defaultRate), fontSize: 18, bold: true, color: data.defaultRate > 10 ? ROSE : OBSIDIAN, margin: [0, 2, 0, 0] },
-        ]
-      },
-    ],
-    columnGap: 20,
-    margin: [0, 12, 0, 0],
-  };
-
-  const kpiGrid3 = {
-    columns: [
-      {
-        width: '*', stack: [
-          { text: 'TAXA DE RECUPERAÇÃO', fontSize: 8, color: GRAY_500, bold: true, characterSpacing: 1 },
-          { text: pct(data.recoveryRate), fontSize: 18, bold: true, color: data.recoveryRate > 70 ? EMERALD : AMBER, margin: [0, 2, 0, 0] },
-        ]
-      },
-      {
-        width: '*', stack: [
-          { text: 'CLIENTES EM ATRASO', fontSize: 8, color: GRAY_500, bold: true, characterSpacing: 1 },
-          { text: `${data.customersWithOverdue} / ${data.totalCustomers}`, fontSize: 18, bold: true, color: data.customersWithOverdue > 0 ? ROSE : EMERALD, margin: [0, 2, 0, 0] },
-        ]
-      },
-      { width: '*', stack: [] },
-    ],
-    columnGap: 20,
-    margin: [0, 12, 0, 0],
-  };
-
-  /* ── Monthly cashflow table ──────────────────────────────────────────── */
-  const hasCashflow = data.monthlyCashflow.length > 0;
-  const cashflowTableBody = [
-    [
-      { text: 'MÊS', style: 'tableHeader' },
-      { text: 'FATURADO', style: 'tableHeader', alignment: 'right' },
-      { text: 'RECEBIDO', style: 'tableHeader', alignment: 'right' },
-      { text: 'ATRASADO', style: 'tableHeader', alignment: 'right' },
-    ],
-    ...data.monthlyCashflow.map((row, i) => [
-      { text: row.month, fontSize: 9, color: GRAY_700, fillColor: i % 2 === 0 ? WHITE : GRAY_100 },
-      { text: fmtShort(row.faturado), fontSize: 9, color: OBSIDIAN, alignment: 'right', bold: true, fillColor: i % 2 === 0 ? WHITE : GRAY_100 },
-      { text: fmtShort(row.recebido), fontSize: 9, color: EMERALD, alignment: 'right', bold: true, fillColor: i % 2 === 0 ? WHITE : GRAY_100 },
-      { text: fmtShort(row.atrasado), fontSize: 9, color: row.atrasado > 0 ? ROSE : GRAY_500, alignment: 'right', bold: true, fillColor: i % 2 === 0 ? WHITE : GRAY_100 },
-    ]),
-  ];
-
-  /* ── Per-client table ────────────────────────────────────────────────── */
   const sortedClients = [...data.clientRanking].sort((a, b) => b.totalOverdue - a.totalOverdue);
-  const clientTableBody = [
-    [
-      { text: '#', style: 'tableHeader' },
-      { text: 'CLIENTE', style: 'tableHeader' },
-      { text: 'FATURADO', style: 'tableHeader', alignment: 'right' },
-      { text: 'RECEBIDO', style: 'tableHeader', alignment: 'right' },
-      { text: 'EM ATRASO', style: 'tableHeader', alignment: 'right' },
-      { text: 'FATURAS', style: 'tableHeader', alignment: 'center' },
-      { text: 'RISCO', style: 'tableHeader', alignment: 'center' },
-    ],
-    ...sortedClients.map((c, i) => [
-      { text: `${i + 1}`, fontSize: 8, color: GRAY_500, fillColor: i % 2 === 0 ? WHITE : GRAY_100 },
-      { stack: [
-        { text: c.name, fontSize: 9, bold: true, color: OBSIDIAN },
-        { text: c.documentNumber || '–', fontSize: 7, color: GRAY_500, marginTop: 1 },
-      ], fillColor: i % 2 === 0 ? WHITE : GRAY_100 },
-      { text: fmtShort(c.totalBilled), fontSize: 9, color: OBSIDIAN, alignment: 'right', bold: true, fillColor: i % 2 === 0 ? WHITE : GRAY_100 },
-      { text: fmtShort(c.totalPaid), fontSize: 9, color: EMERALD, alignment: 'right', bold: true, fillColor: i % 2 === 0 ? WHITE : GRAY_100 },
-      { text: c.totalOverdue > 0 ? fmtShort(c.totalOverdue) : '–', fontSize: 9, color: c.totalOverdue > 0 ? ROSE : GRAY_500, alignment: 'right', bold: c.totalOverdue > 0, fillColor: i % 2 === 0 ? WHITE : GRAY_100 },
-      { text: `${c.invoiceCount}`, fontSize: 9, color: GRAY_700, alignment: 'center', fillColor: i % 2 === 0 ? WHITE : GRAY_100 },
-      { text: c.riskLevel, fontSize: 8, bold: true, color: RISK_COLORS[c.riskLevel] ?? GRAY_500, alignment: 'center', fillColor: i % 2 === 0 ? WHITE : GRAY_100 },
-    ]),
-  ];
-
-  /* ── Critical clients ────────────────────────────────────────────────── */
   const criticalClients = sortedClients.filter(c => c.riskLevel === 'Crítico' || c.riskLevel === 'Alto');
 
-  /* ── Auto text analysis ──────────────────────────────────────────────── */
   let analysisText = 'Não há inadimplência registrada no período analisado. A carteira encontra-se saudável.';
   if (data.totalOverdue > 0 && data.totalBilled > 0) {
     const topDebtors = criticalClients.slice(0, 3).map(c => c.name).join(', ');
@@ -195,199 +46,218 @@ export async function generateReportPdf(
     }
   }
 
-  /* ── Document definition ─────────────────────────────────────────────── */
-  const docDefinition = {
-    pageSize: 'A4',
-    pageOrientation: 'portrait',
-    pageMargins: [42, 60, 42, 56] as [number, number, number, number],
+  const html = `
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+      <meta charset="UTF-8">
+      <title>Relatório Financeiro - ${escapeHtml(tenantName)}</title>
+      <style>
+        @page { size: A4 portrait; margin: 15mm; }
+        body {
+          font-family: Arial, sans-serif;
+          font-size: 10pt;
+          color: #111111;
+          line-height: 1.4;
+          margin: 0;
+          padding: 0;
+        }
+        * { box-sizing: border-box; }
+        .header-bar { border-top: 4px solid #4F46E5; margin-bottom: 20px; }
+        .flex { display: flex; }
+        .justify-between { justify-content: space-between; }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        .font-bold { font-weight: bold; }
+        .text-indigo { color: #4F46E5; }
+        .text-emerald { color: #059669; }
+        .text-rose { color: #E11D48; }
+        .text-amber { color: #D97706; }
+        .text-gray { color: #71717A; }
+        .text-light { color: #A1A1AA; }
+        .bg-gray { background-color: #F4F4F5; }
+        .bg-dark { background-color: #111111; color: #FFFFFF; }
+        h1 { font-size: 18pt; margin: 0 0 5px 0; color: #111111; }
+        h2 { font-size: 12pt; margin: 20px 0 10px 0; color: #111111; border-bottom: 1px solid #D4D4D8; padding-bottom: 4px; }
+        .kpi-grid { display: flex; margin-bottom: 15px; gap: 15px; }
+        .kpi-box { flex: 1; padding: 10px; background-color: #F4F4F5; border-radius: 4px; }
+        .kpi-title { font-size: 7pt; text-transform: uppercase; color: #71717A; font-weight: bold; margin-bottom: 4px; }
+        .kpi-val { font-size: 14pt; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 9pt; }
+        th { background-color: #111111; color: #FFFFFF; padding: 6px; text-align: left; font-size: 8pt; }
+        td { padding: 6px; border-bottom: 1px solid #E4E4E7; }
+        tr:nth-child(even) td { background-color: #FAFAFA; }
+        .analysis-box { padding: 12px; border-left: 4px solid ${data.totalOverdue > 0 ? '#E11D48' : '#059669'}; background-color: ${data.totalOverdue > 0 ? '#FFF1F2' : '#ECFDF5'}; margin-bottom: 20px; }
+        .footer { margin-top: 30px; font-size: 7pt; color: #A1A1AA; border-top: 1px solid #E4E4E7; padding-top: 10px; display: flex; justify-content: space-between; }
+      </style>
+    </head>
+    <body>
+      <div class="header-bar"></div>
 
-    defaultStyle: {
-      font: 'Roboto',
-      fontSize: 10,
-      color: OBSIDIAN,
-    },
+      <div class="flex justify-between" style="margin-bottom: 20px;">
+        <div>
+          <div style="font-size: 20pt; font-weight: bold; color: #4F46E5; letter-spacing: 2px;">FLUXO</div>
+          <div style="font-size: 8pt; color: #71717A;">Sistema de Gestão Financeira</div>
+        </div>
+        <div class="text-right">
+          <div class="font-bold">${escapeHtml(tenantName)}</div>
+          <div style="font-size: 8pt; color: #71717A;">Período: ${escapeHtml(data.periodLabel)}</div>
+          <div style="font-size: 7pt; color: #A1A1AA;">Gerado: ${escapeHtml(generatedAt)}</div>
+        </div>
+      </div>
 
-    styles: {
-      tableHeader: {
-        fontSize: 8,
-        bold: true,
-        color: WHITE,
-        fillColor: OBSIDIAN,
-        alignment: 'left',
-      },
-    },
+      <h1>Relatório Financeiro de Cobrança e Recebíveis</h1>
+      <div style="font-size: 9pt; color: #71717A; margin-bottom: 20px;">Análise consolidada da carteira de cobranças B2B – ${escapeHtml(data.periodLabel)}</div>
 
-    header: (currentPage: number) => {
-      if (currentPage === 1) return null;
-      return {
-        columns: [
-          { text: `RELATÓRIO FINANCEIRO – ${tenantName.toUpperCase()}`, fontSize: 7, color: GRAY_500, margin: [42, 16, 0, 0] },
-          { text: `Gerado em ${generatedAt}`, fontSize: 7, color: GRAY_500, alignment: 'right', margin: [0, 16, 42, 0] },
-        ],
-      };
-    },
+      <h2>1. Resumo Executivo</h2>
+      <div class="kpi-grid">
+        <div class="kpi-box">
+          <div class="kpi-title">Faturamento Bruto</div>
+          <div class="kpi-val">${escapeHtml(fmtShort(data.totalBilled))}</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-title">Caixa Realizado</div>
+          <div class="kpi-val text-emerald">${escapeHtml(fmtShort(data.totalPaid))}</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-title">Inadimplência</div>
+          <div class="kpi-val ${data.totalOverdue > 0 ? 'text-rose' : 'text-emerald'}">${escapeHtml(fmtShort(data.totalOverdue))}</div>
+        </div>
+      </div>
 
-    footer: (currentPage: number, pageCount: number) => ({
-      columns: [
-        { text: `Documento gerado automaticamente pelo sistema Fluxo • ${tenantName}`, fontSize: 7, color: GRAY_500, margin: [42, 0, 0, 0] },
-        { text: `Página ${currentPage} de ${pageCount}`, fontSize: 7, color: GRAY_500, alignment: 'right', margin: [0, 0, 42, 0] },
-      ],
-    }),
+      <div class="kpi-grid">
+        <div class="kpi-box">
+          <div class="kpi-title">A Receber</div>
+          <div class="kpi-val text-indigo">${escapeHtml(fmtShort(data.totalPending))}</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-title">Ticket Médio</div>
+          <div class="kpi-val">${escapeHtml(fmtShort(data.avgTicket))}</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-title">% Inadimplência</div>
+          <div class="kpi-val ${data.defaultRate > 10 ? 'text-rose' : ''}">${escapeHtml(pct(data.defaultRate))}</div>
+        </div>
+      </div>
 
-    content: [
-      // ── CAPA ──────────────────────────────────────────────────────────
-      {
-        canvas: [{
-          type: 'rect', x: 0, y: 0, w: 515, h: 4,
-          color: INDIGO, lineColor: INDIGO,
-        }],
-        margin: [0, 0, 0, 28],
-      },
-      {
-        columns: [
-          {
-            stack: [
-              { text: 'FLUXO', fontSize: 24, bold: true, color: INDIGO, characterSpacing: 3 },
-              { text: 'Sistema de Gestão Financeira', fontSize: 9, color: GRAY_500, margin: [0, 2, 0, 0] },
-            ],
-          },
-          {
-            stack: [
-              { text: tenantName, fontSize: 11, bold: true, color: OBSIDIAN, alignment: 'right' },
-              { text: `Período: ${data.periodLabel}`, fontSize: 9, color: GRAY_500, alignment: 'right', margin: [0, 2, 0, 0] },
-              { text: `Gerado: ${generatedAt}`, fontSize: 8, color: GRAY_500, alignment: 'right', margin: [0, 1, 0, 0] },
-            ],
-          },
-        ],
-      },
-      { ...divider(20) },
-      H1('Relatório Financeiro de Cobrança e Recebíveis'),
-      { text: `Análise consolidada da carteira de cobranças B2B – ${data.periodLabel}`, fontSize: 10, color: GRAY_500, margin: [0, 2, 0, 0] },
+      <div class="kpi-grid">
+        <div class="kpi-box">
+          <div class="kpi-title">Taxa de Recuperação</div>
+          <div class="kpi-val ${data.recoveryRate > 70 ? 'text-emerald' : 'text-amber'}">${escapeHtml(pct(data.recoveryRate))}</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-title">Clientes em Atraso</div>
+          <div class="kpi-val ${data.customersWithOverdue > 0 ? 'text-rose' : 'text-emerald'}">${escapeHtml(String(data.customersWithOverdue))} / ${escapeHtml(String(data.totalCustomers))}</div>
+        </div>
+      </div>
 
-      // ── RESUMO EXECUTIVO ───────────────────────────────────────────────
-      H2('1. Resumo Executivo'),
-      {
-        fillColor: GRAY_100,
-        table: { widths: ['*'], body: [[{ border: [false,false,false,false], stack: [kpiGrid, kpiGrid2, kpiGrid3], margin: [16, 16, 16, 16] }]] },
-        layout: 'noBorders',
-        margin: [0, 0, 0, 0],
-      },
+      ${data.monthlyCashflow.length > 0 ? `
+      <h2>2. Evolução Mensal do Fluxo de Caixa</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>MÊS</th>
+            <th class="text-right">FATURADO</th>
+            <th class="text-right">RECEBIDO</th>
+            <th class="text-right">ATRASADO</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${data.monthlyCashflow.map(row => `
+            <tr>
+              <td>${escapeHtml(row.month)}</td>
+              <td class="text-right font-bold">${escapeHtml(fmtShort(row.faturado))}</td>
+              <td class="text-right font-bold text-emerald">${escapeHtml(fmtShort(row.recebido))}</td>
+              <td class="text-right font-bold ${row.atrasado > 0 ? 'text-rose' : 'text-gray'}">${escapeHtml(fmtShort(row.atrasado))}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+      ` : ''}
 
-      // ── EVOLUÇÃO MENSAL ────────────────────────────────────────────────
-      ...(hasCashflow ? [
-        H2('2. Evolução Mensal do Fluxo de Caixa'),
-        {
-          table: {
-            headerRows: 1,
-            widths: ['*', 'auto', 'auto', 'auto'],
-            body: cashflowTableBody,
-          },
-          layout: {
-            hLineWidth: () => 0.3,
-            vLineWidth: () => 0,
-            hLineColor: () => GRAY_300,
-            paddingLeft: () => 8,
-            paddingRight: () => 8,
-            paddingTop: () => 5,
-            paddingBottom: () => 5,
-          },
-        },
-      ] : []),
+      <h2>3. Carteira por Cliente</h2>
+      <div style="font-size: 7pt; color: #71717A; margin-bottom: 5px;">Ordenação: maior valor em atraso primeiro.</div>
+      ${sortedClients.length > 0 ? `
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>CLIENTE</th>
+            <th class="text-right">FATURADO</th>
+            <th class="text-right">RECEBIDO</th>
+            <th class="text-right">EM ATRASO</th>
+            <th class="text-center">FATURAS</th>
+            <th class="text-center">RISCO</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${sortedClients.map((c, i) => `
+            <tr>
+              <td class="text-gray" style="font-size: 7pt;">${i + 1}</td>
+              <td>
+                <div class="font-bold">${escapeHtml(c.name)}</div>
+                <div style="font-size: 7pt; color: #71717A;">${escapeHtml(c.documentNumber || '–')}</div>
+              </td>
+              <td class="text-right font-bold">${escapeHtml(fmtShort(c.totalBilled))}</td>
+              <td class="text-right font-bold text-emerald">${escapeHtml(fmtShort(c.totalPaid))}</td>
+              <td class="text-right font-bold ${c.totalOverdue > 0 ? 'text-rose' : 'text-gray'}">${c.totalOverdue > 0 ? escapeHtml(fmtShort(c.totalOverdue)) : '–'}</td>
+              <td class="text-center">${escapeHtml(String(c.invoiceCount))}</td>
+              <td class="text-center font-bold" style="font-size: 7pt; color: ${c.riskLevel === 'Crítico' ? '#E11D48' : c.riskLevel === 'Alto' ? '#D97706' : c.riskLevel === 'Médio' ? '#B45309' : '#059669'}">${escapeHtml(c.riskLevel)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+      ` : '<div style="font-size: 8pt; color: #71717A;">Nenhuma fatura no período selecionado.</div>'}
 
-      // ── CARTEIRA POR CLIENTE ───────────────────────────────────────────
-      H2('3. Carteira por Cliente'),
-      { text: 'Ordenação: maior valor em atraso primeiro.', fontSize: 8, color: GRAY_500, margin: [0, 0, 0, 6] },
-      sortedClients.length > 0 ? {
-        table: {
-          headerRows: 1,
-          widths: ['auto', '*', 'auto', 'auto', 'auto', 'auto', 'auto'],
-          body: clientTableBody,
-        },
-        layout: {
-          hLineWidth: () => 0.3,
-          vLineWidth: () => 0,
-          hLineColor: () => GRAY_300,
-          paddingLeft: () => 6,
-          paddingRight: () => 6,
-          paddingTop: () => 4,
-          paddingBottom: () => 4,
-        },
-      } : { text: 'Nenhuma fatura no período selecionado.', fontSize: 9, color: GRAY_500 },
+      ${criticalClients.length > 0 ? `
+      <h2>4. Clientes Críticos – Ranking de Risco</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>CLIENTE</th>
+            <th class="text-right">EM ATRASO</th>
+            <th class="text-center">RISCO</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${criticalClients.map((c, i) => `
+            <tr>
+              <td class="text-gray" style="font-size: 7pt;">${i + 1}</td>
+              <td class="font-bold">${escapeHtml(c.name)}</td>
+              <td class="text-right font-bold text-rose">${escapeHtml(fmtShort(c.totalOverdue))}</td>
+              <td class="text-center font-bold" style="font-size: 7pt; color: ${c.riskLevel === 'Crítico' ? '#E11D48' : '#D97706'}">${escapeHtml(c.riskLevel)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+      ` : ''}
 
-      // ── CLIENTES CRÍTICOS ──────────────────────────────────────────────
-      ...(criticalClients.length > 0 ? [
-        H2('4. Clientes Críticos – Ranking de Risco'),
-        {
-          table: {
-            headerRows: 1,
-            widths: ['auto', '*', 'auto', 'auto'],
-            body: [
-              [
-                { text: '#', style: 'tableHeader' },
-                { text: 'CLIENTE', style: 'tableHeader' },
-                { text: 'EM ATRASO', style: 'tableHeader', alignment: 'right' },
-                { text: 'RISCO', style: 'tableHeader', alignment: 'center' },
-              ],
-              ...criticalClients.map((c, i) => [
-                { text: `${i + 1}`, fontSize: 9, color: GRAY_500, fillColor: i % 2 === 0 ? WHITE : GRAY_100 },
-                { text: c.name, fontSize: 9, bold: true, color: OBSIDIAN, fillColor: i % 2 === 0 ? WHITE : GRAY_100 },
-                { text: fmtShort(c.totalOverdue), fontSize: 9, color: ROSE, alignment: 'right', bold: true, fillColor: i % 2 === 0 ? WHITE : GRAY_100 },
-                { text: c.riskLevel, fontSize: 8, bold: true, color: RISK_COLORS[c.riskLevel], alignment: 'center', fillColor: i % 2 === 0 ? WHITE : GRAY_100 },
-              ]),
-            ],
-          },
-          layout: {
-            hLineWidth: () => 0.3,
-            vLineWidth: () => 0,
-            hLineColor: () => GRAY_300,
-            paddingLeft: () => 8,
-            paddingRight: () => 8,
-            paddingTop: () => 5,
-            paddingBottom: () => 5,
-          },
-        },
-      ] : []),
+      <h2>5. Análise de Inadimplência</h2>
+      <div class="analysis-box">
+        ${escapeHtml(analysisText)}
+      </div>
 
-      // ── ANÁLISE DE INADIMPLÊNCIA ───────────────────────────────────────
-      H2('5. Análise de Inadimplência'),
-      {
-        fillColor: data.totalOverdue > 0 ? '#FFF1F2' : '#ECFDF5',
-        table: {
-          widths: ['*'],
-          body: [[{
-            border: [true, false, false, false],
-            borderColor: [data.totalOverdue > 0 ? ROSE : EMERALD, '', '', ''],
-            text: analysisText,
-            fontSize: 10,
-            color: GRAY_700,
-            margin: [12, 10, 12, 10],
-            lineHeight: 1.5,
-          }]],
-        },
-        layout: 'noBorders',
-        margin: [0, 0, 0, 0],
-      },
+      <div class="footer">
+        <div>Este documento foi gerado automaticamente pelo sistema Fluxo. Dados reais — sem interferência manual.</div>
+        <div class="text-right font-bold" style="color: #111111;">${escapeHtml(tenantName)}</div>
+      </div>
 
-      // ── ASSINATURA ─────────────────────────────────────────────────────
-      { ...divider(24) },
-      {
-        columns: [
-          {
-            stack: [
-              { text: 'Este documento foi gerado automaticamente pelo sistema Fluxo.', fontSize: 8, color: GRAY_500 },
-              { text: 'Dados reais — sem interferência manual.', fontSize: 8, color: GRAY_500 },
-            ],
-          },
-          {
-            stack: [
-              { text: generatedAt, fontSize: 8, color: GRAY_500, alignment: 'right' },
-              { text: tenantName, fontSize: 8, bold: true, color: OBSIDIAN, alignment: 'right' },
-            ],
-          },
-        ],
-      },
-    ],
-  };
+      <script>
+        window.onload = function() {
+          window.print();
+        }
+      </script>
+    </body>
+    </html>
+  `;
 
-  pdfMake.createPdf(docDefinition).download(filename);
+  const printWindow = window.open('', '_blank');
+  if (printWindow) {
+    printWindow.document.open();
+    printWindow.document.write(html);
+    printWindow.document.close();
+  } else {
+    alert('Por favor, permita pop-ups para gerar o relatório.');
+  }
 }
