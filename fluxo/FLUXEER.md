@@ -1717,3 +1717,29 @@ Sem vulnerabilidades conhecidas após os testes executados.
   - `npm run build` -> Sucesso (Build completo)
   - `npm run test` -> 176/176 aprovados
 - **Status Final:** Vulnerabilidade resolvida com sucesso sem afetar a arquitetura e validando a inexistência do vetor de ataque. O fechamento visual depende do novo scan do Snyk.
+
+---
+
+## 26. Correção de Segurança: Vulnerabilidade pacote `@auth/core` (Maio 2026)
+
+**Data:** 07/05/2026
+**Status:** ✅ Concluído
+
+- **Vulnerabilidade corrigida:** Improper Neutralization no componente de validação de e-mail (CWE-149 / SNYK-JS-AUTHCORE-13744119)
+- **Gravidade:** Média
+- **Pacote afetado:** `@auth/core`
+- **Origem:** Dependência transitiva
+- **Pacote pai:** `next-auth@5.0.0-beta.30`
+- **Versão vulnerável detectada:** `< 0.41.1` (estava em 0.41.0)
+- **Versão segura aplicada:** `0.41.2` (via overrides)
+- **Estratégia aplicada:** Cenário B - Adicionado override explícito de `@auth/core` para `>= 0.41.1`. Evitamos a atualização desenfreada do `next-auth` beta para proteger a estabilidade dos fluxos complexos de sessão, callbacks e PrismaAdapter.
+- **Uso de EmailProvider:** Sem vetor ativo identificado no fluxo atual, pois o projeto não usa EmailProvider/magic link do Auth.js. O login usa OAuth Google e Credentials. A correção blinda preventivamente e remove o alerta transitivo.
+- **Comandos de validação executados:**
+  - `npm list @auth/core` -> Confirmado `0.41.2 overridden`
+  - `npm list next-auth` -> Confirmado mantido em `5.0.0-beta.30`
+  - `npm audit` -> 0 vulnerabilidades (Reporte limpo)
+  - `npm run lint` -> 0 errors (Aprovado)
+  - `npx tsc --noEmit` -> Sucesso (0 errors)
+  - `npm run build` -> Sucesso
+  - `npm run test` -> 176/176 aprovados (testes de auth intactos)
+- **Status Final:** Vulnerabilidade expurgada. Nenhum fluxo de autenticação (Google, Credentials, callbacks, redirecionamentos) quebrou. O fechamento visual depende do novo scan do Snyk.
