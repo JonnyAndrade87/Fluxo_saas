@@ -1669,3 +1669,25 @@ Sem vulnerabilidades conhecidas após os testes executados.
   - `npm run test` -> 176/176 aprovados
   - Validação de código (`grep`) confirmando que não há impactos na geração de IDs da aplicação (não era importado diretamente).
 - **Status Final:** Vulnerabilidade eliminada do escopo local. O update do `package-lock.json` blinda builds futuros.
+
+---
+
+## 24. Correção de Segurança: Vulnerabilidade pacote `postcss` (Maio 2026)
+
+**Data:** 07/05/2026
+**Status:** ✅ Concluído
+
+- **Vulnerabilidade corrigida:** Scripts entre sites (XSS) em CSS Stringify Output (CVE-2026-41305 / CWE-79)
+- **Pacote afetado:** `postcss`
+- **Origem:** Dependência transitiva via `vite`, `next` e `@tailwindcss/postcss`
+- **Versão anterior detectada:** 8.4.31 (Next) e 8.5.8 (Vite/Tailwind)
+- **Versão segura aplicada:** 8.5.14
+- **Estratégia usada:** Overrides explícito no `package.json` (`"postcss": "^8.5.10"`)
+- **Comandos de validação executados:**
+  - `npm list postcss` -> Confirmado `postcss@8.5.14 overridden` e `deduped` para todos os pacotes pais
+  - `npm audit` -> 0 vulnerabilidades (Reporte limpo)
+  - `npm run lint` -> 0 errors (Aprovado)
+  - `npx tsc --noEmit` -> Sucesso (0 errors)
+  - `npm run build` -> Sucesso (Build completo na Vercel Turbopack)
+  - `npm run test` -> 176/176 aprovados
+- **Status Final:** Vulnerabilidade eliminada. O CSS global, configurações do Tailwind e build de UI continuam intactos e validados.
