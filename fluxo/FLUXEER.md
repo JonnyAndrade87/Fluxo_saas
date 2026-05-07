@@ -1646,3 +1646,26 @@ Realizada a consolidação segura de documentação técnica, scripts utilitári
 - **Testes Unitários:** 176/176 aprovados.
 
 Sem vulnerabilidades conhecidas após os testes executados.
+
+---
+
+## 23. Correção de Segurança: Vulnerabilidade pacote `uuid` (Maio 2026)
+
+**Data:** 07/05/2026
+**Status:** ✅ Concluído
+
+- **Vulnerabilidade corrigida:** Validação Imprópria do Índice, Posição ou Deslocamento (CVE-2026-41907 / CWE-1285)
+- **Pacote afetado:** `uuid`
+- **Origem:** Dependência transitiva via `resend` -> `svix`
+- **Versão anterior detectada:** 10.0.0
+- **Versão segura aplicada:** 11.1.1
+- **Estratégia usada:** Overrides no `package.json` (`"uuid": "^11.1.1"`)
+- **Comandos de validação executados:**
+  - `npm list uuid` -> Confirmado `uuid@11.1.1 overridden`
+  - `npm audit` -> Reporte livre da vulnerabilidade do uuid
+  - `npm run lint` -> 0 errors
+  - `npx tsc --noEmit` -> Sucesso (0 errors)
+  - `npm run build` -> Sucesso
+  - `npm run test` -> 176/176 aprovados
+  - Validação de código (`grep`) confirmando que não há impactos na geração de IDs da aplicação (não era importado diretamente).
+- **Status Final:** Vulnerabilidade eliminada do escopo local. O update do `package-lock.json` blinda builds futuros.
