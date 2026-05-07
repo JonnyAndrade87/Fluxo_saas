@@ -1691,3 +1691,29 @@ Sem vulnerabilidades conhecidas após os testes executados.
   - `npm run build` -> Sucesso (Build completo na Vercel Turbopack)
   - `npm run test` -> 176/176 aprovados
 - **Status Final:** Vulnerabilidade eliminada. O CSS global, configurações do Tailwind e build de UI continuam intactos e validados.
+
+---
+
+## 25. Correção de Segurança: Vulnerabilidade pacote `pdfmake` (Maio 2026)
+
+**Data:** 07/05/2026
+**Status:** ✅ Concluído
+
+- **Vulnerabilidade corrigida:** Server-side Request Forgery (SSRF) (CVE-2026-26801 / CWE-918)
+- **Gravidade:** Alta
+- **Pacote afetado:** `pdfmake`
+- **Origem:** Dependência direta (`package.json`)
+- **Uso encontrado no projeto:** Geração de relatórios financeiros (`src/lib/pdf/reportPdf.ts`)
+- **Uso server-side:** Não. O pacote só é importado dinamicamente no client-side via browser API (`download()`), sem qualquer execução no servidor.
+- **Risco de SSRF:** Zero risco real, visto que SSRF é um ataque server-side e a renderização do PDF no Fluxeer é feita inteiramente pelo browser do usuário, sem processar URLs externas no backend.
+- **Versão anterior detectada:** 0.3.7
+- **Versão segura aplicada:** 0.3.8
+- **Estratégia usada:** Update direto da versão no `package.json` (Cenário B - uso client-side confirmado, atualizado por segurança). Não foi necessária a implementação de `setUrlAccessPolicy()` porque a biblioteca não é usada em backend.
+- **Comandos de validação executados:**
+  - `npm list pdfmake` -> Confirmado `pdfmake@0.3.8`
+  - `npm audit` -> 0 vulnerabilidades (Reporte limpo)
+  - `npm run lint` -> 0 errors (Aprovado)
+  - `npx tsc --noEmit` -> Sucesso (0 errors)
+  - `npm run build` -> Sucesso (Build completo)
+  - `npm run test` -> 176/176 aprovados
+- **Status Final:** Vulnerabilidade resolvida com sucesso sem afetar a arquitetura e validando a inexistência do vetor de ataque. O fechamento visual depende do novo scan do Snyk.
