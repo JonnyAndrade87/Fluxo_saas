@@ -12,6 +12,10 @@
     {
       "path": "/api/send-queue",
       "schedule": "0 8 * * 1-5"
+    },
+    {
+      "path": "/api/cron/lgpd-cleanup",
+      "schedule": "0 0 1 * *"
     }
   ],
   "redirects": [],
